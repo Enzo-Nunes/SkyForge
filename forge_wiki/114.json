@@ -1,0 +1,128 @@
+[
+    {
+        "Lore":"Bejeweled CollarConsumed on use Pet Items can boost pets in many powerful ways! A pet can only hold one Pet Item at a time. The pet must be visible to apply the item! Grants +25\u2e15 Mining Speed and +10\u2618 Mining Fortune. Right-click on your summoned pet to give it this item! RARE PET ITEM",
+        "Name & Rarity":"Bejeweled Collar RARE",
+        "Duration":"2 hours",
+        "Recipe Tree":"1 Bejeweled Collar 4 Refined Mithril [] 640 Enchanted Mithril [] 102,400 Mithril 1 Bejeweled Handle [] 3 Glacite Jewel",
+        "Requirements":"Heart of the Mountain Tier 2"
+    },
+    {
+        "Lore":"Bejeweled CollarConsumed on use Pet Items can boost pets in many powerful ways! A pet can only hold one Pet Item at a time. The pet must be visible to apply the item! Grants +25\u2e15 Mining Speed and +10\u2618 Mining Fortune. Right-click on your summoned pet to give it this item! RARE PET ITEM",
+        "Name & Rarity":null,
+        "Duration":null,
+        "Recipe Tree":null,
+        "Requirements":null
+    },
+    {
+        "Lore":"[Lvl 100] Mole Mining Pet Intelligence: +100 Magic Find: +5 Mining Speed: +150 Archaeologist Scavenged Items appear 25% more often while in the Mines of Divan. Magnetic Nose Automatons drop their parts 50% more frequently. Nucleic Veins The Crystal Nucleus has a 100% chance to drop an additional item. MAX LEVEL \u25b8 25,353,230 XP Right-click to add this pet to your pet menu! LEGENDARY",
+        "Name & Rarity":"Mole Pet LEGENDARY",
+        "Duration":"3 days",
+        "Recipe Tree":"1 Mole Pet 1 Claw Fossil 300,000 Coins",
+        "Requirements":"Heart of the Mountain Tier 4"
+    },
+    {
+        "Lore":"[Lvl 100] Mole Mining Pet Intelligence: +100 Magic Find: +5 Mining Speed: +150 Archaeologist Scavenged Items appear 25% more often while in the Mines of Divan. Magnetic Nose Automatons drop their parts 50% more frequently. Nucleic Veins The Crystal Nucleus has a 100% chance to drop an additional item. MAX LEVEL \u25b8 25,353,230 XP Right-click to add this pet to your pet menu! LEGENDARY",
+        "Name & Rarity":null,
+        "Duration":null,
+        "Recipe Tree":null,
+        "Requirements":null
+    },
+    {
+        "Lore":"[Lvl 1\u00a0\u00bb 100] Ammonite Fishing Pet Sea Creature Chance: +0.05%\u00a0\u00bb +5% Heart of the Sea Grants +0.01\u00a0\u00bb +1\u03b1 Sea Creature Chance to your pet for each Heart of the Mountain level. Expert Cave Fisher The fishing speed reduction from being underground is reduced by 1%\u00a0\u00bb 100%. Gift of the Ammonite Each Mining and Fishing level grants +0.01\u00a0\u00bb +0.5\u2602 Fishing Speed, +0.02\u00a0\u00bb +2\u2726 Speed and +0.02\u00a0\u00bb +2\u2748 Defense. MAX LEVEL \u25b8 25,353,230 XP Right-click to add this pet to your pet menu! LEGENDARY",
+        "Name & Rarity":"Ammonite Pet LEGENDARY",
+        "Duration":"3 days",
+        "Recipe Tree":"1 Ammonite Pet 1 Helix 300,000 Coins",
+        "Requirements":"Heart of the Mountain Tier 4"
+    },
+    {
+        "Lore":"[Lvl 1\u00a0\u00bb 100] Ammonite Fishing Pet Sea Creature Chance: +0.05%\u00a0\u00bb +5% Heart of the Sea Grants +0.01\u00a0\u00bb +1\u03b1 Sea Creature Chance to your pet for each Heart of the Mountain level. Expert Cave Fisher The fishing speed reduction from being underground is reduced by 1%\u00a0\u00bb 100%. Gift of the Ammonite Each Mining and Fishing level grants +0.01\u00a0\u00bb +0.5\u2602 Fishing Speed, +0.02\u00a0\u00bb +2\u2726 Speed and +0.02\u00a0\u00bb +2\u2748 Defense. MAX LEVEL \u25b8 25,353,230 XP Right-click to add this pet to your pet menu! LEGENDARY",
+        "Name & Rarity":null,
+        "Duration":null,
+        "Recipe Tree":null,
+        "Requirements":null
+    },
+    {
+        "Lore":"[Lvl 100] Penguin Fishing Pet Sea Creature Chance: +10% Thick Blubbler Each time you catch a Sea Creature, reduce your \u2744 Cold by 6. Expert Glacite Fisher The fishing speed reduction from being underground is reduced by 100%. Subzero Hero Gain +75\u2602 Fishing Speed while in the Glacite Tunnels.  LEGENDARY",
+        "Name & Rarity":"Penguin Pet LEGENDARY",
+        "Duration":"7 days",
+        "Recipe Tree":"1 Penguin Pet 1 Webbed Fossil 1 Flawless Aquamarine Gemstone [] 80 Fine Aquamarine Gemstone [] 6,400 Flawed Aquamarine Gemstone [] 512,000 Rough Aquamarine Gemstone",
+        "Requirements":"Heart of the Mountain Tier 7 Donating a Webbed Fossil to Dr. Stone"
+    },
+    {
+        "Lore":"[Lvl 100] Penguin Fishing Pet Sea Creature Chance: +10% Thick Blubbler Each time you catch a Sea Creature, reduce your \u2744 Cold by 6. Expert Glacite Fisher The fishing speed reduction from being underground is reduced by 100%. Subzero Hero Gain +75\u2602 Fishing Speed while in the Glacite Tunnels.  LEGENDARY",
+        "Name & Rarity":null,
+        "Duration":null,
+        "Recipe Tree":null,
+        "Requirements":null
+    },
+    {
+        "Lore":"[Lvl 100] T-Rex Combat Pet Strength: +75 Crit Chance: +5% Ferocity: +25 Close Combat Deal 100% more damage to enemies within 1.5 blocks. Ferocious Roar Attacks have a 10% chance to stun the target (10s cooldown). Tyrant Stats granted by pet items on this pet are increased by 100%.  LEGENDARY",
+        "Name & Rarity":"T-Rex Pet LEGENDARY",
+        "Duration":"7 days",
+        "Recipe Tree":"1 T-Rex Pet 1 Footprint Fossil 1 Flawless Onyx Gemstone [] 80 Fine Onyx Gemstone [] 6,400 Flawed Onyx Gemstone [] 512,000 Rough Onyx Gemstone",
+        "Requirements":"Heart of the Mountain Tier 7 Donating a Footprint Fossil to Dr. Stone"
+    },
+    {
+        "Lore":"[Lvl 100] T-Rex Combat Pet Strength: +75 Crit Chance: +5% Ferocity: +25 Close Combat Deal 100% more damage to enemies within 1.5 blocks. Ferocious Roar Attacks have a 10% chance to stun the target (10s cooldown). Tyrant Stats granted by pet items on this pet are increased by 100%.  LEGENDARY",
+        "Name & Rarity":null,
+        "Duration":null,
+        "Recipe Tree":null,
+        "Requirements":null
+    },
+    {
+        "Lore":"[Lvl 100] Spinosaurus Fishing Pet Sea Creature Chance: +8% Fishing Speed: +25 Sharp Attitude Sea Creatures spawn with 15% of their maximum health missing. Pursuit Gain +8\u272f Magic Find against Sea Creatures. Primordial Fisher During rain, increases this pet's base stats and stats granted by perks by 75%.  LEGENDARY",
+        "Name & Rarity":"Spinosaurus Pet LEGENDARY",
+        "Duration":"7 days",
+        "Recipe Tree":"1 Spinosaurus Pet 1 Spine Fossil 1 Flawless Aquamarine Gemstone [] 80 Fine Aquamarine Gemstone [] 6,400 Flawed Aquamarine Gemstone [] 512,000 Rough Aquamarine Gemstone",
+        "Requirements":"Heart of the Mountain Tier 7 Donating a Spine Fossil to Dr. Stone"
+    },
+    {
+        "Lore":"[Lvl 100] Spinosaurus Fishing Pet Sea Creature Chance: +8% Fishing Speed: +25 Sharp Attitude Sea Creatures spawn with 15% of their maximum health missing. Pursuit Gain +8\u272f Magic Find against Sea Creatures. Primordial Fisher During rain, increases this pet's base stats and stats granted by perks by 75%.  LEGENDARY",
+        "Name & Rarity":null,
+        "Duration":null,
+        "Recipe Tree":null,
+        "Requirements":null
+    },
+    {
+        "Lore":"[Lvl 100] Goblin Mining Pet Magic Find: +7 Ore Fortune: +100 Grunt Work Gain +250\u2e15 Mining Speed when mining Ores. Fetid Thief Gain +100\u259a Mining Spread while in the Mines of Divan. Free-range Eggs Increases the chance of finding rare goblin eggs by 50%.  LEGENDARY",
+        "Name & Rarity":"Goblin Pet LEGENDARY",
+        "Duration":"7 days",
+        "Recipe Tree":"1 Goblin Pet 1 Ugly Fossil 1 Flawless Amber Gemstone [] 80 Fine Amber Gemstone [] 6,400 Flawed Amber Gemstone [] 512,000 Rough Amber Gemstone",
+        "Requirements":"Heart of the Mountain Tier 7 Donating an Ugly Fossil to Dr. Stone"
+    },
+    {
+        "Lore":"[Lvl 100] Goblin Mining Pet Magic Find: +7 Ore Fortune: +100 Grunt Work Gain +250\u2e15 Mining Speed when mining Ores. Fetid Thief Gain +100\u259a Mining Spread while in the Mines of Divan. Free-range Eggs Increases the chance of finding rare goblin eggs by 50%.  LEGENDARY",
+        "Name & Rarity":null,
+        "Duration":null,
+        "Recipe Tree":null,
+        "Requirements":null
+    },
+    {
+        "Lore":"[Lvl 100] Ankylosaurus Combat Pet Health: +150 Defense: +50 True Defense: +15 Armored Tank Gain 15% of your \u2748 Defense as \u2741 Strength. Unyielding Increases the effectiveness of Last Stand and Lifeline by 50%. Clubbed Tail Every 5th hit deals 50% of your final damage to enemies within 5 blocks. Enemies hit deal 10% less damage for 10s.  LEGENDARY",
+        "Name & Rarity":"Ankylosaurus Pet LEGENDARY",
+        "Duration":"7 days",
+        "Recipe Tree":"1 Ankylosaurus Pet 1 Clubbed Fossil 1 Flawless Opal Gemstone [] 80 Fine Opal Gemstone [] 6,400 Flawed Opal Gemstone [] 512,000 Rough Opal Gemstone",
+        "Requirements":"Heart of the Mountain Tier 7 Donating a Clubbed Fossil to Dr. Stone"
+    },
+    {
+        "Lore":"[Lvl 100] Ankylosaurus Combat Pet Health: +150 Defense: +50 True Defense: +15 Armored Tank Gain 15% of your \u2748 Defense as \u2741 Strength. Unyielding Increases the effectiveness of Last Stand and Lifeline by 50%. Clubbed Tail Every 5th hit deals 50% of your final damage to enemies within 5 blocks. Enemies hit deal 10% less damage for 10s.  LEGENDARY",
+        "Name & Rarity":null,
+        "Duration":null,
+        "Recipe Tree":null,
+        "Requirements":null
+    },
+    {
+        "Lore":"[Lvl 100] Mammoth Combat Pet Defense: +50 Cold Resistance: +10 Wooly Coat Gain a 100% chance for mobs to not inflict \u2744 Cold when damaging you in the Glacite Mineshafts. Tusk Luck Gain +0.5\u272f Magic Find for every 100 \u2618 Mining Fortune, doubled in the Glacite Tunnels and Glacite Mineshafts. Corpse Crusher Gain +30\u2618 Mining Fortune for each Frozen Corpse looted in your current Glacite Mineshaft.  LEGENDARY",
+        "Name & Rarity":"Mammoth Pet LEGENDARY",
+        "Duration":"7 days",
+        "Recipe Tree":"1 Mammoth Pet 1 Tusk Fossil 1 Flawless Onyx Gemstone [] 80 Fine Onyx Gemstone [] 6,400 Flawed Onyx Gemstone [] 512,000 Rough Onyx Gemstone",
+        "Requirements":"Heart of the Mountain Tier 7 Donating a Tusk Fossil to Dr. Stone"
+    },
+    {
+        "Lore":"[Lvl 100] Mammoth Combat Pet Defense: +50 Cold Resistance: +10 Wooly Coat Gain a 100% chance for mobs to not inflict \u2744 Cold when damaging you in the Glacite Mineshafts. Tusk Luck Gain +0.5\u272f Magic Find for every 100 \u2618 Mining Fortune, doubled in the Glacite Tunnels and Glacite Mineshafts. Corpse Crusher Gain +30\u2618 Mining Fortune for each Frozen Corpse looted in your current Glacite Mineshaft.  LEGENDARY",
+        "Name & Rarity":null,
+        "Duration":null,
+        "Recipe Tree":null,
+        "Requirements":null
+    }
+]

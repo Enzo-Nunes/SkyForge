@@ -1,0 +1,142 @@
+[
+    {
+        "Lore":"DiamoniteReforge Stone Combinable in Reforge Anvil Applies the Fleet reforge when combined with a mining tool. Magical form of diamond. Fleet (Legendary): Mining Speed: +50 Block Fortune: +55 Fleet Bonus Grants +100\u259a Mining Spread on non-ore blocks. Requires Mining Skill Level XV! RARE REFORGE STONE",
+        "Name & Rarity":"Diamonite RARE",
+        "Duration":"6 hours",
+        "Recipe Tree":"1 Diamonite 3 Refined Diamond [] 6 Enchanted Diamond Block [] 960 Enchanted Diamond [] 153,600 Diamond",
+        "Requirements":"Heart of the Mountain Tier 2"
+    },
+    {
+        "Lore":"DiamoniteReforge Stone Combinable in Reforge Anvil Applies the Fleet reforge when combined with a mining tool. Magical form of diamond. Fleet (Legendary): Mining Speed: +50 Block Fortune: +55 Fleet Bonus Grants +100\u259a Mining Spread on non-ore blocks. Requires Mining Skill Level XV! RARE REFORGE STONE",
+        "Name & Rarity":null,
+        "Duration":null,
+        "Recipe Tree":null,
+        "Requirements":null
+    },
+    {
+        "Lore":"Pocket IcebergReforge Stone Combinable in Reforge Anvil Applies the Scraped reforge when combined with a mining tool. Woah, woah, too many drops! Scraped (Legendary): Breaking Power: +1 Mining Wisdom: +2 Scraped Bonus Grants +25\u2618 Mining Fortune if the block you are mining has the same \u24c5 Breaking Power as this tool. \u2763 Requires Mining Skill 25. EPIC REFORGE STONE",
+        "Name & Rarity":"Pocket Iceberg EPIC",
+        "Duration":"6 hours",
+        "Recipe Tree":"1 Pocket Iceberg 5 Glacite Jewel",
+        "Requirements":"Heart of the Mountain Tier 2"
+    },
+    {
+        "Lore":"Pocket IcebergReforge Stone Combinable in Reforge Anvil Applies the Scraped reforge when combined with a mining tool. Woah, woah, too many drops! Scraped (Legendary): Breaking Power: +1 Mining Wisdom: +2 Scraped Bonus Grants +25\u2618 Mining Fortune if the block you are mining has the same \u24c5 Breaking Power as this tool. \u2763 Requires Mining Skill 25. EPIC REFORGE STONE",
+        "Name & Rarity":null,
+        "Duration":null,
+        "Recipe Tree":null,
+        "Requirements":null
+    },
+    {
+        "Lore":"Petrified StarfallReforge Stone Combinable in Reforge Anvil Applies the Stellar reforge when combined with a mining tool. It's not actually a star. Stellar (Legendary): Mining Speed: +40 Mining Fortune: +25 Stellar Bonus Earn +14% Mithril Powder and +55\u2618 Mining Fortune when mining near a Fallen Star. Requires Mining Skill Level XXVI! EPIC REFORGE STONE",
+        "Name & Rarity":"Petrified Starfall EPIC",
+        "Duration":"6 hours",
+        "Recipe Tree":"1 Petrified Starfall 512 Starfall",
+        "Requirements":"Heart of the Mountain Tier 3"
+    },
+    {
+        "Lore":"Petrified StarfallReforge Stone Combinable in Reforge Anvil Applies the Stellar reforge when combined with a mining tool. It's not actually a star. Stellar (Legendary): Mining Speed: +40 Mining Fortune: +25 Stellar Bonus Earn +14% Mithril Powder and +55\u2618 Mining Fortune when mining near a Fallen Star. Requires Mining Skill Level XXVI! EPIC REFORGE STONE",
+        "Name & Rarity":null,
+        "Duration":null,
+        "Recipe Tree":null,
+        "Requirements":null
+    },
+    {
+        "Lore":"Pure MithrilReforge Stone Combinable in Reforge Anvil Applies the Mithraic reforge when combined with a mining tool. It takes a few hours of forging to purify Mithril - the impurities extract themselves while the Mithril coalesces. Mithraic (Legendary): Mining Fortune: +16 Mithraic Bonus Grants +30\u2618 Mining Fortune when mining Mithril or Titanium. Requires Mining Skill Level XVIII! RARE REFORGE STONE",
+        "Name & Rarity":"Pure Mithril RARE",
+        "Duration":"6 hours",
+        "Recipe Tree":"1 Pure Mithril 2 Refined Mithril [] 320 Enchanted Mithril [] 51,200 Mithril",
+        "Requirements":"Heart of the Mountain Tier 3"
+    },
+    {
+        "Lore":"Pure MithrilReforge Stone Combinable in Reforge Anvil Applies the Mithraic reforge when combined with a mining tool. It takes a few hours of forging to purify Mithril - the impurities extract themselves while the Mithril coalesces. Mithraic (Legendary): Mining Fortune: +16 Mithraic Bonus Grants +30\u2618 Mining Fortune when mining Mithril or Titanium. Requires Mining Skill Level XVIII! RARE REFORGE STONE",
+        "Name & Rarity":null,
+        "Duration":null,
+        "Recipe Tree":null,
+        "Requirements":null
+    },
+    {
+        "Lore":"Dwarven GeodeReforge Stone Combinable in Reforge Anvil Applies the Auspicious reforge when combined with a mining tool. The lowest gemstone in the food chain. Auspicious (Legendary): Mining Speed: +50 Mining Fortune: +16 Auspicious Bonus Grants +0.8% \u2618 Mining Fortune. Requires Mining Skill Level XXI! RARE REFORGE STONE",
+        "Name & Rarity":"Dwarven Geode RARE",
+        "Duration":"6 hours",
+        "Recipe Tree":"1 Rock Gemstone 128 Enchanted Cobblestone [] 20,480 Cobblestone 64 Treasurite",
+        "Requirements":"Heart of the Mountain Tier 3"
+    },
+    {
+        "Lore":"Dwarven GeodeReforge Stone Combinable in Reforge Anvil Applies the Auspicious reforge when combined with a mining tool. The lowest gemstone in the food chain. Auspicious (Legendary): Mining Speed: +50 Mining Fortune: +16 Auspicious Bonus Grants +0.8% \u2618 Mining Fortune. Requires Mining Skill Level XXI! RARE REFORGE STONE",
+        "Name & Rarity":null,
+        "Duration":null,
+        "Recipe Tree":null,
+        "Requirements":null
+    },
+    {
+        "Lore":"Titanium TesseractReforge Stone Combinable in Reforge Anvil Applies the Dimensional reforge when combined with armor. Dimensional (Legendary): Mining Speed: +40 Mining Wisdom: +2 Dimensional Bonus Titanium Ore drops +10 Mithril Powder when mined. Requires Mining Skill Level XX! RARE REFORGE STONE",
+        "Name & Rarity":"Titanium Tesseract RARE",
+        "Duration":"6 hours",
+        "Recipe Tree":"1 Titanium Tesseract 16 Enchanted Lapis Lazuli [] 2,560 Lapis Lazuli 1 Refined Titanium [] 16 Enchanted Titanium [] 2,560 Titanium",
+        "Requirements":"Heart of the Mountain Tier 3"
+    },
+    {
+        "Lore":"Titanium TesseractReforge Stone Combinable in Reforge Anvil Applies the Dimensional reforge when combined with armor. Dimensional (Legendary): Mining Speed: +40 Mining Wisdom: +2 Dimensional Bonus Titanium Ore drops +10 Mithril Powder when mined. Requires Mining Skill Level XX! RARE REFORGE STONE",
+        "Name & Rarity":null,
+        "Duration":null,
+        "Recipe Tree":null,
+        "Requirements":null
+    },
+    {
+        "Lore":"Gleaming CrystalReforge Stone Combinable in Reforge Anvil Applies the Lustrous reforge when combined with a mining tool. Lustrous (Legendary): Mining Speed: +50 Mining Fortune: +50 Lustrous Bonus Grants +25\u259a Mining Spread during Mining Fiesta. Requires Mining Skill Level XXIV! EPIC REFORGE STONE",
+        "Name & Rarity":"Gleaming Crystal EPIC",
+        "Duration":"6 hours",
+        "Recipe Tree":"1 Gleaming Crystal 32 Glossy Gemstone 2 Refined Diamond [] 4 Enchanted Diamond Block [] 640 Enchanted Diamond [] 102,400 Diamond 1 Refined Mithril [] 160 Enchanted Mithril [] 25,600 Mithril",
+        "Requirements":"Heart of the Mountain Tier 4"
+    },
+    {
+        "Lore":"Gleaming CrystalReforge Stone Combinable in Reforge Anvil Applies the Lustrous reforge when combined with a mining tool. Lustrous (Legendary): Mining Speed: +50 Mining Fortune: +50 Lustrous Bonus Grants +25\u259a Mining Spread during Mining Fiesta. Requires Mining Skill Level XXIV! EPIC REFORGE STONE",
+        "Name & Rarity":null,
+        "Duration":null,
+        "Recipe Tree":null,
+        "Requirements":null
+    },
+    {
+        "Lore":"Scorched TopazReforge Stone Combinable in Reforge Anvil Applies the Heated reforge when combined with a mining tool. Oooh, das hot! Heated (Legendary): Mining Speed: +40 Mining Fortune: +16 Heated Bonus Grants +0.7\u2618 Mining Fortune and +2.8\u2e15 Mining Speed per 1\u2668 Heat you have. LEGENDARY REFORGE STONE",
+        "Name & Rarity":"Scorched Topaz LEGENDARY",
+        "Duration":"6 hours",
+        "Recipe Tree":"1 Scorched Topaz 128 Enchanted Hard Stone [] 73,728 Hard Stone 1 Flawless Topaz Gemstone [] 80 Fine Topaz Gemstone [] 6,400 Flawed Topaz Gemstone [] 512,000 Rough Topaz Gemstone",
+        "Requirements":"Hard Stone Collection IV  Heart of the Mountain Tier 4"
+    },
+    {
+        "Lore":"Scorched TopazReforge Stone Combinable in Reforge Anvil Applies the Heated reforge when combined with a mining tool. Oooh, das hot! Heated (Legendary): Mining Speed: +40 Mining Fortune: +16 Heated Bonus Grants +0.7\u2618 Mining Fortune and +2.8\u2e15 Mining Speed per 1\u2668 Heat you have. LEGENDARY REFORGE STONE",
+        "Name & Rarity":null,
+        "Duration":null,
+        "Recipe Tree":null,
+        "Requirements":null
+    },
+    {
+        "Lore":"Amber MaterialReforge Stone Combinable in Reforge Anvil Applies the Ambered reforge when combined with a mining tool. Put a bunch of Amber together and it'll make more Amber - Throin the Forger. Ambered (Legendary): Mining Speed: +100 Ambered Bonus Increases your chances of finding Golden Goblins and Diamond Goblins while mining by +30%. Requires Mining Skill Level XXX! EPIC REFORGE STONE",
+        "Name & Rarity":"Amber Material EPIC",
+        "Duration":"6 hours",
+        "Recipe Tree":"1 Amber Material 12 Fine Amber Gemstone [] 960 Flawed Amber Gemstone [] 76,800 Rough Amber Gemstone 1 Golden Plate [] 2 Enchanted Gold Block [] 320 Enchanted Gold [] 51,200 Gold Ingot 5 Glacite Jewel 1 Refined Diamond [] 2 Enchanted Diamond Block [] 320 Enchanted Diamond [] 51,200 Diamond",
+        "Requirements":"Heart of the Mountain Tier 6"
+    },
+    {
+        "Lore":"Amber MaterialReforge Stone Combinable in Reforge Anvil Applies the Ambered reforge when combined with a mining tool. Put a bunch of Amber together and it'll make more Amber - Throin the Forger. Ambered (Legendary): Mining Speed: +100 Ambered Bonus Increases your chances of finding Golden Goblins and Diamond Goblins while mining by +30%. Requires Mining Skill Level XXX! EPIC REFORGE STONE",
+        "Name & Rarity":null,
+        "Duration":null,
+        "Recipe Tree":null,
+        "Requirements":null
+    },
+    {
+        "Lore":"Frigid HuskReforge Stone Combinable in Reforge Anvil Applies the Glacial reforge when combined with a mining tool. Spread like a sickness through the tunnels, sucking the life from everything it covered. Glacial (Legendary): Mining Fortune: +16 Glacial Bonus Grants +1.4\u2618 Mining Fortune for every 1\u2744 Cold you have. Requires Mining Skill Level XXX! LEGENDARY REFORGE STONE",
+        "Name & Rarity":"Frigid Husk LEGENDARY",
+        "Duration":"6 hours",
+        "Recipe Tree":"1 Frigid Husk 4 Glacite Amalgamation [] 1,024 Enchanted Glacite [] 163,840 Glacite 16 Fine Onyx Gemstone [] 1,280 Flawed Onyx Gemstone [] 102,400 Rough Onyx Gemstone 16 Fine Citrine Gemstone [] 1,280 Flawed Citrine Gemstone [] 102,400 Rough Citrine Gemstone 16 Fine Peridot Gemstone [] 1,280 Flawed Peridot Gemstone [] 102,400 Rough Peridot Gemstone 16 Fine Aquamarine Gemstone [] 1,280 Flawed Aquamarine Gemstone [] 102,400 Rough Aquamarine Gemstone 1 Flawless Onyx Gemstone [] 80 Fine Onyx Gemstone [] 6,400 Flawed Onyx Gemstone [] 512,000 Rough Onyx Gemstone",
+        "Requirements":"Glacite Collection V  Heart of the Mountain Tier 7"
+    },
+    {
+        "Lore":"Frigid HuskReforge Stone Combinable in Reforge Anvil Applies the Glacial reforge when combined with a mining tool. Spread like a sickness through the tunnels, sucking the life from everything it covered. Glacial (Legendary): Mining Fortune: +16 Glacial Bonus Grants +1.4\u2618 Mining Fortune for every 1\u2744 Cold you have. Requires Mining Skill Level XXX! LEGENDARY REFORGE STONE",
+        "Name & Rarity":null,
+        "Duration":null,
+        "Recipe Tree":null,
+        "Requirements":null
+    }
+]

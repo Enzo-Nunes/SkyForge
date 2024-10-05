@@ -1,0 +1,142 @@
+[
+    {
+        "Lore":"Bejeweled HandleRARE",
+        "Name & Rarity":"Bejeweled Handle RARE",
+        "Duration":"30 seconds",
+        "Recipe Tree":"1 Bejeweled Handle 3 Glacite Jewel",
+        "Requirements":"Heart of the Mountain Tier 2"
+    },
+    {
+        "Lore":"Bejeweled HandleRARE",
+        "Name & Rarity":null,
+        "Duration":null,
+        "Recipe Tree":null,
+        "Requirements":null
+    },
+    {
+        "Lore":"Drill MotorRARE",
+        "Name & Rarity":"Drill Motor RARE",
+        "Duration":"1 day, 6 hours",
+        "Recipe Tree":"1 Drill Motor 1 Enchanted Iron Block [] 160 Enchanted Iron [] 25,600 Iron Ingot 3 Enchanted Redstone Block [] 480 Enchanted Redstone [] 76,800 Redstone 1 Golden Plate [] 2 Enchanted Gold Block [] 320 Enchanted Gold [] 51,200 Gold Ingot 5 Glacite Jewel 1 Refined Diamond [] 2 Enchanted Diamond Block [] 320 Enchanted Diamond [] 51,200 Diamond 10 Treasurite",
+        "Requirements":"Heart of the Mountain Tier 2"
+    },
+    {
+        "Lore":"Drill MotorRARE",
+        "Name & Rarity":null,
+        "Duration":null,
+        "Recipe Tree":null,
+        "Requirements":null
+    },
+    {
+        "Lore":"Fuel CanisterRARE",
+        "Name & Rarity":"Fuel Canister RARE",
+        "Duration":"10 hours",
+        "Recipe Tree":"1 Fuel Canister 2 Enchanted Block Of Coal [] 320 Enchanted Coal [] 51,200 Coal",
+        "Requirements":"Heart of the Mountain Tier 2"
+    },
+    {
+        "Lore":"Fuel CanisterRARE",
+        "Name & Rarity":null,
+        "Duration":null,
+        "Recipe Tree":null,
+        "Requirements":null
+    },
+    {
+        "Lore":"Gemstone MixtureA collection of finely treated Gemstones held together by the sturdiest of sticky substances. RARE",
+        "Name & Rarity":"Gemstone Mixture RARE",
+        "Duration":"4 hours",
+        "Recipe Tree":"1 Gemstone Mixture 4 Fine Jade Gemstone [] 320 Flawed Jade Gemstone [] 25,600 Rough Jade Gemstone 4 Fine Amber Gemstone [] 320 Flawed Amber Gemstone [] 25,600 Rough Amber Gemstone 4 Fine Amethyst Gemstone [] 320 Flawed Amethyst Gemstone [] 25,600 Rough Amethyst Gemstone 4 Fine Sapphire Gemstone [] 320 Flawed Sapphire Gemstone [] 25,600 Rough Sapphire Gemstone 320 Sludge Juice",
+        "Requirements":"Heart of the Mountain Tier 4"
+    },
+    {
+        "Lore":"Gemstone MixtureA collection of finely treated Gemstones held together by the sturdiest of sticky substances. RARE",
+        "Name & Rarity":null,
+        "Duration":null,
+        "Recipe Tree":null,
+        "Requirements":null
+    },
+    {
+        "Lore":"Glacite AmalgamationGlacite resists even the heat of the great Dwarven Forge. The key is to combine rather than to try to reduce. EPIC",
+        "Name & Rarity":"Glacite Amalgamation EPIC",
+        "Duration":"4 hours",
+        "Recipe Tree":"1 Glacite Amalgamation 256 Enchanted Glacite [] 40,960 Glacite 4 Fine Onyx Gemstone [] 320 Flawed Onyx Gemstone [] 25,600 Rough Onyx Gemstone 4 Fine Citrine Gemstone [] 320 Flawed Citrine Gemstone [] 25,600 Rough Citrine Gemstone 4 Fine Peridot Gemstone [] 320 Flawed Peridot Gemstone [] 25,600 Rough Peridot Gemstone 4 Fine Aquamarine Gemstone [] 320 Flawed Aquamarine Gemstone [] 25,600 Rough Aquamarine Gemstone",
+        "Requirements":"Glacite Collection III  Heart of the Mountain Tier 7"
+    },
+    {
+        "Lore":"Glacite AmalgamationGlacite resists even the heat of the great Dwarven Forge. The key is to combine rather than to try to reduce. EPIC",
+        "Name & Rarity":null,
+        "Duration":null,
+        "Recipe Tree":null,
+        "Requirements":null
+    },
+    {
+        "Lore":"Golden PlateRARE",
+        "Name & Rarity":"Golden Plate RARE",
+        "Duration":"6 hours",
+        "Recipe Tree":"1 Golden Plate 2 Enchanted Gold Block [] 320 Enchanted Gold [] 51,200 Gold Ingot 5 Glacite Jewel 1 Refined Diamond [] 2 Enchanted Diamond Block [] 320 Enchanted Diamond [] 51,200 Diamond",
+        "Requirements":"Heart of the Mountain Tier 2"
+    },
+    {
+        "Lore":"Golden PlateRARE",
+        "Name & Rarity":null,
+        "Duration":null,
+        "Recipe Tree":null,
+        "Requirements":null
+    },
+    {
+        "Lore":"Mithril PlateRARE",
+        "Name & Rarity":"Mithril Plate RARE",
+        "Duration":"18 hours",
+        "Recipe Tree":"1 Mithril Plate 5 Refined Mithril [] 800 Enchanted Mithril [] 128,000 Mithril 1 Golden Plate [] 2 Enchanted Gold Block [] 320 Enchanted Gold [] 51,200 Gold Ingot 5 Glacite Jewel 1 Refined Diamond [] 2 Enchanted Diamond Block [] 320 Enchanted Diamond [] 51,200 Diamond 1 Enchanted Iron Block [] 160 Enchanted Iron [] 25,600 Iron Ingot 1 Refined Titanium [] 16 Enchanted Titanium [] 2,560 Titanium",
+        "Requirements":"Heart of the Mountain Tier 3"
+    },
+    {
+        "Lore":"Mithril PlateRARE",
+        "Name & Rarity":null,
+        "Duration":null,
+        "Recipe Tree":null,
+        "Requirements":null
+    },
+    {
+        "Lore":"Tungsten PlateRARE",
+        "Name & Rarity":"Tungsten Plate RARE",
+        "Duration":"3 hours",
+        "Recipe Tree":"1 Tungsten Plate 4 Refined Tungsten [] 640 Enchanted Tungsten [] 102,400 Tungsten 1 Glacite Amalgamation [] 256 Enchanted Glacite [] 40,960 Glacite 4 Fine Onyx Gemstone [] 320 Flawed Onyx Gemstone [] 25,600 Rough Onyx Gemstone 4 Fine Citrine Gemstone [] 320 Flawed Citrine Gemstone [] 25,600 Rough Citrine Gemstone 4 Fine Peridot Gemstone [] 320 Flawed Peridot Gemstone [] 25,600 Rough Peridot Gemstone 4 Fine Aquamarine Gemstone [] 320 Flawed Aquamarine Gemstone [] 25,600 Rough Aquamarine Gemstone",
+        "Requirements":"Tungsten Collection VI  Heart of the Mountain Tier 7"
+    },
+    {
+        "Lore":"Tungsten PlateRARE",
+        "Name & Rarity":null,
+        "Duration":null,
+        "Recipe Tree":null,
+        "Requirements":null
+    },
+    {
+        "Lore":"Umber PlateRARE",
+        "Name & Rarity":"Umber Plate RARE",
+        "Duration":"3 hours",
+        "Recipe Tree":"1 Umber Plate 4 Refined Umber [] 640 Enchanted Umber [] 102,400 Umber 1 Glacite Amalgamation [] 256 Enchanted Glacite [] 40,960 Glacite 4 Fine Onyx Gemstone [] 320 Flawed Onyx Gemstone [] 25,600 Rough Onyx Gemstone 4 Fine Citrine Gemstone [] 320 Flawed Citrine Gemstone [] 25,600 Rough Citrine Gemstone 4 Fine Peridot Gemstone [] 320 Flawed Peridot Gemstone [] 25,600 Rough Peridot Gemstone 4 Fine Aquamarine Gemstone [] 320 Flawed Aquamarine Gemstone [] 25,600 Rough Aquamarine Gemstone",
+        "Requirements":"Umber Collection VI  Heart of the Mountain Tier 7"
+    },
+    {
+        "Lore":"Umber PlateRARE",
+        "Name & Rarity":null,
+        "Duration":null,
+        "Recipe Tree":null,
+        "Requirements":null
+    },
+    {
+        "Lore":"Perfect PlateA plate forged from an assortment of the most durable materials found in this world. LEGENDARY",
+        "Name & Rarity":"Perfect Plate LEGENDARY",
+        "Duration":"30 minutes",
+        "Recipe Tree":"1 Perfect Plate 1 Umber Plate [] 4 Refined Umber [] 640 Enchanted Umber [] 102,400 Umber 1 Glacite Amalgamation [] 256 Enchanted Glacite [] 40,960 Glacite 4 Fine Onyx Gemstone [] 320 Flawed Onyx Gemstone [] 25,600 Rough Onyx Gemstone 4 Fine Citrine Gemstone [] 320 Flawed Citrine Gemstone [] 25,600 Rough Citrine Gemstone 4 Fine Peridot Gemstone [] 320 Flawed Peridot Gemstone [] 25,600 Rough Peridot Gemstone 4 Fine Aquamarine Gemstone [] 320 Flawed Aquamarine Gemstone [] 25,600 Rough Aquamarine Gemstone 1 Tungsten Plate [] 4 Refined Tungsten [] 640 Enchanted Tungsten [] 102,400 Tungsten 1 Glacite Amalgamation [] 256 Enchanted Glacite [] 40,960 Glacite 4 Fine Onyx Gemstone [] 320 Flawed Onyx Gemstone [] 25,600 Rough Onyx Gemstone 4 Fine Citrine Gemstone [] 320 Flawed Citrine Gemstone [] 25,600 Rough Citrine Gemstone 4 Fine Peridot Gemstone [] 320 Flawed Peridot Gemstone [] 25,600 Rough Peridot Gemstone 4 Fine Aquamarine Gemstone [] 320 Flawed Aquamarine Gemstone [] 25,600 Rough Aquamarine Gemstone 1 Mithril Plate [] 5 Refined Mithril [] 800 Enchanted Mithril [] 128,000 Mithril 1 Golden Plate [] 2 Enchanted Gold Block [] 320 Enchanted Gold [] 51,200 Gold Ingot 5 Glacite Jewel 1 Refined Diamond [] 2 Enchanted Diamond Block [] 320 Enchanted Diamond [] 51,200 Diamond 1 Enchanted Iron Block [] 160 Enchanted Iron [] 25,600 Iron Ingot 1 Refined Titanium [] 16 Enchanted Titanium [] 2,560 Titanium",
+        "Requirements":"Heart of the Mountain Tier 10"
+    },
+    {
+        "Lore":"Perfect PlateA plate forged from an assortment of the most durable materials found in this world. LEGENDARY",
+        "Name & Rarity":null,
+        "Duration":null,
+        "Recipe Tree":null,
+        "Requirements":null
+    }
+]
