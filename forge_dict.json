@@ -1,0 +1,1221 @@
+{
+    "Refined Diamond": {
+        "Crafting Time": 8.0,
+        "Recipe": {
+            "Enchanted Diamond Block": 2
+        }
+    },
+    "Refined Mithril": {
+        "Crafting Time": 6.0,
+        "Recipe": {
+            "Enchanted Mithril": 160
+        }
+    },
+    "Refined Titanium": {
+        "Crafting Time": 12.0,
+        "Recipe": {
+            "Enchanted Titanium": 16
+        }
+    },
+    "Refined Umber": {
+        "Crafting Time": 1.0,
+        "Recipe": {
+            "Enchanted Umber": 160
+        }
+    },
+    "Refined Tungsten": {
+        "Crafting Time": 1.0,
+        "Recipe": {
+            "Enchanted Tungsten": 160
+        }
+    },
+    "Bejeweled Handle": {
+        "Crafting Time": 0.008333333333333333,
+        "Recipe": {
+            "Glacite Jewel": 3
+        }
+    },
+    "Drill Motor": {
+        "Crafting Time": 30.0,
+        "Recipe": {
+            "Enchanted Iron Block": 1,
+            "Enchanted Redstone Block": 3,
+            "Golden Plate": 1,
+            "Glacite Jewel": 5,
+            "Refined Diamond": 1,
+            "Treasurite": 10
+        }
+    },
+    "Fuel Canister": {
+        "Crafting Time": 10.0,
+        "Recipe": {
+            "Enchanted Block Of Coal": 2
+        }
+    },
+    "Gemstone Mixture": {
+        "Crafting Time": 4.0,
+        "Recipe": {
+            "Fine Jade Gemstone": 4,
+            "Fine Amber Gemstone": 4,
+            "Fine Amethyst Gemstone": 4,
+            "Fine Sapphire Gemstone": 4,
+            "Sludge Juice": 320
+        }
+    },
+    "Glacite Amalgamation": {
+        "Crafting Time": 4.0,
+        "Recipe": {
+            "Enchanted Glacite": 256,
+            "Fine Onyx Gemstone": 4,
+            "Fine Citrine Gemstone": 4,
+            "Fine Peridot Gemstone": 4,
+            "Fine Aquamarine Gemstone": 4
+        }
+    },
+    "Golden Plate": {
+        "Crafting Time": 6.0,
+        "Recipe": {
+            "Enchanted Gold Block": 2,
+            "Glacite Jewel": 5,
+            "Refined Diamond": 1
+        }
+    },
+    "Mithril Plate": {
+        "Crafting Time": 18.0,
+        "Recipe": {
+            "Refined Mithril": 5,
+            "Golden Plate": 1,
+            "Glacite Jewel": 5,
+            "Refined Diamond": 1,
+            "Enchanted Iron Block": 1,
+            "Refined Titanium": 1
+        }
+    },
+    "Tungsten Plate": {
+        "Crafting Time": 3.0,
+        "Recipe": {
+            "Refined Tungsten": 4,
+            "Glacite Amalgamation": 1,
+            "Fine Onyx Gemstone": 4,
+            "Fine Citrine Gemstone": 4,
+            "Fine Peridot Gemstone": 4,
+            "Fine Aquamarine Gemstone": 4
+        }
+    },
+    "Umber Plate": {
+        "Crafting Time": 3.0,
+        "Recipe": {
+            "Refined Umber": 4,
+            "Glacite Amalgamation": 1,
+            "Fine Onyx Gemstone": 4,
+            "Fine Citrine Gemstone": 4,
+            "Fine Peridot Gemstone": 4,
+            "Fine Aquamarine Gemstone": 4
+        }
+    },
+    "Perfect Plate": {
+        "Crafting Time": 0.5,
+        "Recipe": {
+            "Umber Plate": 1,
+            "Glacite Amalgamation": 1,
+            "Fine Onyx Gemstone": 4,
+            "Fine Citrine Gemstone": 4,
+            "Fine Peridot Gemstone": 4,
+            "Fine Aquamarine Gemstone": 4,
+            "Tungsten Plate": 1,
+            "Mithril Plate": 1,
+            "Golden Plate": 1,
+            "Glacite Jewel": 5,
+            "Refined Diamond": 1,
+            "Enchanted Iron Block": 1,
+            "Refined Titanium": 1
+        }
+    },
+    "Mithril Drill SX-R226": {
+        "Crafting Time": 4.0,
+        "Recipe": {
+            "Drill Motor": 1,
+            "Enchanted Redstone Block": 3,
+            "Golden Plate": 1,
+            "Glacite Jewel": 5,
+            "Refined Diamond": 1,
+            "Treasurite": 10,
+            "Refined Mithril": 3,
+            "Fuel Canister": 1
+        }
+    },
+    "Mithril Drill SX-R326": {
+        "Crafting Time": 0.008333333333333333,
+        "Recipe": {
+            "Mithril Drill SX-R226": 1,
+            "Enchanted Redstone Block": 3,
+            "Golden Plate": 1,
+            "Glacite Jewel": 5,
+            "Refined Diamond": 1,
+            "Treasurite": 10,
+            "Refined Mithril": 3,
+            "Fuel Canister": 1,
+            "Mithril Plate": 1,
+            "Enchanted Iron Block": 1,
+            "Refined Titanium": 1
+        }
+    },
+    "Ruby Drill TX-15": {
+        "Crafting Time": 4.0,
+        "Recipe": {
+            "Drill Motor": 1,
+            "Enchanted Redstone Block": 3,
+            "Golden Plate": 1,
+            "Glacite Jewel": 5,
+            "Refined Diamond": 1,
+            "Treasurite": 10,
+            "Fuel Canister": 1,
+            "Fine Ruby Gemstone": 6
+        }
+    },
+    "Gemstone Drill LT-522": {
+        "Crafting Time": 0.008333333333333333,
+        "Recipe": {
+            "Ruby Drill TX-15": 1,
+            "Enchanted Redstone Block": 3,
+            "Golden Plate": 1,
+            "Glacite Jewel": 5,
+            "Refined Diamond": 1,
+            "Treasurite": 10,
+            "Fuel Canister": 1,
+            "Fine Ruby Gemstone": 6,
+            "Gemstone Mixture": 3,
+            "Fine Amber Gemstone": 12,
+            "Fine Amethyst Gemstone": 12,
+            "Fine Sapphire Gemstone": 12,
+            "Sludge Juice": 960
+        }
+    },
+    "Topaz Drill KGR-12": {
+        "Crafting Time": 0.008333333333333333,
+        "Recipe": {
+            "Gemstone Drill LT-522": 1,
+            "Enchanted Redstone Block": 3,
+            "Golden Plate": 1,
+            "Glacite Jewel": 5,
+            "Refined Diamond": 1,
+            "Treasurite": 10,
+            "Fuel Canister": 1,
+            "Fine Ruby Gemstone": 6,
+            "Gemstone Mixture": 3,
+            "Fine Amber Gemstone": 12,
+            "Fine Amethyst Gemstone": 12,
+            "Fine Sapphire Gemstone": 12,
+            "Sludge Juice": 960,
+            "Flawless Topaz Gemstone": 1,
+            "Magma Core": 8
+        }
+    },
+    "Jasper Drill": {
+        "Crafting Time": 0.008333333333333333,
+        "Recipe": {
+            "Treasurite": 10,
+            "Magma Core": 8,
+            "Topaz Drill KGR-12": 1,
+            "Enchanted Redstone Block": 3,
+            "Golden Plate": 1,
+            "Glacite Jewel": 5,
+            "Refined Diamond": 1,
+            "Fuel Canister": 1,
+            "Fine Ruby Gemstone": 6,
+            "Gemstone Mixture": 3,
+            "Fine Amber Gemstone": 12,
+            "Fine Amethyst Gemstone": 12,
+            "Fine Sapphire Gemstone": 12,
+            "Sludge Juice": 960,
+            "Flawless Topaz Gemstone": 1,
+            "Flawless Jasper Gemstone": 1
+        }
+    },
+    "Polished Topaz Rod": {
+        "Crafting Time": 12.0,
+        "Recipe": {
+            "Bejeweled Handle": 3,
+            "Flawless Topaz Gemstone": 2
+        }
+    },
+    "Titanium Drill DR-X355": {
+        "Crafting Time": 4.0,
+        "Recipe": {
+            "Refined Titanium": 8,
+            "Refined Mithril": 8,
+            "Golden Plate": 1,
+            "Glacite Jewel": 5,
+            "Refined Diamond": 1,
+            "Drill Motor": 1,
+            "Enchanted Redstone Block": 3,
+            "Treasurite": 10,
+            "Fuel Canister": 1
+        }
+    },
+    "Titanium Drill DR-X455": {
+        "Crafting Time": 0.008333333333333333,
+        "Recipe": {
+            "Titanium Drill DR-X355": 1,
+            "Refined Mithril": 8,
+            "Golden Plate": 5,
+            "Glacite Jewel": 25,
+            "Refined Diamond": 5,
+            "Drill Motor": 1,
+            "Enchanted Redstone Block": 3,
+            "Treasurite": 10,
+            "Fuel Canister": 1,
+            "Refined Titanium": 5,
+            "Mithril Plate": 5,
+            "Enchanted Iron Block": 5
+        }
+    },
+    "Titanium Drill DR-X555": {
+        "Crafting Time": 0.008333333333333333,
+        "Recipe": {
+            "Titanium Drill DR-X455": 1,
+            "Refined Mithril": 8,
+            "Golden Plate": 10,
+            "Glacite Jewel": 50,
+            "Refined Diamond": 10,
+            "Drill Motor": 1,
+            "Enchanted Redstone Block": 3,
+            "Treasurite": 10,
+            "Fuel Canister": 1,
+            "Refined Titanium": 10,
+            "Mithril Plate": 10,
+            "Enchanted Iron Block": 2,
+            "Plasma": 20
+        }
+    },
+    "Titanium Drill DR-X655": {
+        "Crafting Time": 0.008333333333333333,
+        "Recipe": {
+            "Titanium Drill DR-X555": 1,
+            "Refined Mithril": 8,
+            "Golden Plate": 10,
+            "Glacite Jewel": 50,
+            "Refined Diamond": 5,
+            "Drill Motor": 1,
+            "Enchanted Redstone Block": 3,
+            "Treasurite": 10,
+            "Fuel Canister": 1,
+            "Refined Titanium": 10,
+            "Mithril Plate": 10,
+            "Enchanted Iron Block": 10,
+            "Plasma": 20,
+            "Corleonite": 30,
+            "Gemstone Mixture": 16,
+            "Fine Amber Gemstone": 64,
+            "Fine Amethyst Gemstone": 64,
+            "Fine Sapphire Gemstone": 64,
+            "Sludge Juice": 5120,
+            "Flawless Ruby Gemstone": 1
+        }
+    },
+    "Chisel COMMON": {
+        "Crafting Time": 4.0,
+        "Recipe": {
+            "Tungsten": 64,
+            "Bejeweled Handle": 1
+        }
+    },
+    "Reinforced Chisel": {
+        "Crafting Time": 0.008333333333333333,
+        "Recipe": {
+            "Refined Tungsten": 2,
+            "Refined Umber": 2,
+            "Chisel": 1,
+            "Bejeweled Handle": 1
+        }
+    },
+    "Glacite-Plated Chisel": {
+        "Crafting Time": 0.008333333333333333,
+        "Recipe": {
+            "Glacite Amalgamation": 8,
+            "Fine Onyx Gemstone": 32,
+            "Fine Citrine Gemstone": 32,
+            "Fine Peridot Gemstone": 32,
+            "Fine Aquamarine Gemstone": 32,
+            "Reinforced Chisel": 1,
+            "Refined Umber": 2,
+            "Chisel": 1,
+            "Bejeweled Handle": 1,
+            "Mithril Plate": 1,
+            "Golden Plate": 1,
+            "Glacite Jewel": 5,
+            "Refined Diamond": 1,
+            "Enchanted Iron Block": 1,
+            "Refined Titanium": 1
+        }
+    },
+    "Perfect Chisel": {
+        "Crafting Time": 0.008333333333333333,
+        "Recipe": {
+            "Glacite-Plated Chisel": 1,
+            "Fine Onyx Gemstone": 4,
+            "Fine Citrine Gemstone": 4,
+            "Fine Peridot Gemstone": 4,
+            "Fine Aquamarine Gemstone": 4,
+            "Reinforced Chisel": 1,
+            "Refined Umber": 2,
+            "Chisel": 1,
+            "Bejeweled Handle": 1,
+            "Mithril Plate": 1,
+            "Golden Plate": 1,
+            "Glacite Jewel": 5,
+            "Refined Diamond": 1,
+            "Enchanted Iron Block": 1,
+            "Refined Titanium": 1,
+            "Perfect Plate": 1,
+            "Glacite Amalgamation": 1,
+            "Tungsten Plate": 1
+        }
+    },
+    "Divan's Drill": {
+        "Crafting Time": 0.008333333333333333,
+        "Recipe": {
+            "Divan's Alloy": 1,
+            "Titanium Drill DR-X655": 1,
+            "Refined Mithril": 8,
+            "Golden Plate": 10,
+            "Glacite Jewel": 50,
+            "Refined Diamond": 5,
+            "Drill Motor": 1,
+            "Enchanted Redstone Block": 3,
+            "Treasurite": 10,
+            "Fuel Canister": 1,
+            "Refined Titanium": 10,
+            "Mithril Plate": 10,
+            "Enchanted Iron Block": 10,
+            "Plasma": 20,
+            "Corleonite": 30,
+            "Gemstone Mixture": 16,
+            "Fine Amber Gemstone": 64,
+            "Fine Amethyst Gemstone": 64,
+            "Fine Sapphire Gemstone": 64,
+            "Sludge Juice": 5120,
+            "Flawless Ruby Gemstone": 1,
+            "Coins": 50000000
+        }
+    },
+    "Mithril Necklace": {
+        "Crafting Time": 1.0,
+        "Recipe": {
+            "Enchanted Mithril": 3
+        }
+    },
+    "Mithril Cloak": {
+        "Crafting Time": 1.0,
+        "Recipe": {
+            "Enchanted Mithril": 3
+        }
+    },
+    "Mithril Belt": {
+        "Crafting Time": 1.0,
+        "Recipe": {
+            "Enchanted Mithril": 3
+        }
+    },
+    "Mithril Gauntlet": {
+        "Crafting Time": 1.0,
+        "Recipe": {
+            "Enchanted Mithril": 3
+        }
+    },
+    "Titanium Necklace": {
+        "Crafting Time": 4.5,
+        "Recipe": {
+            "Refined Mineral": 16,
+            "Refined Titanium": 1,
+            "Mithril Necklace": 1
+        }
+    },
+    "Titanium Cloak": {
+        "Crafting Time": 4.5,
+        "Recipe": {
+            "Refined Mineral": 16,
+            "Refined Titanium": 1,
+            "Mithril Cloak": 1
+        }
+    },
+    "Titanium Belt": {
+        "Crafting Time": 4.5,
+        "Recipe": {
+            "Refined Mineral": 16,
+            "Refined Titanium": 1,
+            "Mithril Belt": 1
+        }
+    },
+    "Titanium Gauntlet": {
+        "Crafting Time": 4.5,
+        "Recipe": {
+            "Refined Mineral": 16,
+            "Refined Titanium": 1,
+            "Mithril Gauntlet": 1
+        }
+    },
+    "Titanium Talisman": {
+        "Crafting Time": 14.0,
+        "Recipe": {
+            "Refined Titanium": 2
+        }
+    },
+    "Titanium Ring": {
+        "Crafting Time": 20.0,
+        "Recipe": {
+            "Refined Titanium": 6,
+            "Titanium Talisman": 1
+        }
+    },
+    "Titanium Artifact": {
+        "Crafting Time": 36.0,
+        "Recipe": {
+            "Refined Titanium": 12,
+            "Titanium Ring": 1,
+            "Titanium Talisman": 1
+        }
+    },
+    "Titanium Relic": {
+        "Crafting Time": 72.0,
+        "Recipe": {
+            "Refined Titanium": 20,
+            "Titanium Artifact": 1,
+            "Titanium Ring": 1,
+            "Titanium Talisman": 1
+        }
+    },
+    "Divan's Powder Coating": {
+        "Crafting Time": 36.0,
+        "Recipe": {
+            "Glossy Gemstone": 32,
+            "Refined Mineral": 32,
+            "Enchanted Gold Block": 16,
+            "Divan Fragment": 5
+        }
+    },
+    "Helmet Of Divan": {
+        "Crafting Time": 24.0,
+        "Recipe": {
+            "Divan Fragment": 5,
+            "Gemstone Mixture": 10,
+            "Fine Amber Gemstone": 40,
+            "Fine Amethyst Gemstone": 40,
+            "Fine Sapphire Gemstone": 40,
+            "Sludge Juice": 3200,
+            "Flawless Ruby Gemstone": 1
+        }
+    },
+    "Chestplate Of Divan": {
+        "Crafting Time": 24.0,
+        "Recipe": {
+            "Divan Fragment": 8,
+            "Gemstone Mixture": 10,
+            "Fine Amber Gemstone": 40,
+            "Fine Amethyst Gemstone": 40,
+            "Fine Sapphire Gemstone": 40,
+            "Sludge Juice": 3200,
+            "Flawless Ruby Gemstone": 1
+        }
+    },
+    "Leggings Of Divan": {
+        "Crafting Time": 24.0,
+        "Recipe": {
+            "Divan Fragment": 7,
+            "Gemstone Mixture": 10,
+            "Fine Amber Gemstone": 40,
+            "Fine Amethyst Gemstone": 40,
+            "Fine Sapphire Gemstone": 40,
+            "Sludge Juice": 3200,
+            "Flawless Ruby Gemstone": 1
+        }
+    },
+    "Boots Of Divan": {
+        "Crafting Time": 24.0,
+        "Recipe": {
+            "Divan Fragment": 4,
+            "Gemstone Mixture": 10,
+            "Fine Amber Gemstone": 40,
+            "Fine Amethyst Gemstone": 40,
+            "Fine Sapphire Gemstone": 40,
+            "Sludge Juice": 3200,
+            "Flawless Ruby Gemstone": 1
+        }
+    },
+    "Amber Necklace": {
+        "Crafting Time": 24.0,
+        "Recipe": {
+            "Glossy Gemstone": 32,
+            "Flawless Amber Gemstone": 2
+        }
+    },
+    "Sapphire Cloak": {
+        "Crafting Time": 24.0,
+        "Recipe": {
+            "Glossy Gemstone": 32,
+            "Flawless Sapphire Gemstone": 2
+        }
+    },
+    "Jade Belt": {
+        "Crafting Time": 24.0,
+        "Recipe": {
+            "Glossy Gemstone": 32,
+            "Flawless Jade Gemstone": 2
+        }
+    },
+    "Amethyst Gauntlet": {
+        "Crafting Time": 24.0,
+        "Recipe": {
+            "Glossy Gemstone": 32,
+            "Flawless Amethyst Gemstone": 2
+        }
+    },
+    "Gemstone Chamber": {
+        "Crafting Time": 4.0,
+        "Recipe": {
+            "Worm Membrane": 100,
+            "Gemstone Mixture": 1,
+            "Fine Amber Gemstone": 4,
+            "Fine Amethyst Gemstone": 4,
+            "Fine Sapphire Gemstone": 4,
+            "Sludge Juice": 320,
+            "Coins": 25000
+        }
+    },
+    "Dwarven Handwarmers": {
+        "Crafting Time": 4.0,
+        "Recipe": {
+            "Tungsten Plate": 1,
+            "Glacite Amalgamation": 1,
+            "Fine Onyx Gemstone": 4,
+            "Fine Citrine Gemstone": 4,
+            "Fine Peridot Gemstone": 4,
+            "Fine Aquamarine Gemstone": 4,
+            "Flawless Jade Gemstone": 1,
+            "Flawless Amber Gemstone": 1,
+            "Umber Plate": 1
+        }
+    },
+    "Dwarven Metal Talisman": {
+        "Crafting Time": 24.0,
+        "Recipe": {
+            "Refined Tungsten": 4,
+            "Refined Umber": 4,
+            "Glacite Amalgamation": 4,
+            "Fine Onyx Gemstone": 16,
+            "Fine Citrine Gemstone": 16,
+            "Fine Peridot Gemstone": 16,
+            "Fine Aquamarine Gemstone": 16
+        }
+    },
+    "Pendant Of Divan": {
+        "Crafting Time": 168.0,
+        "Recipe": {
+            "Divan Fragment": 10,
+            "Shattered Locket": 1,
+            "Perfect Plate": 1,
+            "Glacite Amalgamation": 1,
+            "Fine Onyx Gemstone": 4,
+            "Fine Citrine Gemstone": 4,
+            "Fine Peridot Gemstone": 4,
+            "Fine Aquamarine Gemstone": 4,
+            "Tungsten Plate": 1,
+            "Mithril Plate": 1,
+            "Golden Plate": 1,
+            "Glacite Jewel": 5,
+            "Refined Diamond": 1,
+            "Enchanted Iron Block": 1,
+            "Refined Titanium": 1
+        }
+    },
+    "Relic Of Power": {
+        "Crafting Time": 8.0,
+        "Recipe": {
+            "Glacite Amalgamation": 1,
+            "Fine Onyx Gemstone": 4,
+            "Fine Citrine Gemstone": 4,
+            "Fine Peridot Gemstone": 4,
+            "Fine Aquamarine Gemstone": 4,
+            "Artifact Of Power": 1,
+            "Fine Amber Gemstone": 4,
+            "Fine Amethyst Gemstone": 4,
+            "Fine Sapphire Gemstone": 4,
+            "Sludge Juice": 320,
+            "Ring Of Power": 1,
+            "Gemstone Mixture": 1,
+            "Talisman Of Power": 1,
+            "Perfect Plate": 1,
+            "Tungsten Plate": 1,
+            "Mithril Plate": 1,
+            "Golden Plate": 1,
+            "Glacite Jewel": 5,
+            "Refined Diamond": 1,
+            "Enchanted Iron Block": 1,
+            "Refined Titanium": 1
+        }
+    },
+    "Diamonite RARE": {
+        "Crafting Time": 6.0,
+        "Recipe": {
+            "Refined Diamond": 3
+        }
+    },
+    "Pocket Iceberg": {
+        "Crafting Time": 6.0,
+        "Recipe": {
+            "Glacite Jewel": 5
+        }
+    },
+    "Petrified Starfall": {
+        "Crafting Time": 6.0,
+        "Recipe": {
+            "Starfall": 512
+        }
+    },
+    "Pure Mithril": {
+        "Crafting Time": 6.0,
+        "Recipe": {
+            "Refined Mithril": 2
+        }
+    },
+    "Dwarven Geode": {
+        "Crafting Time": 6.0,
+        "Recipe": {
+            "Enchanted Cobblestone": 128,
+            "Treasurite": 64
+        }
+    },
+    "Titanium Tesseract": {
+        "Crafting Time": 6.0,
+        "Recipe": {
+            "Enchanted Lapis Lazuli": 16,
+            "Refined Titanium": 1
+        }
+    },
+    "Gleaming Crystal": {
+        "Crafting Time": 6.0,
+        "Recipe": {
+            "Glossy Gemstone": 32,
+            "Refined Diamond": 2,
+            "Refined Mithril": 1
+        }
+    },
+    "Scorched Topaz": {
+        "Crafting Time": 6.0,
+        "Recipe": {
+            "Enchanted Hard Stone": 128,
+            "Flawless Topaz Gemstone": 1
+        }
+    },
+    "Amber Material": {
+        "Crafting Time": 6.0,
+        "Recipe": {
+            "Fine Amber Gemstone": 12,
+            "Golden Plate": 1,
+            "Glacite Jewel": 5,
+            "Refined Diamond": 1
+        }
+    },
+    "Frigid Husk": {
+        "Crafting Time": 6.0,
+        "Recipe": {
+            "Glacite Amalgamation": 4,
+            "Fine Onyx Gemstone": 16,
+            "Fine Citrine Gemstone": 16,
+            "Fine Peridot Gemstone": 16,
+            "Fine Aquamarine Gemstone": 16,
+            "Flawless Onyx Gemstone": 1
+        }
+    },
+    "Starfall Seasoning": {
+        "Crafting Time": 18.0,
+        "Recipe": {
+            "Starfall": 64,
+            "Treasurite": 16
+        }
+    },
+    "Goblin Omelette": {
+        "Crafting Time": 18.0,
+        "Recipe": {
+            "Goblin Egg": 96
+        }
+    },
+    "Spicy Goblin Omelette": {
+        "Crafting Time": 18.0,
+        "Recipe": {
+            "Red Goblin Egg": 96,
+            "Flawless Ruby Gemstone": 1,
+            "Goblin Omelette": 1
+        }
+    },
+    "Pesto Goblin Omelette": {
+        "Crafting Time": 18.0,
+        "Recipe": {
+            "Green Goblin Egg": 96,
+            "Flawless Jade Gemstone": 1,
+            "Goblin Omelette": 1
+        }
+    },
+    "Sunny Side Goblin Omelette": {
+        "Crafting Time": 18.0,
+        "Recipe": {
+            "Yellow Goblin Egg": 96,
+            "Flawless Topaz Gemstone": 1,
+            "Goblin Omelette": 1
+        }
+    },
+    "Blue Cheese Goblin Omelette": {
+        "Crafting Time": 18.0,
+        "Recipe": {
+            "Blue Goblin Egg": 96,
+            "Flawless Sapphire Gemstone": 1,
+            "Goblin Omelette": 1
+        }
+    },
+    "Tungsten Regulator": {
+        "Crafting Time": 18.0,
+        "Recipe": {
+            "Fuel Canister": 5,
+            "Tungsten Plate": 5,
+            "Glacite Amalgamation": 5,
+            "Fine Onyx Gemstone": 20,
+            "Fine Citrine Gemstone": 20,
+            "Fine Peridot Gemstone": 20,
+            "Fine Aquamarine Gemstone": 20,
+            "Perfect Opal Gemstone": 1,
+            "Opal Crystal": 1
+        }
+    },
+    "Mithril-Plated Drill Engine": {
+        "Crafting Time": 24.0,
+        "Recipe": {
+            "Drill Motor": 2,
+            "Enchanted Redstone Block": 6,
+            "Golden Plate": 1,
+            "Glacite Jewel": 5,
+            "Refined Diamond": 1,
+            "Treasurite": 20,
+            "Mithril Plate": 1,
+            "Enchanted Iron Block": 1,
+            "Refined Titanium": 1
+        }
+    },
+    "Titanium-Plated Drill Engine": {
+        "Crafting Time": 0.008333333333333333,
+        "Recipe": {
+            "Refined Titanium": 1,
+            "Drill Motor": 2,
+            "Enchanted Redstone Block": 6,
+            "Golden Plate": 1,
+            "Glacite Jewel": 5,
+            "Refined Diamond": 1,
+            "Treasurite": 20,
+            "Mithril-Plated Drill Engine": 1,
+            "Mithril Plate": 1,
+            "Enchanted Iron Block": 1
+        }
+    },
+    "Ruby-Polished Drill Engine": {
+        "Crafting Time": 0.008333333333333333,
+        "Recipe": {
+            "Drill Motor": 2,
+            "Enchanted Redstone Block": 6,
+            "Golden Plate": 1,
+            "Glacite Jewel": 5,
+            "Refined Diamond": 1,
+            "Treasurite": 20,
+            "Precursor Apparatus": 4,
+            "Electron Transmitter": 4,
+            "FTX": 4,
+            "": 3070,
+            "Robotron Reflector": 4,
+            "Superlite Motor": 4,
+            "Synthetic Heart": 4,
+            "Titanium-Plated Drill Engine": 1,
+            "Mithril-Plated Drill Engine": 1,
+            "Mithril Plate": 1,
+            "Enchanted Iron Block": 1,
+            "Refined Titanium": 1,
+            "Perfect Ruby Gemstone": 1,
+            "Ruby Crystal": 1
+        }
+    },
+    "Sapphire-Polished Drill Engine": {
+        "Crafting Time": 0.008333333333333333,
+        "Recipe": {
+            "Plasma": 16,
+            "Precursor Apparatus": 4,
+            "Electron Transmitter": 4,
+            "FTX": 4,
+            "": 3070,
+            "Robotron Reflector": 4,
+            "Superlite Motor": 4,
+            "Synthetic Heart": 4,
+            "Drill Motor": 2,
+            "Enchanted Redstone Block": 6,
+            "Golden Plate": 1,
+            "Glacite Jewel": 5,
+            "Refined Diamond": 1,
+            "Treasurite": 20,
+            "Perfect Sapphire Gemstone": 3,
+            "Sapphire Crystal": 3,
+            "Ruby-Polished Drill Engine": 1,
+            "Titanium-Plated Drill Engine": 1,
+            "Mithril-Plated Drill Engine": 1,
+            "Mithril Plate": 1,
+            "Enchanted Iron Block": 1,
+            "Refined Titanium": 1,
+            "Perfect Ruby Gemstone": 1,
+            "Ruby Crystal": 1
+        }
+    },
+    "Amber-Polished Drill Engine": {
+        "Crafting Time": 0.008333333333333333,
+        "Recipe": {
+            "Plasma": 32,
+            "Precursor Apparatus": 4,
+            "Electron Transmitter": 4,
+            "FTX": 4,
+            "": 3070,
+            "Robotron Reflector": 4,
+            "Superlite Motor": 4,
+            "Synthetic Heart": 4,
+            "Perfect Amber Gemstone": 5,
+            "Amber Crystal": 5,
+            "Drill Motor": 2,
+            "Enchanted Redstone Block": 6,
+            "Golden Plate": 1,
+            "Glacite Jewel": 5,
+            "Refined Diamond": 1,
+            "Treasurite": 20,
+            "Sapphire-Polished Drill Engine": 1,
+            "Perfect Sapphire Gemstone": 3,
+            "Sapphire Crystal": 3,
+            "Ruby-Polished Drill Engine": 1,
+            "Titanium-Plated Drill Engine": 1,
+            "Mithril-Plated Drill Engine": 1,
+            "Mithril Plate": 1,
+            "Enchanted Iron Block": 1,
+            "Refined Titanium": 1,
+            "Perfect Ruby Gemstone": 1,
+            "Ruby Crystal": 1
+        }
+    },
+    "Mithril-Infused Fuel Tank": {
+        "Crafting Time": 24.0,
+        "Recipe": {
+            "Refined Diamond": 5,
+            "Refined Mithril": 10,
+            "Fuel Canister": 5
+        }
+    },
+    "Titanium-Infused Fuel Tank": {
+        "Crafting Time": 0.008333333333333333,
+        "Recipe": {
+            "Refined Titanium": 10,
+            "Refined Diamond": 5,
+            "Fuel Canister": 5,
+            "Mithril-Infused Fuel Tank": 1,
+            "Refined Mithril": 10
+        }
+    },
+    "Gemstone Fuel Tank": {
+        "Crafting Time": 0.008333333333333333,
+        "Recipe": {
+            "Gemstone Mixture": 10,
+            "Precursor Apparatus": 4,
+            "Electron Transmitter": 4,
+            "FTX": 4,
+            "": 3070,
+            "Robotron Reflector": 4,
+            "Superlite Motor": 4,
+            "Synthetic Heart": 4,
+            "Titanium-Infused Fuel Tank": 1,
+            "Refined Diamond": 5,
+            "Fuel Canister": 5,
+            "Mithril-Infused Fuel Tank": 1,
+            "Refined Mithril": 10
+        }
+    },
+    "Perfectly-Cut Fuel Tank": {
+        "Crafting Time": 0.008333333333333333,
+        "Recipe": {
+            "Plasma": 32,
+            "Gemstone Mixture": 25,
+            "Fine Amber Gemstone": 100,
+            "Fine Amethyst Gemstone": 100,
+            "Fine Sapphire Gemstone": 100,
+            "Sludge Juice": 8000,
+            "Precursor Apparatus": 4,
+            "Electron Transmitter": 4,
+            "FTX": 4,
+            "": 3070,
+            "Robotron Reflector": 4,
+            "Superlite Motor": 4,
+            "Synthetic Heart": 4,
+            "Gemstone Fuel Tank": 1,
+            "Titanium-Infused Fuel Tank": 1,
+            "Refined Diamond": 5,
+            "Fuel Canister": 5,
+            "Mithril-Infused Fuel Tank": 1,
+            "Refined Mithril": 10
+        }
+    },
+    "Perfect Amber Gemstone": {
+        "Crafting Time": 20.0,
+        "Recipe": {
+            "Flawless Amber Gemstone": 5,
+            "Amber Crystal": 1
+        }
+    },
+    "Perfect Amethyst Gemstone": {
+        "Crafting Time": 20.0,
+        "Recipe": {
+            "Flawless Amethyst Gemstone": 5,
+            "Amethyst Crystal": 1
+        }
+    },
+    "Perfect Jade Gemstone": {
+        "Crafting Time": 20.0,
+        "Recipe": {
+            "Flawless Jade Gemstone": 5,
+            "Jade Crystal": 1
+        }
+    },
+    "Perfect Jasper Gemstone": {
+        "Crafting Time": 20.0,
+        "Recipe": {
+            "Flawless Jasper Gemstone": 5,
+            "Jasper Crystal": 1
+        }
+    },
+    "Perfect Opal Gemstone": {
+        "Crafting Time": 20.0,
+        "Recipe": {
+            "Flawless Opal Gemstone": 5,
+            "Opal Crystal": 1
+        }
+    },
+    "Perfect Ruby Gemstone": {
+        "Crafting Time": 20.0,
+        "Recipe": {
+            "Flawless Ruby Gemstone": 5,
+            "Ruby Crystal": 1
+        }
+    },
+    "Perfect Sapphire Gemstone": {
+        "Crafting Time": 20.0,
+        "Recipe": {
+            "Flawless Sapphire Gemstone": 5,
+            "Sapphire Crystal": 1
+        }
+    },
+    "Perfect Topaz Gemstone": {
+        "Crafting Time": 20.0,
+        "Recipe": {
+            "Flawless Topaz Gemstone": 5,
+            "Topaz Crystal": 1
+        }
+    },
+    "Perfect Onyx Gemstone": {
+        "Crafting Time": 20.0,
+        "Recipe": {
+            "Flawless Onyx Gemstone": 5,
+            "Onyx Crystal": 1
+        }
+    },
+    "Perfect Citrine Gemstone": {
+        "Crafting Time": 20.0,
+        "Recipe": {
+            "Flawless Citrine Gemstone": 5,
+            "Citrine Crystal": 1
+        }
+    },
+    "Perfect Aquamarine Gemstone": {
+        "Crafting Time": 20.0,
+        "Recipe": {
+            "Flawless Aquamarine Gemstone": 5,
+            "Aquamarine Crystal": 1
+        }
+    },
+    "Perfect Peridot Gemstone": {
+        "Crafting Time": 20.0,
+        "Recipe": {
+            "Flawless Peridot Gemstone": 5,
+            "Peridot Crystal": 1
+        }
+    },
+    "Bejeweled Collar": {
+        "Crafting Time": 2.0,
+        "Recipe": {
+            "Refined Mithril": 4,
+            "Bejeweled Handle": 1
+        }
+    },
+    "Mole Pet": {
+        "Crafting Time": 72.0,
+        "Recipe": {
+            "Claw Fossil": 1,
+            "Coins": 300000
+        }
+    },
+    "Ammonite Pet": {
+        "Crafting Time": 72.0,
+        "Recipe": {
+            "Helix": 1,
+            "Coins": 300000
+        }
+    },
+    "Penguin Pet": {
+        "Crafting Time": 168.0,
+        "Recipe": {
+            "Webbed Fossil": 1,
+            "Flawless Aquamarine Gemstone": 1
+        }
+    },
+    "T-Rex Pet": {
+        "Crafting Time": 168.0,
+        "Recipe": {
+            "Footprint Fossil": 1,
+            "Flawless Onyx Gemstone": 1
+        }
+    },
+    "Spinosaurus Pet": {
+        "Crafting Time": 168.0,
+        "Recipe": {
+            "Spine Fossil": 1,
+            "Flawless Aquamarine Gemstone": 1
+        }
+    },
+    "Goblin Pet": {
+        "Crafting Time": 168.0,
+        "Recipe": {
+            "Ugly Fossil": 1,
+            "Flawless Amber Gemstone": 1
+        }
+    },
+    "Ankylosaurus Pet": {
+        "Crafting Time": 168.0,
+        "Recipe": {
+            "Clubbed Fossil": 1,
+            "Flawless Opal Gemstone": 1
+        }
+    },
+    "Mammoth Pet": {
+        "Crafting Time": 168.0,
+        "Recipe": {
+            "Tusk Fossil": 1,
+            "Flawless Onyx Gemstone": 1
+        }
+    },
+    "Beacon II": {
+        "Crafting Time": 20.0,
+        "Recipe": {
+            "Beacon I": 1,
+            "Starfall": 64,
+            "Enchanted Mithril": 192,
+            "Refined Mithril": 5
+        }
+    },
+    "Beacon III": {
+        "Crafting Time": 30.0,
+        "Recipe": {
+            "Beacon II": 1,
+            "Starfall": 64,
+            "Enchanted Mithril": 192,
+            "Refined Mithril": 10
+        }
+    },
+    "Beacon IV": {
+        "Crafting Time": 40.0,
+        "Recipe": {
+            "Beacon III": 1,
+            "Starfall": 64,
+            "Enchanted Mithril": 192,
+            "Refined Mithril": 20,
+            "Plasma": 1
+        }
+    },
+    "Beacon V": {
+        "Crafting Time": 50.0,
+        "Recipe": {
+            "Beacon IV": 1,
+            "Starfall": 64,
+            "Enchanted Mithril": 192,
+            "Refined Mithril": 40,
+            "Plasma": 5
+        }
+    },
+    "Travel Scroll To The Dwarven Forge": {
+        "Crafting Time": 5.0,
+        "Recipe": {
+            "Mithril": 48,
+            "Titanium": 80,
+            "Enchanted Ender Pearl": 16,
+            "Coins": 25000
+        }
+    },
+    "Travel Scroll To The Dwarven Base Camp": {
+        "Crafting Time": 10.0,
+        "Recipe": {
+            "Enchanted Ender Pearl": 16,
+            "Flawless Onyx Gemstone": 1,
+            "Coins": 500000
+        }
+    },
+    "Power Crystal": {
+        "Crafting Time": 2.0,
+        "Recipe": {
+            "Starfall": 256
+        }
+    },
+    "Secret Railroad Pass": {
+        "Crafting Time": 0.008333333333333333,
+        "Recipe": {
+            "Corleonite": 8,
+            "Refined Mithril": 2,
+            "Flawless Ruby Gemstone": 1
+        }
+    },
+    "Tungsten Key": {
+        "Crafting Time": 0.5,
+        "Recipe": {
+            "Enchanted Tungsten": 192,
+            "Bejeweled Handle": 1
+        }
+    },
+    "Umber Key": {
+        "Crafting Time": 0.5,
+        "Recipe": {
+            "Enchanted Umber": 192,
+            "Bejeweled Handle": 1
+        }
+    },
+    "Skeleton Key": {
+        "Crafting Time": 0.5,
+        "Recipe": {
+            "Perfect Plate": 1,
+            "Glacite Amalgamation": 1,
+            "Fine Onyx Gemstone": 4,
+            "Fine Citrine Gemstone": 4,
+            "Fine Peridot Gemstone": 4,
+            "Fine Aquamarine Gemstone": 4,
+            "Tungsten Plate": 1,
+            "Mithril Plate": 1,
+            "Golden Plate": 1,
+            "Glacite Jewel": 5,
+            "Refined Diamond": 1,
+            "Enchanted Iron Block": 1,
+            "Refined Titanium": 1,
+            "Bejeweled Handle": 1
+        }
+    },
+    "Portable Campfire": {
+        "Crafting Time": 0.5,
+        "Recipe": {
+            "Match-Sticks": 16,
+            "Stick": 16,
+            "Refined Umber": 1
+        }
+    }
+}
