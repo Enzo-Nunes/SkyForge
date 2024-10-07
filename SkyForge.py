@@ -51,6 +51,25 @@ def time_to_hours(time: str) -> float:
 def convert_name(bazaar_name: str) -> str:
     if bazaar_name == "DRILL_ENGINE":
         return "Drill Motor"
+    if bazaar_name == "FUEL_TANK":
+        return "Fuel Canister"
+    if bazaar_name == "HAY_BLOCK":
+        return "Hay Bale"
+    if bazaar_name == "ENCHANTED_HAY_BLOCK":
+        return "Enchanted Hay Bale"
+    if bazaar_name == "ENCHANTED_COAL_BLOCK":
+        return "Enchanted Block Of Coal"
+    if bazaar_name == "GOBLIN_EGG_BLUE":
+        return "Blue Goblin Egg"
+    if bazaar_name == "GOBLIN_EGG_GREEN":
+        return "Green Goblin Egg"
+    if bazaar_name == "GOBLIN_EGG_RED":
+        return "Red Goblin Egg"
+    if bazaar_name == "GOBLIN_EGG_YELLOW":
+        return "Yellow Goblin Egg"
+    if bazaar_name == "MITHRIL_ORE":
+        return "Mithril"    
+
     converted_name = bazaar_name
     if bazaar_name.endswith("GEM"):
         converted_name = bazaar_name.replace("GEM", "GEMSTONE")
@@ -311,8 +330,8 @@ def calculate_forge_profits(
     logger.info(f"Starting Auction House processing, {pages} pages found:")
     auction_house_price = {}
     for i in range(pages):
-        logger.info(f"Processing Auction House page {i}...")
-        auction_house = requests.get(AUCTION_HOUSE_URL, headers=HEADERS, json={"page": i}).json()
+        logger.info(f"Processing Auction House page {i}/{pages}...")
+        auction_house = requests.get(AUCTION_HOUSE_URL, headers=HEADERS, params={"page": i}).json()
         for auction in auction_house["auctions"]:
             current_price = auction_house_price.get(auction["item_name"], -1)
             new_price = auction["starting_bid"]
