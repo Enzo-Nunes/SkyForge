@@ -1,11 +1,11 @@
-import bs4
-import roman
-import requests
 import json
-import time
 import logging
+import time
 
-# Colletions and levels
+import bs4
+import requests
+import roman
+
 HEART_OF_THE_MOUNTAIN_TIER = 4
 GEMSTONE_COLLECTION = 4
 TUNGSTEN_COLLECTION = 0
@@ -308,10 +308,10 @@ def get_forge_info() -> dict[str, dict[str, int | float | dict[str, int]]]:
 
 
 def calculate_forge_profits(
-    the_forge: dict[str, dict[str, int | float | dict[str, int]]]
+    the_forge: dict[str, dict[str, int | float | dict[str, int]]],
 ) -> list[dict[str, str | float | dict]]:
-    BAZAAR_URL = f"https://api.hypixel.net/v2/skyblock/bazaar"
-    AUCTION_HOUSE_URL = f"https://api.hypixel.net/v2/skyblock/auctions"
+    BAZAAR_URL = "https://api.hypixel.net/v2/skyblock/bazaar"
+    AUCTION_HOUSE_URL = "https://api.hypixel.net/v2/skyblock/auctions"
     HEADERS = {"Content-Type": "application/json"}
 
     auction_house = requests.get(AUCTION_HOUSE_URL, headers=HEADERS).json()
