@@ -1,0 +1,205 @@
+[
+    {
+        "Name": "Mithril Belt",
+        "Cost": 4045.2282829772084,
+        "Sell Value": 450000,
+        "Profit": 445954.7717170228,
+        "Duration": 1.0,
+        "Profit per Hour": 445954.7717170228,
+        "Recipe": {
+            "Enchanted Mithril": 3
+        }
+    },
+    {
+        "Name": "Mithril Cloak",
+        "Cost": 4045.2282829772084,
+        "Sell Value": 300000,
+        "Profit": 295954.7717170228,
+        "Duration": 1.0,
+        "Profit per Hour": 295954.7717170228,
+        "Recipe": {
+            "Enchanted Mithril": 3
+        }
+    },
+    {
+        "Name": "Mithril Gauntlet",
+        "Cost": 4045.2282829772084,
+        "Sell Value": 300000,
+        "Profit": 295954.7717170228,
+        "Duration": 1.0,
+        "Profit per Hour": 295954.7717170228,
+        "Recipe": {
+            "Enchanted Mithril": 3
+        }
+    },
+    {
+        "Name": "Titanium Cloak",
+        "Cost": 1592493.9930018415,
+        "Sell Value": 2750000,
+        "Profit": 1157506.0069981585,
+        "Duration": 4.5,
+        "Profit per Hour": 257223.5571107019,
+        "Recipe": {
+            "Refined Mineral": 16,
+            "Refined Titanium": 1,
+            "Mithril Cloak": 1
+        }
+    },
+    {
+        "Name": "Titanium Belt",
+        "Cost": 1742493.9930018415,
+        "Sell Value": 2750000,
+        "Profit": 1007506.0069981585,
+        "Duration": 4.5,
+        "Profit per Hour": 223890.22377736855,
+        "Recipe": {
+            "Refined Mineral": 16,
+            "Refined Titanium": 1,
+            "Mithril Belt": 1
+        }
+    },
+    {
+        "Name": "Titanium Gauntlet",
+        "Cost": 1592493.9930018415,
+        "Sell Value": 2600000,
+        "Profit": 1007506.0069981585,
+        "Duration": 4.5,
+        "Profit per Hour": 223890.22377736855,
+        "Recipe": {
+            "Refined Mineral": 16,
+            "Refined Titanium": 1,
+            "Mithril Gauntlet": 1
+        }
+    },
+    {
+        "Name": "Gemstone Mixture",
+        "Cost": 1087511.8929450763,
+        "Sell Value": 1683824.8754166667,
+        "Profit": 596312.9824715904,
+        "Duration": 4.0,
+        "Profit per Hour": 149078.2456178976,
+        "Recipe": {
+            "Fine Jade Gemstone": 4,
+            "Fine Amber Gemstone": 4,
+            "Fine Amethyst Gemstone": 4,
+            "Fine Sapphire Gemstone": 4,
+            "Sludge Juice": 320
+        }
+    },
+    {
+        "Name": "Golden Plate",
+        "Cost": 1859484.810020186,
+        "Sell Value": 2620435.313559322,
+        "Profit": 760950.5035391361,
+        "Duration": 6.0,
+        "Profit per Hour": 126825.08392318936,
+        "Recipe": {
+            "Enchanted Gold Block": 2,
+            "Glacite Jewel": 5,
+            "Refined Diamond": 1
+        }
+    },
+    {
+        "Name": "Petrified Starfall",
+        "Cost": 1492055.1130269414,
+        "Sell Value": 2000000.2,
+        "Profit": 507945.0869730585,
+        "Duration": 6.0,
+        "Profit per Hour": 84657.51449550975,
+        "Recipe": {
+            "Starfall": 512
+        }
+    },
+    {
+        "Name": "Refined Mithril",
+        "Cost": 215745.50842545112,
+        "Sell Value": 633778.9721470019,
+        "Profit": 418033.46372155077,
+        "Duration": 6.0,
+        "Profit per Hour": 69672.2439535918,
+        "Recipe": {
+            "Enchanted Mithril": 160
+        }
+    },
+    {
+        "Name": "Drill Motor",
+        "Cost": 3485910.165812632,
+        "Sell Value": 4903436.089473683,
+        "Profit": 1417525.9236610513,
+        "Duration": 30.0,
+        "Profit per Hour": 47250.86412203505,
+        "Recipe": {
+            "Enchanted Iron Block": 1,
+            "Enchanted Redstone Block": 3,
+            "Golden Plate": 1,
+            "Treasurite": 10
+        }
+    },
+    {
+        "Name": "Refined Diamond",
+        "Cost": 408462.9004555809,
+        "Sell Value": 778501.2469282013,
+        "Profit": 370038.3464726204,
+        "Duration": 8.0,
+        "Profit per Hour": 46254.79330907755,
+        "Recipe": {
+            "Enchanted Diamond Block": 2
+        }
+    },
+    {
+        "Name": "Titanium Tesseract",
+        "Cost": 762985.9281493389,
+        "Sell Value": 1013088.5275000001,
+        "Profit": 250102.59935066116,
+        "Duration": 6.0,
+        "Profit per Hour": 41683.76655844352,
+        "Recipe": {
+            "Enchanted Lapis Lazuli": 16,
+            "Refined Titanium": 1
+        }
+    },
+    {
+        "Name": "Refined Titanium",
+        "Cost": 252344.282447342,
+        "Sell Value": 698811.2307917889,
+        "Profit": 446466.9483444469,
+        "Duration": 12.0,
+        "Profit per Hour": 37205.579028703905,
+        "Recipe": {
+            "Enchanted Titanium": 16
+        }
+    },
+    {
+        "Name": "Titanium Talisman",
+        "Cost": 1499781.5860036833,
+        "Sell Value": 1988000,
+        "Profit": 488218.4139963167,
+        "Duration": 14.0,
+        "Profit per Hour": 34872.743856879766,
+        "Recipe": {
+            "Refined Titanium": 2
+        }
+    },
+    {
+        "Name": "Pure Mithril",
+        "Cost": 1301750.2448717947,
+        "Sell Value": 1392501.5,
+        "Profit": 90751.25512820529,
+        "Duration": 6.0,
+        "Profit per Hour": 15125.209188034214,
+        "Recipe": {
+            "Refined Mithril": 2
+        }
+    },
+    {
+        "Name": "Power Crystal",
+        "Cost": 746027.5565134707,
+        "Sell Value": 759994.5,
+        "Profit": 13966.943486529286,
+        "Duration": 2.0,
+        "Profit per Hour": 6983.471743264643,
+        "Recipe": {
+            "Starfall": 256
+        }
+    }
+]
