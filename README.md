@@ -12,6 +12,7 @@ Open the [SkyForgeConfigs.json](SkyForgeConfigs.json) file with the text editor 
 - Insert your collection levels into the numbers corresponding to each of the collections. By default, everything is set to max level, so make sure to fill in with your values.
 - Fill in the line for the budget you are willing to invest in millions of coins. For example, if you want to invest at most `300,000 coins` per forge, insert `0.3` in the budget.
 - Insert the table length you want. This is the number of lines the final table will have. For example, if set to `10` (default), the final table will show the 10 best items to forge. Regardless of this number, a `json` will be generated with the full list of best items.
+- Fill in the line for the time interval you want in between data refreshes, in seconds. I don't recommend values below two minutes.
 
 # Usage
 First of all, clone the repository:
@@ -40,7 +41,7 @@ With the script running, a bunch of info regarding the processing will be shown 
 Once you have chosen an item to invest in, check the recipe on the right and buy the necessary ingredients, either from the `Bazaar` or `Auction House`, preferably from `Bazaar` `Buy Orders`, as it's cheaper, and start the forge for the item. Once the forge is complete, sell the item either in the `Bazaar` or `Auction House`, preferably with `Bazaar` `Sell Orders`, as they yield even more profit. Repeat this process for as many forge slots as you want/have.
 
 # Notes and Tips
-- Every 60 seconds, the program will fetch new data and update its results accordingly.
+- Every now and then the program will fetch new data and update its results accordingly. The time between refreshes is configurable, but I don't recomend times under two minutes.
 - Maximize the terminal window for clearer results.
 - You don't need to close the program to change configurations. Just modify the [configuration file](SkyForgeConfigs.json) and the program will consider this new config the next time it refreshes its data.
 

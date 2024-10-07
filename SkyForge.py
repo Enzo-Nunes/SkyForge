@@ -17,6 +17,7 @@ GLACITE_COLLECTION = config.get("GLACITE_COLLECTION")
 HARD_STONE_COLLECTION = config.get("HARD_STONE_COLLECTION")
 BUDGET = config.get("BUDGET")
 TABLE_LENGTH = config.get("TABLE_LENGTH")
+REFRESH_TIME = config.get("REFRESH_TIME")
 
 ######################
 # Auxiliar Functions #
@@ -111,7 +112,7 @@ def pretty_number(number: int) -> str:
 
 
 def profits_str(profits: list[dict[str, str | float | dict]]) -> str:
-    logger.info("The top 10 Items for investing are as follows:")
+    logger.info(f"The top {TABLE_LENGTH} Items for investing are as follows:")
 
     top_width = 8
     name_width = 24
@@ -405,6 +406,8 @@ while True:
     GLACITE_COLLECTION = config.get("GLACITE_COLLECTION")
     HARD_STONE_COLLECTION = config.get("HARD_STONE_COLLECTION")
     BUDGET = config.get("BUDGET")
+    TABLE_LENGTH = config.get("TABLE_LENGTH")
+    REFRESH_TIME = config.get("REFRESH_TIME")
 
     logger.info("Processing started...")
     the_forge = get_forge_info()
@@ -413,7 +416,7 @@ while True:
     logger.info("All profits calculated. Exporting...")
     with open("best_forge_items.json", "w") as file:
         json.dump(profits, file, indent=4)
-    logger.info("Data written to file. Processing complete, waiting 60s...")
+    logger.info(f"Data written to file. Processing complete, waiting {REFRESH_TIME} seconds...")
     print(profits_str(profits[:TABLE_LENGTH]))
 
-    time.sleep(60)
+    time.sleep(REFRESH_TIME)
