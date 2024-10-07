@@ -6,15 +6,17 @@ import bs4
 import requests
 import roman
 
-HEART_OF_THE_MOUNTAIN_TIER = 4
-GEMSTONE_COLLECTION = 4
-TUNGSTEN_COLLECTION = 0
-UMBER_COLLECTION = 0
-GLACITE_COLLECTION = 0
-HARD_STONE_COLLECTION = 0
+with open("SkyForgeConfigs.json", "r") as config_file:
+    config = json.load(config_file)
 
-# budget to invest per item (millions of coins)
-BUDGET = 4
+HEART_OF_THE_MOUNTAIN_TIER = config.get("HEART_OF_THE_MOUNTAIN_TIER")
+GEMSTONE_COLLECTION = config.get("GEMSTONE_COLLECTION")
+TUNGSTEN_COLLECTION = config.get("TUNGSTEN_COLLECTION")
+UMBER_COLLECTION = config.get("UMBER_COLLECTION")
+GLACITE_COLLECTION = config.get("GLACITE_COLLECTION")
+HARD_STONE_COLLECTION = config.get("HARD_STONE_COLLECTION")
+BUDGET = config.get("BUDGET")
+TABLE_LENGTH = config.get("TABLE_LENGTH")
 
 ######################
 # Auxiliar Functions #
@@ -92,7 +94,6 @@ def pretty_number(number: int) -> str:
 def profits_str(profits: list[dict[str, str | float | dict]]) -> str:
     logger.info("The top 10 Items for investing are as follows:")
 
-    # Define the width for each column
     top_width = 8
     name_width = 24
     cost_width = 12
@@ -118,16 +119,16 @@ def profits_str(profits: list[dict[str, str | float | dict]]) -> str:
         )
         + "\n"
     )
-    # Header with column names
+
     profits_pretty += (
-        f"{'| Top':<{top_width}}"
-        f"{'Item Name':<{name_width}}"
-        f"{'Cost':<{cost_width}}"
-        f"{'Sell Value':<{sell_value_width}}"
-        f"{'Profit':<{profit_width}}"
-        f"{'Duration':<{duration_width}}"
-        f"{'Profit per Hour':<{profit_per_hour_width}}"
-        f"{'Recipe':<{recipe_width}}|\n"
+        f"{"| Top":<{top_width}}"
+        f"{"Item Name":<{name_width}}"
+        f"{"Cost":<{cost_width}}"
+        f"{"Sell Value":<{sell_value_width}}"
+        f"{"Profit":<{profit_width}}"
+        f"{"Duration":<{duration_width}}"
+        f"{"Profit per Hour":<{profit_per_hour_width}}"
+        f"{"Recipe":<{recipe_width}}|\n"
     )
     profits_pretty += (
         "|"
@@ -147,23 +148,21 @@ def profits_str(profits: list[dict[str, str | float | dict]]) -> str:
     )
 
     for i, profit in enumerate(profits):
-        # Print main row with item info and the first recipe material
         profits_pretty += (
             f"{"| " + str(i + 1):<{top_width}}"
-            f"{profit['Name']:<{name_width}}"
-            f"{pretty_number(int(profit['Cost'])):<{cost_width}}"
-            f"{pretty_number(int(profit['Sell Value'])):<{sell_value_width}}"
-            f"{pretty_number(int(profit['Profit'])):<{profit_width}}"
-            f"{str(round(profit['Duration'], 3)):<{duration_width}}"
-            f"{pretty_number(int(profit['Profit per Hour'])):<{profit_per_hour_width}}"
-            f"{list(profit['Recipe'].keys())[0] + ' x' + str(profit['Recipe'][list(profit['Recipe'].keys())[0]]):<{recipe_width}}|\n"
+            f"{profit["Name"]:<{name_width}}"
+            f"{pretty_number(int(profit["Cost"])):<{cost_width}}"
+            f"{pretty_number(int(profit["Sell Value"])):<{sell_value_width}}"
+            f"{pretty_number(int(profit["Profit"])):<{profit_width}}"
+            f"{str(round(profit["Duration"], 3)):<{duration_width}}"
+            f"{pretty_number(int(profit["Profit per Hour"])):<{profit_per_hour_width}}"
+            f"{list(profit["Recipe"].keys())[0] + " x" + str(profit["Recipe"][list(profit["Recipe"].keys())[0]]):<{recipe_width}}|\n"
         )
 
-        # Print any additional materials in the recipe (indented)
         for material in list(profit["Recipe"].keys())[1:]:
             profits_pretty += (
-                f"{'|':<{top_width + name_width + cost_width + sell_value_width + profit_width + duration_width + profit_per_hour_width}}"
-                f"{material + ' x' + str(profit['Recipe'][material]):<{recipe_width}}|\n"
+                f"{"|":<{top_width + name_width + cost_width + sell_value_width + profit_width + duration_width + profit_per_hour_width}}"
+                f"{material + " x" + str(profit["Recipe"][material]):<{recipe_width}}|\n"
             )
 
         profits_pretty += (
@@ -287,16 +286,8 @@ def parse_requirements(wiki_requirements: str) -> dict[str, int]:
 
 
 def get_forge_info() -> dict[str, dict[str, int | float | dict[str, int]]]:
-    """
-    Reads the forge page from the official wiki and parses it to the forge dictionary.
-
-    :return: A dictionary containing the forge item details.
-    """
-
     the_forge = {}
-
     item_list = parse_forge_page()
-
     for forge_item in item_list:
         the_forge[parse_name(forge_item["Name & Rarity"])] = {
             "Duration": parse_crafting_time(forge_item["Duration"]),
@@ -320,7 +311,7 @@ def calculate_forge_profits(
     logger.info(f"Starting Auction House processing, {pages} pages found:")
     auction_house_price = {}
     for i in range(pages):
-        logger.info(f"Processing page {i}...")
+        logger.info(f"Processing Auction House page {i}...")
         auction_house = requests.get(AUCTION_HOUSE_URL, headers=HEADERS, json={"page": i}).json()
         for auction in auction_house["auctions"]:
             current_price = auction_house_price.get(auction["item_name"], -1)
@@ -385,14 +376,25 @@ def calculate_forge_profits(
 
 
 while True:
+    with open("SkyForgeConfigs.json", "r") as config_file:
+        config = json.load(config_file)
+
+    HEART_OF_THE_MOUNTAIN_TIER = config.get("HEART_OF_THE_MOUNTAIN_TIER")
+    GEMSTONE_COLLECTION = config.get("GEMSTONE_COLLECTION")
+    TUNGSTEN_COLLECTION = config.get("TUNGSTEN_COLLECTION")
+    UMBER_COLLECTION = config.get("UMBER_COLLECTION")
+    GLACITE_COLLECTION = config.get("GLACITE_COLLECTION")
+    HARD_STONE_COLLECTION = config.get("HARD_STONE_COLLECTION")
+    BUDGET = config.get("BUDGET")
+
     logger.info("Processing started...")
     the_forge = get_forge_info()
     logger.info("Forge data fetched. Calculating profits...")
     profits = calculate_forge_profits(the_forge)
     logger.info("All profits calculated. Exporting...")
-    with open("final_profits.json", "w") as file:
+    with open("best_forge_items.json", "w") as file:
         json.dump(profits, file, indent=4)
     logger.info("Data written to file. Processing complete, waiting 60s...")
-    print(profits_str(profits[:10]))
+    print(profits_str(profits[:TABLE_LENGTH]))
 
     time.sleep(60)

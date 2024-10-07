@@ -3,26 +3,46 @@
 This application fetches data from the [Official Hypixel Wiki](https://wiki.hypixel.net/The_Forge) and the [Official Hypixel API](https://api.hypixel.net)
 and determines which are the best items to craft, based on `Bazaaar` and `Auction House` prices.
 
+This tool might be useful to help players fill currently unused forge slots so they can be useful even if the player has no interest in forge items.
+
 # Configuration
-Before running the script, you need to add your preferences to the main file. These include you collection levels and the budget you are willing to invest.
+Before running the app, you need to add your preferences and collection levels to the configuration file so the app can determine which items to include in the results.
 
-Open the `SkyForge.py` file with the text editor of your choice and take a look at the configurations at the beginning of the file. Lines `10-15`
+Open the [SkyForgeConfigs.json](SkyForgeConfigs.json) file with the text editor of your choice and take a look at the configurations.
+- Insert your collection levels into the numbers corresponding to each of the collections. By default, everything is set to max level, so make sure to fill in with your values.
+- Fill in the line for the budget you are willing to invest in millions of coins. For example, if you want to invest at most `300,000 coins` per forge, insert `0.3` in the budget.
+- Insert the table length you want. This is the number of lines the final table will have. For example, if set to `10` (default), the final table will show the 10 best items to forge. Regardless of this number, a `json` will be generated with the full list of best items.
 
-# Installation
-1. First of all, clone the repository:
+# Usage
+First of all, clone the repository:
 ```bash
 git clone git@github.com:Enzo-Nunes/SkyForge.git
 cd SkyForge
 ```
+From here, you have two options.
 
+## Option 1 - Run from Executable (Recommended)
+The easiest way to use the app is to simply open the executable [SkyForge.exe](SkyForge.exe). A terminal window will open with the program.
 
-2. Install the dependencies in your environment:
+## Option 2 - Run From Source
+If you want to run from source, open a terminal and install the dependencies in your environment:
 ```bash
 pip install beautifulsoup4 requests roman
 ```
-3. Run the main file:
+Then run the main file:
 ```bash
 python SkyForge.py
 ```
-## Usage
-With the script running, a bunch of info will be printed to the terminal. After all calculations are done, a table
+## Understanding the Data
+With the script running, a bunch of info regarding the processing will be shown on the terminal. After all calculations are done, the program will create the [best_forge_items.json](best_forge_items.json) with all the relevant data and display a table on the terminal. Both the table and `json` file are sorted by profit per hour, filtered by the configs you inserted.
+
+## Making Coins with the Forge
+Once you have chosen an item to invest in, check the recipe on the right and buy the necessary ingredients, either from the `Bazaar` or `Auction House`, preferably from `Bazaar` `Buy Orders`, as it's cheaper, and start the forge for the item. Once the forge is complete, sell the item either in the `Bazaar` or `Auction House`, preferably with `Bazaar` `Sell Orders`, as they yield even more profit. Repeat this process for as many forge slots as you want/have.
+
+# Notes and Tips
+- Every 60 seconds, the program will fetch new data and update its results accordingly.
+- Maximize the terminal window for clearer results.
+- You don't need to close the program to change configurations. Just modify the [configuration file](SkyForgeConfigs.json) and the program will consider this new config the next time it refreshes its data.
+
+# Diclaimer and Friendly Advices
+This app might not give perfectly EXACT data, as it fetches its information from the Wiki and API. Use this tool at your own discretion. It's good practice to always check the Auction House and Bazaar for true current prices before investing. Also, this project is neither endorsed by nor affiliated with Hypixel.
