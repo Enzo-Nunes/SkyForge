@@ -331,7 +331,7 @@ def calculate_forge_profits(
     logger.info(f"Starting Auction House processing, {pages} pages found:")
     auction_house_price = {}
     for i in range(pages):
-        logger.info(f"Processing Auction House page {i}/{pages}...")
+        logger.info(f"Processing Auction House page {i + 1}/{pages}...")
         auction_house = requests.get(AUCTION_HOUSE_URL, headers=HEADERS, params={"page": i}).json()
         for auction in auction_house["auctions"]:
             current_price = auction_house_price.get(auction["item_name"], -1)
@@ -376,7 +376,7 @@ def calculate_forge_profits(
             is_craftable
             and is_sellabe
             and item_sell_price > item_cost
-            and item_cost < BUDGET * 10**6
+            and item_cost <= BUDGET * 10**6
             and is_unlocked(the_forge[item_name]["Requirements"])
         ):
             items_profit.append(
