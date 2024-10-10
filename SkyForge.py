@@ -69,11 +69,12 @@ def convert_name(bazaar_name: str) -> str:
     if bazaar_name == "GOBLIN_EGG_YELLOW":
         return "Yellow Goblin Egg"
     if bazaar_name == "MITHRIL_ORE":
-        return "Mithril"    
+        return "Mithril"
 
     converted_name = bazaar_name
     if bazaar_name.endswith("GEM"):
         converted_name = bazaar_name.replace("GEM", "GEMSTONE")
+
     return " ".join([item_name.capitalize() for item_name in converted_name.split(":")[0].split("_")])
 
 
@@ -114,14 +115,29 @@ def pretty_number(number: int) -> str:
 def profits_str(profits: list[dict[str, str | float | dict]]) -> str:
     logger.info(f"The top {TABLE_LENGTH} Items for investing are as follows:")
 
-    top_width = 8
-    name_width = 24
-    cost_width = 12
-    sell_value_width = 12
-    profit_width = 12
-    duration_width = 12
-    profit_per_hour_width = 20
-    recipe_width = 32
+    spacing = 3
+
+    top_list = [i + 1 for i in range(TABLE_LENGTH)]
+    name_list = [profit["Name"] for profit in profits]
+    cost_list = [pretty_number(int(profit["Cost"])) for profit in profits]
+    sell_value_list = [pretty_number(int(profit["Sell Value"])) for profit in profits]
+    profit_list = [pretty_number(int(profit["Profit"])) for profit in profits]
+    duration_list = [str(round(profit["Duration"], 3)) for profit in profits]
+    profit_per_hour_list = [pretty_number(int(profit["Profit per Hour"])) for profit in profits]
+    recipe_list = [
+        material + " x" + str(profit["Recipe"][material]) for profit in profits for material in profit["Recipe"]
+    ]
+
+    top_width = max(len("Top"), max(len(str(top)) for top in top_list)) + spacing + 2
+    name_width = max(len("Item Name"), max(len(name) for name in name_list)) + spacing
+    cost_width = max(len("Cost"), max(len(cost) for cost in cost_list)) + spacing
+    sell_value_width = max(len("Sell Value"), max(len(sell_value) for sell_value in sell_value_list)) + spacing
+    profit_width = max(len("Profit"), max(len(profit) for profit in profit_list)) + spacing
+    duration_width = max(len("Duration"), max(len(duration) for duration in duration_list)) + spacing
+    profit_per_hour_width = (
+        max(len("Profit per Hour"), max(len(profit_per_hour) for profit_per_hour in profit_per_hour_list)) + spacing
+    )
+    recipe_width = max(len("Recipe"), max(len(recipe) for recipe in recipe_list)) + 1
 
     profits_pretty = (
         " "
@@ -176,13 +192,13 @@ def profits_str(profits: list[dict[str, str | float | dict]]) -> str:
             f"{pretty_number(int(profit["Profit"])):<{profit_width}}"
             f"{str(round(profit["Duration"], 3)):<{duration_width}}"
             f"{pretty_number(int(profit["Profit per Hour"])):<{profit_per_hour_width}}"
-            f"{list(profit["Recipe"].keys())[0] + " x" + str(profit["Recipe"][list(profit["Recipe"].keys())[0]]):<{recipe_width}}|\n"
+            f"{str(profit["Recipe"][list(profit["Recipe"].keys())[0]]) + "x " + list(profit["Recipe"].keys())[0]:<{recipe_width}}|\n"
         )
 
         for material in list(profit["Recipe"].keys())[1:]:
             profits_pretty += (
                 f"{"|":<{top_width + name_width + cost_width + sell_value_width + profit_width + duration_width + profit_per_hour_width}}"
-                f"{material + " x" + str(profit["Recipe"][material]):<{recipe_width}}|\n"
+                f"{str(profit["Recipe"][material]) + "x " + material:<{recipe_width}}|\n"
             )
 
         profits_pretty += (
