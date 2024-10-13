@@ -62,6 +62,6 @@ Once the forge is complete, sell the item either in the `Bazaar` or `Auction Hou
 - Maximize the terminal window for clearer results.
 - You don't need to close the program to change configurations. Just modify the [configuration file](SkyForgeConfigs.json) and the program will consider this new config the next time it refreshes its data.
 
-## Diclaimer and Friendly Advices
+## Disclaimer and Friendly Advices
 
 This app might not give perfectly EXACT data, as it fetches its information from the Wiki and API. Use this tool at your own discretion. It's good practice to always check the Auction House and Bazaar for true current prices before investing. Also, this project is neither endorsed by nor affiliated with Hypixel.
