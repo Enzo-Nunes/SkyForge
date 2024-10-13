@@ -52,7 +52,9 @@ With the script running, a bunch of info regarding the processing will be shown 
 
 ## Making Coins with the Forge
 
-Once you have chosen an item to invest in, check the recipe on the right and buy the necessary ingredients, either from the `Bazaar` or `Auction House`, preferably from `Bazaar` `Buy Orders`, as it's cheaper, and start the forge for the item. Once the forge is complete, sell the item either in the `Bazaar` or `Auction House`, preferably with `Bazaar` `Sell Orders`, as they yield even more profit. Repeat this process for as many forge slots as you want/have.
+Once you have chosen an item to invest in, check the recipe on the right and buy the necessary ingredients, either from the `Bazaar` or `Auction House`. If the ingredient is bought from the `Bazaar`, always try creating a `Buy Order`, as it is usually cheaper. Naturally, there will be some items which will take forever for their orders to be filled, so you might want to just use `Instant Buy` for those.
+
+Once the forge is complete, sell the item either in the `Bazaar` or `Auction House`. If the item is sold on the `Bazaar`, always try creating a `Sell Orded`, as it is usually more profitable. Again, there will be some items which will take forever for their orders to be filled, so you might want to just use `Instant Sell` for those.
 
 ## Notes and Tips
 
