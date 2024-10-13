@@ -137,7 +137,7 @@ def profits_str(profits: list[dict[str, str | float | dict]]) -> str:
     profit_per_hour_width = (
         max(len("Profit per Hour"), max(len(profit_per_hour) for profit_per_hour in profit_per_hour_list)) + spacing
     )
-    recipe_width = max(len("Recipe"), max(len(recipe) for recipe in recipe_list)) + 1
+    recipe_width = max(len("Recipe"), max(len(recipe) for recipe in recipe_list)) + 2
 
     profits_pretty = (
         " "
