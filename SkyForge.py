@@ -23,7 +23,7 @@ REFRESH_TIME = config.get("REFRESH_TIME")
 # Auxiliar Functions #
 ######################
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(filename)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
