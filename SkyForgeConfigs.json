@@ -1,11 +1,11 @@
 {
-    "HEART_OF_THE_MOUNTAIN_TIER": 10,
-    "GEMSTONE_COLLECTION": 11,
-    "TUNGSTEN_COLLECTION": 9,
-    "UMBER_COLLECTION": 9,
-    "GLACITE_COLLECTION": 9,
-    "HARD_STONE_COLLECTION": 7,
-    "BUDGET": 1000000000,
-	"TABLE_LENGTH": 10,
-	"REFRESH_TIME": 120
+    "Heart of the Mountain Tier": 10,
+    "Gemstone Collection": 11,
+    "Tungsten Collection": 9,
+    "Umber Collection": 9,
+    "Glacite Collection": 9,
+    "Hard Stone Collection": 7,
+    "Budget (per item)": 1000000000,
+    "Table Length (lines)": 10,
+    "Refresh Time (seconds)": 120
 }

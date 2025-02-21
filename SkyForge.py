@@ -1,30 +1,41 @@
 import json
 import logging
+import sys
 import time
 
 import bs4
 import requests
 import roman
 
-with open("SkyForgeConfigs.json", "r") as config_file:
-    config = json.load(config_file)
-
-HEART_OF_THE_MOUNTAIN_TIER = config.get("HEART_OF_THE_MOUNTAIN_TIER")
-GEMSTONE_COLLECTION = config.get("GEMSTONE_COLLECTION")
-TUNGSTEN_COLLECTION = config.get("TUNGSTEN_COLLECTION")
-UMBER_COLLECTION = config.get("UMBER_COLLECTION")
-GLACITE_COLLECTION = config.get("GLACITE_COLLECTION")
-HARD_STONE_COLLECTION = config.get("HARD_STONE_COLLECTION")
-BUDGET = config.get("BUDGET")
-TABLE_LENGTH = config.get("TABLE_LENGTH")
-REFRESH_TIME = config.get("REFRESH_TIME")
-
 ######################
 # Auxiliar Functions #
 ######################
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(filename)s - %(levelname)s - %(message)s")
-logger = logging.getLogger(__name__)
+
+def update_config():
+    global \
+        HEART_OF_THE_MOUNTAIN_TIER, \
+        GEMSTONE_COLLECTION, \
+        TUNGSTEN_COLLECTION, \
+        UMBER_COLLECTION, \
+        GLACITE_COLLECTION, \
+        HARD_STONE_COLLECTION, \
+        BUDGET, \
+        TABLE_LENGTH, \
+        REFRESH_TIME
+
+    with open("SkyForgeConfigs.json", "r") as config_file:
+        config = dict(json.load(config_file))
+
+    HEART_OF_THE_MOUNTAIN_TIER = config.get("Heart of the Mountain Tier")
+    GEMSTONE_COLLECTION = config.get("Gemstone Collection")
+    TUNGSTEN_COLLECTION = config.get("Tungsten Collection")
+    UMBER_COLLECTION = config.get("Umber Collection")
+    GLACITE_COLLECTION = config.get("Glacite Collection")
+    HARD_STONE_COLLECTION = config.get("Hard Stone Collection")
+    BUDGET = config.get("Budget (per item)")
+    TABLE_LENGTH = config.get("Table Length (lines)")
+    REFRESH_TIME = config.get("Refresh Time (seconds)")
 
 
 def is_char_upper(letter: str) -> bool:
@@ -157,14 +168,14 @@ def profits_str(profits: list[dict[str, str | float | dict]]) -> str:
     )
 
     profits_pretty += (
-        f"{"| Top":<{top_width}}"
-        f"{"Item Name":<{name_width}}"
-        f"{"Cost":<{cost_width}}"
-        f"{"Sell Value":<{sell_value_width}}"
-        f"{"Profit":<{profit_width}}"
-        f"{"Duration":<{duration_width}}"
-        f"{"Profit per Hour":<{profit_per_hour_width}}"
-        f"{"Recipe":<{recipe_width}}|\n"
+        f"{'| Top':<{top_width}}"
+        f"{'Item Name':<{name_width}}"
+        f"{'Cost':<{cost_width}}"
+        f"{'Sell Value':<{sell_value_width}}"
+        f"{'Profit':<{profit_width}}"
+        f"{'Duration':<{duration_width}}"
+        f"{'Profit per Hour':<{profit_per_hour_width}}"
+        f"{'Recipe':<{recipe_width}}|\n"
     )
     profits_pretty += (
         "|"
@@ -185,20 +196,20 @@ def profits_str(profits: list[dict[str, str | float | dict]]) -> str:
 
     for i, profit in enumerate(profits):
         profits_pretty += (
-            f"{"| " + str(i + 1):<{top_width}}"
-            f"{profit["Name"]:<{name_width}}"
-            f"{pretty_number(int(profit["Cost"])):<{cost_width}}"
-            f"{pretty_number(int(profit["Sell Value"])):<{sell_value_width}}"
-            f"{pretty_number(int(profit["Profit"])):<{profit_width}}"
-            f"{str(round(profit["Duration"], 3)):<{duration_width}}"
-            f"{pretty_number(int(profit["Profit per Hour"])):<{profit_per_hour_width}}"
-            f"{str(profit["Recipe"][list(profit["Recipe"].keys())[0]]) + "x " + list(profit["Recipe"].keys())[0]:<{recipe_width}}|\n"
+            f"{'| ' + str(i + 1):<{top_width}}"
+            f"{profit['Name']:<{name_width}}"
+            f"{pretty_number(int(profit['Cost'])):<{cost_width}}"
+            f"{pretty_number(int(profit['Sell Value'])):<{sell_value_width}}"
+            f"{pretty_number(int(profit['Profit'])):<{profit_width}}"
+            f"{str(round(profit['Duration'], 3)):<{duration_width}}"
+            f"{pretty_number(int(profit['Profit per Hour'])):<{profit_per_hour_width}}"
+            f"{str(profit['Recipe'][list(profit['Recipe'].keys())[0]]) + 'x ' + list(profit['Recipe'].keys())[0]:<{recipe_width}}|\n"
         )
 
         for material in list(profit["Recipe"].keys())[1:]:
             profits_pretty += (
-                f"{"|":<{top_width + name_width + cost_width + sell_value_width + profit_width + duration_width + profit_per_hour_width}}"
-                f"{str(profit["Recipe"][material]) + "x " + material:<{recipe_width}}|\n"
+                f"{'|':<{top_width + name_width + cost_width + sell_value_width + profit_width + duration_width + profit_per_hour_width}}"
+                f"{str(profit['Recipe'][material]) + 'x ' + material:<{recipe_width}}|\n"
             )
 
         profits_pretty += (
@@ -343,11 +354,15 @@ def calculate_forge_profits(
 
     auction_house = requests.get(AUCTION_HOUSE_URL, headers=HEADERS).json()
     pages = auction_house["totalPages"]
+    items = auction_house["totalAuctions"]
 
-    logger.info(f"Starting Auction House processing, {pages} pages found:")
+    logger.info(f"Starting Auction House processing, {pages} pages found with a total of {items} auctions:")
     auction_house_price = {}
+
     for i in range(pages):
-        logger.info(f"Processing Auction House page {i + 1}/{pages}...")
+        progress_logger.info(
+            f"Processing Auction House page {i + 1}/{pages}, Total progress: {round((i + 1) / (pages) * 100)}%"
+        )
         auction_house = requests.get(AUCTION_HOUSE_URL, headers=HEADERS, params={"page": i}).json()
         for auction in auction_house["auctions"]:
             current_price = auction_house_price.get(auction["item_name"], -1)
@@ -392,7 +407,7 @@ def calculate_forge_profits(
             is_craftable
             and is_sellabe
             and item_sell_price > item_cost
-            and item_cost <= BUDGET * 10**6
+            and item_cost <= BUDGET
             and is_unlocked(the_forge[item_name]["Requirements"])
         ):
             items_profit.append(
@@ -411,27 +426,34 @@ def calculate_forge_profits(
     return items_profit
 
 
-while True:
-    with open("SkyForgeConfigs.json", "r") as config_file:
-        config = json.load(config_file)
+logger_formatter = logging.Formatter("%(asctime)s - %(filename)s - %(levelname)s - %(message)s")
 
-    HEART_OF_THE_MOUNTAIN_TIER = config.get("HEART_OF_THE_MOUNTAIN_TIER")
-    GEMSTONE_COLLECTION = config.get("GEMSTONE_COLLECTION")
-    TUNGSTEN_COLLECTION = config.get("TUNGSTEN_COLLECTION")
-    UMBER_COLLECTION = config.get("UMBER_COLLECTION")
-    GLACITE_COLLECTION = config.get("GLACITE_COLLECTION")
-    HARD_STONE_COLLECTION = config.get("HARD_STONE_COLLECTION")
-    BUDGET = config.get("BUDGET")
-    TABLE_LENGTH = config.get("TABLE_LENGTH")
-    REFRESH_TIME = config.get("REFRESH_TIME")
+logger = logging.getLogger("SkyForge Info Logger")
+handler = logging.StreamHandler(sys.stdout)
+handler.setFormatter(logger_formatter)
+logger.addHandler(handler)
+logger.setLevel(logging.INFO)
+
+progress_logger = logging.getLogger("Progress Logger")
+progress_handler = logging.StreamHandler(sys.stdout)
+progress_handler.terminator = "\r"
+progress_handler.setFormatter(logger_formatter)
+progress_logger.addHandler(progress_handler)
+progress_logger.setLevel(logging.INFO)
+
+while True:
+    update_config()
 
     logger.info("Processing started...")
     the_forge = get_forge_info()
+
     logger.info("Forge data fetched. Calculating profits...")
     profits = calculate_forge_profits(the_forge)
+
     logger.info("All profits calculated. Exporting...")
     with open("best_forge_items.json", "w") as file:
         json.dump(profits, file, indent=4)
+
     logger.info(f"Data written to file. Processing complete, waiting {REFRESH_TIME} seconds...")
     print(profits_str(profits[:TABLE_LENGTH]))
 
