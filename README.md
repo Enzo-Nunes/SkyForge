@@ -1,6 +1,6 @@
 # SkyForge
 
-`SkyForge` is a `python` script designed for `Hypixel Skyblock` players, mainly those interested in making profit in `The Forge` of the `Dwarven Mines`.
+`SkyForge` is an open-source `python` project designed for `Hypixel Skyblock` players, mainly those interested in making profit in `The Forge` of the `Dwarven Mines`.
 This application fetches data from the [Official Hypixel Wiki](https://wiki.hypixel.net/The_Forge) and the [Official Hypixel API](https://api.hypixel.net)
 and determines which are the best items to craft, based on `Bazaaar` and `Auction House` prices.
 
@@ -19,22 +19,20 @@ Open the [SkyForgeConfigs.json](SkyForgeConfigs.json) file with the text editor 
 
 ## Usage
 
-First of all, clone the repository:
+### Option 1 - Run from Executable (Recommended)
+
+The easiest way to use the app is to simply download the [latest release](https://github.com/Enzo-Nunes/SkyForge/releases/latest) executable. Open Skyforge.exe and a terminal window will open with the program.
+
+### Option 2 - Run From Source
+
+First of all, clone the repository (example with ssh):
 
 ```bash
 git clone git@github.com:Enzo-Nunes/SkyForge.git
 cd SkyForge
 ```
 
-From here, you have two options.
-
-### Option 1 - Run from Executable (Recommended)
-
-The easiest way to use the app is to simply open the executable [SkyForge.exe](SkyForge.exe). A terminal window will open with the program.
-
-### Option 2 - Run From Source
-
-If you want to run from source, open a terminal and install the dependencies in your environment:
+Install the dependencies in your environment:
 
 ```bash
 pip install requirements.txt
