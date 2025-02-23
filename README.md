@@ -13,7 +13,7 @@ Before running the app, you might want to add your preferences and collection le
 Open the [SkyForgeConfigs.json](SkyForgeConfigs.json) file with the text editor of your choice and take a look at the configurations.
 
 - Insert your collection levels into the numbers corresponding to each of the collections. By default, everything is set to max level, so make sure to fill in with your values.
-- Fill in the line for the budget you are willing to invest in millions of coins. For example, if you want to invest at most `300,000 coins` per forge, insert `0.3` in the budget. By default, one quadrillion coins is set as the budget, so the app will consider all items regardless of their cost.
+- Fill in the line for the budget you are willing to invest in coins. For example, if you want to invest at most `300,000 coins` per forge, insert `300000` in the budget. By default, one quadrillion coins is set as the budget, so the app will consider basically all items.
 - Insert the table length you want. This is the number of lines the final table will have. For example, if set to `10` (default), the final table will show the 10 best items to forge. Regardless of this number, a `json` will be generated with the full list of best items.
 - Fill in the line for the time interval you want in between data refreshes, in seconds. I don't recommend values below two minutes.
 
