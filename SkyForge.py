@@ -53,7 +53,7 @@ def update_config():
     UMBER_COLLECTION = config.get("Umber Collection")
     GLACITE_COLLECTION = config.get("Glacite Collection")
     HARD_STONE_COLLECTION = config.get("Hard Stone Collection")
-    BUDGET = config.get("Budget (per item)")
+    BUDGET = config.get("Budget (coins per item)")
     TABLE_LENGTH = config.get("Table Length (lines)")
     REFRESH_TIME = config.get("Refresh Time (seconds)")
 
