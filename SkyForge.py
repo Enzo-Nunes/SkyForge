@@ -1,9 +1,9 @@
 import json
 import logging
 import sys
+import bs4
 import time
 
-import bs4
 import requests
 import roman
 
@@ -30,6 +30,7 @@ HARD_STONE_COLLECTION = 0
 BUDGET = 0
 TABLE_LENGTH = 0
 REFRESH_TIME = 0
+
 
 def update_config():
     global \
@@ -258,7 +259,6 @@ def profits_str(profits_list: list[dict[str, str | float | dict]]) -> str:
 ###################
 
 def parse_forge_page() -> list[dict[str, str | list]]:
-
     page = bs4.BeautifulSoup(requests.get(FORGE_URL).content, "html.parser")
     tables = page.find_all("table", {"class": "wikitable"})
 
@@ -311,11 +311,11 @@ def parse_requirements(wiki_requirements: str) -> dict[str, int]:
         requirement
         for requirement in requirements_split
         if requirement != "Donating a"
-        and "Fossil" not in requirement
-        and requirement != "Dr. Stone"
-        and requirement != "Riding a Minecart to the Dwarven Base Camp"
-        and requirement != "Talk to"
-        and requirement != "Dulin"
+           and "Fossil" not in requirement
+           and requirement != "Dr. Stone"
+           and requirement != "Riding a Minecart to the Dwarven Base Camp"
+           and requirement != "Talk to"
+           and requirement != "Dulin"
     ]
 
     requirements = {
@@ -365,7 +365,6 @@ def get_forge_info() -> dict[str, dict[str, int | float | dict[str, int]]]:
 def calculate_forge_profits(
     forge_info: dict[str, dict[str, int | float | dict[str, int]]],
 ) -> list[dict[str, str | float | dict]]:
-
     auction_house = requests.get(AUCTION_HOUSE_URL, headers=HEADERS).json()
     pages = auction_house["totalPages"]
     items = auction_house["totalAuctions"]
