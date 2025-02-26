@@ -7,10 +7,29 @@ import bs4
 import requests
 import roman
 
+#############
+# Constants #
+#############
+
+BAZAAR_URL = "https://api.hypixel.net/v2/skyblock/bazaar"
+AUCTION_HOUSE_URL = "https://api.hypixel.net/v2/skyblock/auctions"
+HEADERS = {"Content-Type": "application/json"}
+FORGE_URL = "https://wiki.hypixel.net/The_Forge"
+WIKI_INDEXES = range(1, 10)
+
 ######################
 # Auxiliar Functions #
 ######################
 
+HEART_OF_THE_MOUNTAIN_TIER = 0
+GEMSTONE_COLLECTION = 0
+TUNGSTEN_COLLECTION = 0
+UMBER_COLLECTION = 0
+GLACITE_COLLECTION = 0
+HARD_STONE_COLLECTION = 0
+BUDGET = 0
+TABLE_LENGTH = 0
+REFRESH_TIME = 0
 
 def update_config():
     global \
@@ -46,8 +65,8 @@ def is_string_upper(string: str) -> bool:
     return all(is_char_upper(letter) for letter in string)
 
 
-def time_to_hours(time: str) -> float:
-    time_quantity, time_type = time.lstrip().split(" ")
+def time_to_hours(time_str: str) -> float:
+    time_quantity, time_type = time_str.lstrip().split(" ")
 
     match time_type:
         case "days" | "day":
@@ -58,6 +77,7 @@ def time_to_hours(time: str) -> float:
             return float(time_quantity) / 60
         case "seconds" | "second":
             return float(time_quantity) / 3600
+    raise ValueError(f"Unknown time type: {time_type}")
 
 
 def convert_name(bazaar_name: str) -> str:
@@ -123,20 +143,20 @@ def pretty_number(number: int) -> str:
     return "".join(number_list)
 
 
-def profits_str(profits: list[dict[str, str | float | dict]]) -> str:
+def profits_str(profits_list: list[dict[str, str | float | dict]]) -> str:
     logger.info(f"The top {TABLE_LENGTH} Items for investing are as follows:")
 
     spacing = 3
 
     top_list = [i + 1 for i in range(TABLE_LENGTH)]
-    name_list = [profit["Name"] for profit in profits]
-    cost_list = [pretty_number(int(profit["Cost"])) for profit in profits]
-    sell_value_list = [pretty_number(int(profit["Sell Value"])) for profit in profits]
-    profit_list = [pretty_number(int(profit["Profit"])) for profit in profits]
-    duration_list = [str(round(profit["Duration"], 3)) for profit in profits]
-    profit_per_hour_list = [pretty_number(int(profit["Profit per Hour"])) for profit in profits]
+    name_list = [profit["Name"] for profit in profits_list]
+    cost_list = [pretty_number(int(profit["Cost"])) for profit in profits_list]
+    sell_value_list = [pretty_number(int(profit["Sell Value"])) for profit in profits_list]
+    profit_list = [pretty_number(int(profit["Profit"])) for profit in profits_list]
+    duration_list = [str(round(profit["Duration"], 3)) for profit in profits_list]
+    profit_per_hour_list = [pretty_number(int(profit["Profit per Hour"])) for profit in profits_list]
     recipe_list = [
-        material + " x" + str(profit["Recipe"][material]) for profit in profits for material in profit["Recipe"]
+        material + " x" + str(profit["Recipe"][material]) for profit in profits_list for material in profit["Recipe"]
     ]
 
     top_width = max(len("Top"), max(len(str(top)) for top in top_list)) + spacing + 2
@@ -194,7 +214,7 @@ def profits_str(profits: list[dict[str, str | float | dict]]) -> str:
         + "|\n"
     )
 
-    for i, profit in enumerate(profits):
+    for i, profit in enumerate(profits_list):
         profits_pretty += (
             f"{'| ' + str(i + 1):<{top_width}}"
             f"{profit['Name']:<{name_width}}"
@@ -213,7 +233,7 @@ def profits_str(profits: list[dict[str, str | float | dict]]) -> str:
             )
 
         profits_pretty += (
-            ("|" if i < len(profits) - 1 else " ")
+            ("|" if i < len(profits_list) - 1 else " ")
             + "-"
             * (
                 top_width
@@ -226,7 +246,7 @@ def profits_str(profits: list[dict[str, str | float | dict]]) -> str:
                 + recipe_width
                 - 1
             )
-            + ("|" if i < len(profits) - 1 else " ")
+            + ("|" if i < len(profits_list) - 1 else " ")
             + "\n"
         )
 
@@ -237,10 +257,7 @@ def profits_str(profits: list[dict[str, str | float | dict]]) -> str:
 # Parse Functions #
 ###################
 
-
 def parse_forge_page() -> list[dict[str, str | list]]:
-    FORGE_URL = "https://wiki.hypixel.net/The_Forge"
-    WIKI_INDEXES = range(1, 10)
 
     page = bs4.BeautifulSoup(requests.get(FORGE_URL).content, "html.parser")
     tables = page.find_all("table", {"class": "wikitable"})
@@ -255,9 +272,9 @@ def parse_forge_page() -> list[dict[str, str | list]]:
             columns_text = [column.get_text() for column in columns]
             if len(columns_text) == len(headers):
                 row_data = {}
-                for i in range(len(headers)):
-                    if headers[i] == "Recipe Tree":
-                        row_data[headers[i]] = [
+                for j in range(len(headers)):
+                    if headers[j] == "Recipe Tree":
+                        row_data[headers[j]] = [
                             material.get_text()
                             for material in columns[3]
                             .find("div", {"class": "mw-hp-tree-container"})
@@ -265,7 +282,7 @@ def parse_forge_page() -> list[dict[str, str | list]]:
                             .find_all("li", recursive=False)
                         ]
                     else:
-                        row_data[headers[i]] = columns_text[i]
+                        row_data[headers[j]] = columns_text[j]
                 table_data.append(row_data)
         item_list.extend(table_data)
     return item_list
@@ -276,7 +293,7 @@ def parse_name(wiki_name: str) -> str:
 
 
 def parse_crafting_time(wiki_time: str) -> float:
-    return sum(time_to_hours(time.strip()) for time in wiki_time.split(","))
+    return sum(time_to_hours(time_str.strip()) for time_str in wiki_time.split(","))
 
 
 def parse_recipe(wiki_recipe: list[str]) -> dict[str, int]:
@@ -333,24 +350,21 @@ def parse_requirements(wiki_requirements: str) -> dict[str, int]:
 
 
 def get_forge_info() -> dict[str, dict[str, int | float | dict[str, int]]]:
-    the_forge = {}
+    forge_info = {}
     item_list = parse_forge_page()
     for forge_item in item_list:
-        the_forge[parse_name(forge_item["Name & Rarity"])] = {
+        forge_info[parse_name(forge_item["Name & Rarity"])] = {
             "Duration": parse_crafting_time(forge_item["Duration"]),
             "Recipe": parse_recipe(forge_item["Recipe Tree"]),
             "Requirements": parse_requirements(forge_item["Requirements"]),
         }
 
-    return the_forge
+    return forge_info
 
 
 def calculate_forge_profits(
-    the_forge: dict[str, dict[str, int | float | dict[str, int]]],
+    forge_info: dict[str, dict[str, int | float | dict[str, int]]],
 ) -> list[dict[str, str | float | dict]]:
-    BAZAAR_URL = "https://api.hypixel.net/v2/skyblock/bazaar"
-    AUCTION_HOUSE_URL = "https://api.hypixel.net/v2/skyblock/auctions"
-    HEADERS = {"Content-Type": "application/json"}
 
     auction_house = requests.get(AUCTION_HOUSE_URL, headers=HEADERS).json()
     pages = auction_house["totalPages"]
@@ -361,7 +375,7 @@ def calculate_forge_profits(
 
     for i in range(pages):
         progress_logger.info(
-            f"Processing Auction House page {i + 1}/{pages}, Total progress: {round((i + 1) / (pages) * 100)}%"
+            f"Processing Auction House page {i + 1}/{pages}, Total progress: {round((i + 1) / pages * 100)}%"
         )
         auction_house = requests.get(AUCTION_HOUSE_URL, headers=HEADERS, params={"page": i}).json()
         for auction in auction_house["auctions"]:
@@ -383,32 +397,32 @@ def calculate_forge_profits(
 
     logger.info("Bazaar processing complete. Starting final profit calculations...")
     items_profit = []
-    for item_name in the_forge.keys():
+    for item_name in forge_info.keys():
         item_cost = 0
         is_craftable = True
-        is_sellabe = True
-        for material in the_forge[item_name]["Recipe"].keys():
+        is_sellable = True
+        for material in forge_info[item_name]["Recipe"].keys():
             material_bazaar_buy_price = bazaar_price.get(material, -1)
             if material_bazaar_buy_price != -1:
                 material_bazaar_buy_price = material_bazaar_buy_price.get("Buy Price", -1)
             material_min_price = min_price(material_bazaar_buy_price, auction_house_price.get(material, -1))
             if material_min_price < 0:
                 is_craftable = False
-            item_cost += the_forge[item_name]["Recipe"][material] * material_min_price
+            item_cost += forge_info[item_name]["Recipe"][material] * material_min_price
 
         item_bazaar_sell_price = bazaar_price.get(item_name, -1)
         if item_bazaar_sell_price != -1:
             item_bazaar_sell_price = item_bazaar_sell_price.get("Sell Price", -1)
         item_sell_price = max_price(item_bazaar_sell_price, auction_house_price.get(item_name, -1))
         if item_sell_price < 0:
-            is_sellabe = False
+            is_sellable = False
 
         if (
             is_craftable
-            and is_sellabe
+            and is_sellable
             and item_sell_price > item_cost
             and item_cost <= BUDGET
-            and is_unlocked(the_forge[item_name]["Requirements"])
+            and is_unlocked(forge_info[item_name]["Requirements"])
         ):
             items_profit.append(
                 {
@@ -416,9 +430,9 @@ def calculate_forge_profits(
                     "Cost": item_cost,
                     "Sell Value": item_sell_price,
                     "Profit": item_sell_price - item_cost,
-                    "Duration": the_forge[item_name]["Duration"],
-                    "Profit per Hour": (item_sell_price - item_cost) / the_forge[item_name]["Duration"],
-                    "Recipe": the_forge[item_name]["Recipe"],
+                    "Duration": forge_info[item_name]["Duration"],
+                    "Profit per Hour": (item_sell_price - item_cost) / forge_info[item_name]["Duration"],
+                    "Recipe": forge_info[item_name]["Recipe"],
                 }
             )
 
