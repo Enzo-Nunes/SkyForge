@@ -1,6 +1,6 @@
 # SkyForge
 
-`SkyForge` is a `python` script designed for `Hypixel Skyblock` players, mainly those interested in making profit in `The Forge` of the `Dwarven Mines`.
+`SkyForge` is an open-source `python` project designed for `Hypixel Skyblock` players, mainly those interested in making profit in `The Forge` of the `Dwarven Mines`.
 This application fetches data from the [Official Hypixel Wiki](https://wiki.hypixel.net/The_Forge) and the [Official Hypixel API](https://api.hypixel.net)
 and determines which are the best items to craft, based on `Bazaaar` and `Auction House` prices.
 
@@ -13,28 +13,26 @@ Before running the app, you might want to add your preferences and collection le
 Open the [SkyForgeConfigs.json](SkyForgeConfigs.json) file with the text editor of your choice and take a look at the configurations.
 
 - Insert your collection levels into the numbers corresponding to each of the collections. By default, everything is set to max level, so make sure to fill in with your values.
-- Fill in the line for the budget you are willing to invest in millions of coins. For example, if you want to invest at most `300,000 coins` per forge, insert `0.3` in the budget. By default, one quadrillion coins is set as the budget, so the app will consider all items regardless of their cost.
+- Fill in the line for the budget you are willing to invest in coins. For example, if you want to invest at most `300,000 coins` per forge, insert `300000` in the budget. By default, one quadrillion coins is set as the budget, so the app will consider basically all items.
 - Insert the table length you want. This is the number of lines the final table will have. For example, if set to `10` (default), the final table will show the 10 best items to forge. Regardless of this number, a `json` will be generated with the full list of best items.
 - Fill in the line for the time interval you want in between data refreshes, in seconds. I don't recommend values below two minutes.
 
 ## Usage
 
-First of all, clone the repository:
+### Option 1 - Run from Executable (Recommended)
+
+The easiest way to use the app is to simply download the [latest release](https://github.com/Enzo-Nunes/SkyForge/releases/latest) executable. Open Skyforge.exe and a terminal window will open with the program.
+
+### Option 2 - Run From Source
+
+First of all, clone the repository (example with ssh):
 
 ```bash
 git clone git@github.com:Enzo-Nunes/SkyForge.git
 cd SkyForge
 ```
 
-From here, you have two options.
-
-### Option 1 - Run from Executable (Recommended)
-
-The easiest way to use the app is to simply open the executable [SkyForge.exe](SkyForge.exe). A terminal window will open with the program.
-
-### Option 2 - Run From Source
-
-If you want to run from source, open a terminal and install the dependencies in your environment:
+Install the dependencies in your environment:
 
 ```bash
 pip install requirements.txt
