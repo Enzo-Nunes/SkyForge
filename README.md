@@ -21,7 +21,7 @@ Open the [SkyForgeConfigs.json](SkyForgeConfigs.json) file with the text editor 
 
 ### Option 1 - Run from Executable (Recommended)
 
-The easiest way to use the app is to simply download the [latest release](https://github.com/Enzo-Nunes/SkyForge/releases/latest) executable. Open Skyforge.exe and a terminal window will open with the program.
+The easiest way to use the app is to simply download the [latest release](https://github.com/Enzo-Nunes/SkyForge/releases/latest)'s executable and config file. Place both files on the same directory and run Skyforge.exe. A terminal window will open with the program.
 
 ### Option 2 - Run From Source
 
