@@ -1,9 +1,9 @@
 import json
 import logging
 import sys
-import bs4
 import time
 
+import bs4
 import requests
 import roman
 
@@ -128,12 +128,12 @@ def max_price(price1: int, price2: int) -> int:
 
 def is_unlocked(requirements: dict[str, int]) -> bool:
     return (
-        HEART_OF_THE_MOUNTAIN_TIER >= requirements["Heart of the Mountain Tier"]
-        and GEMSTONE_COLLECTION >= requirements["Gemstone Collection"]
-        and TUNGSTEN_COLLECTION >= requirements["Tungsten Collection"]
-        and UMBER_COLLECTION >= requirements["Umber Collection"]
-        and GLACITE_COLLECTION >= requirements["Glacite Collection"]
-        and HARD_STONE_COLLECTION >= requirements["Hard Stone Collection"]
+        HEART_OF_THE_MOUNTAIN_TIER >= requirements.get("Heart of the Mountain Tier", 0)
+        and GEMSTONE_COLLECTION >= requirements.get("Gemstone Collection", 0)
+        and TUNGSTEN_COLLECTION >= requirements.get("Tungsten Collection", 0)
+        and UMBER_COLLECTION >= requirements.get("Umber Collection", 0)
+        and GLACITE_COLLECTION >= requirements.get("Glacite Collection", 0)
+        and HARD_STONE_COLLECTION >= requirements.get("Hard Stone Collection", 0)
     )
 
 
@@ -258,9 +258,23 @@ def profits_str(profits_list: list[dict[str, str | float | dict]]) -> str:
 # Parse Functions #
 ###################
 
+
 def parse_forge_page() -> list[dict[str, str | list]]:
-    page = bs4.BeautifulSoup(requests.get(FORGE_URL).content, "html.parser")
-    tables = page.find_all("table", {"class": "wikitable"})
+    page = requests.get(
+        FORGE_URL,
+        headers={  # I'm a browser, let me through!
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+            "Accept-Language": "en-US,en;q=0.5",
+            "Accept-Encoding": "gzip, deflate",
+            "Connection": "keep-alive",
+        },
+    )
+
+    tables = bs4.BeautifulSoup(
+        page.content,
+        "html.parser",
+    ).find_all("table", {"class": "wikitable"})
 
     item_list = []
     for i in WIKI_INDEXES:
@@ -297,51 +311,25 @@ def parse_crafting_time(wiki_time: str) -> float:
 
 
 def parse_recipe(wiki_recipe: list[str]) -> dict[str, int]:
-    recipe = {}
-    for item_chain in wiki_recipe:
-        quantity, item = item_chain.split("[]")[0].split("  ")
-        recipe[item.strip()] = int(quantity.replace(",", ""))
-
-    return recipe
+    return {
+        (ingredient_info := item_chain.split("[]")[0].split("  "))[1].strip(): int(ingredient_info[0].replace(",", ""))
+        for item_chain in wiki_recipe
+    }
 
 
 def parse_requirements(wiki_requirements: str) -> dict[str, int]:
-    requirements_split = [requirement.strip() for requirement in wiki_requirements.split("  ")]
-    requirements_split = [
-        requirement
-        for requirement in requirements_split
-        if requirement != "Donating a"
-           and "Fossil" not in requirement
-           and requirement != "Dr. Stone"
-           and requirement != "Riding a Minecart to the Dwarven Base Camp"
-           and requirement != "Talk to"
-           and requirement != "Dulin"
-    ]
-
-    requirements = {
-        "Heart of the Mountain Tier": 0,
-        "Gemstone Collection": 0,
-        "Tungsten Collection": 0,
-        "Umber Collection": 0,
-        "Glacite Collection": 0,
-        "Hard Stone Collection": 0,
-    }
-
-    for requirement in requirements_split:
-        requirement_split = requirement.split(" ")
-
-        requirement_type = " ".join(requirement_split[:-1])
-        if "Donating" in requirement_type:
-            continue
-        if requirement_type not in requirements.keys():
-            raise ValueError(f"New requirement detected: {requirement_type}")
-
-        requirement_level = requirement_split[-1]
-        requirements[requirement_type] = (
-            int(requirement_level) if requirement_level.isnumeric() else roman.fromRoman(requirement_level)
+    return {
+        " ".join((requirement_split := requirement.split(" "))[:-1]): (
+            int(requirement_split[-1]) if requirement_split[-1].isnumeric() else roman.fromRoman(requirement_split[-1])
         )
-
-    return requirements
+        for requirement in map(str.strip, wiki_requirements.split("  "))
+        if "Donating" not in requirement
+        and "Fossil" not in requirement
+        and requirement != "Dr. Stone"
+        and requirement != "Riding a Minecart to the Dwarven Base Camp"
+        and requirement != "Talk to"
+        and requirement != "Dulin"
+    }
 
 
 ##################
@@ -350,16 +338,14 @@ def parse_requirements(wiki_requirements: str) -> dict[str, int]:
 
 
 def get_forge_info() -> dict[str, dict[str, int | float | dict[str, int]]]:
-    forge_info = {}
-    item_list = parse_forge_page()
-    for forge_item in item_list:
-        forge_info[parse_name(forge_item["Name & Rarity"])] = {
+    return {
+        parse_name(forge_item["Name & Rarity"]): {
             "Duration": parse_crafting_time(forge_item["Duration"]),
             "Recipe": parse_recipe(forge_item["Recipe Tree"]),
             "Requirements": parse_requirements(forge_item["Requirements"]),
         }
-
-    return forge_info
+        for forge_item in parse_forge_page()
+    }
 
 
 def calculate_forge_profits(
@@ -420,7 +406,7 @@ def calculate_forge_profits(
             is_craftable
             and is_sellable
             and item_sell_price > item_cost
-            and item_cost <= BUDGET
+            and (BUDGET == -1 or item_cost <= BUDGET)
             and is_unlocked(forge_info[item_name]["Requirements"])
         ):
             items_profit.append(
