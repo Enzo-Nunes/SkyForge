@@ -411,6 +411,7 @@ def calculate_forge_profits(
         ):
             items_profit.append(
                 {
+                    "Rank": 0,
                     "Name": item_name,
                     "Cost": item_cost,
                     "Sell Value": item_sell_price,
@@ -421,8 +422,10 @@ def calculate_forge_profits(
                 }
             )
 
-    items_profit.sort(key=lambda x: x["Profit per Hour"], reverse=True)
-    return items_profit
+    return [
+        {**item, "Rank": i + 1}
+        for i, item in enumerate(sorted(items_profit, key=lambda x: x["Profit per Hour"], reverse=True))
+    ]
 
 
 logger_formatter = logging.Formatter("%(asctime)s - %(filename)s - %(levelname)s - %(message)s")
