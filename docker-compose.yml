@@ -1,0 +1,68 @@
+services:
+  db:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: skyforge
+      POSTGRES_USER: skyforge
+      POSTGRES_PASSWORD: skyforge
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "skyforge"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  db-api:
+    build:
+      context: .
+      dockerfile: db-api/Dockerfile
+    init: true
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_DB: skyforge
+      POSTGRES_USER: skyforge
+      POSTGRES_PASSWORD: skyforge
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:5000/health')\""]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  scraper:
+    build:
+      context: .
+      dockerfile: scraper/Dockerfile
+    init: true
+    depends_on:
+      db-api:
+        condition: service_healthy
+    environment:
+      WIKI_SCRAPE_INTERVAL: "3600"
+
+  calculator:
+    build:
+      context: .
+      dockerfile: calculator/Dockerfile
+    init: true
+    depends_on:
+      db-api:
+        condition: service_healthy
+    environment:
+      REFRESH_TIME: "120"
+
+  web:
+    build:
+      context: .
+      dockerfile: web/Dockerfile
+    init: true
+    ports:
+      - "8000:8000"
+
+volumes:
+  postgres_data:
