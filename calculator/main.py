@@ -32,9 +32,8 @@ class MarketPriceTracker:
     AUCTION_HOUSE_URL = "https://api.hypixel.net/v2/skyblock/auctions"
     HEADERS = {"Content-Type": "application/json"}
 
-    def __init__(self, logger: logging.Logger, progress_logger: logging.Logger) -> None:
+    def __init__(self, logger: logging.Logger) -> None:
         self._logger = logger
-        self._progress_logger = progress_logger
 
     def fetch_auction_house_prices(self) -> dict[str, int]:
         auction_house = requests.get(self.AUCTION_HOUSE_URL, headers=self.HEADERS).json()
@@ -45,9 +44,6 @@ class MarketPriceTracker:
         prices: dict[str, int] = {}
 
         for i in range(pages):
-            self._progress_logger.info(
-                f"Processing Auction House page {i + 1}/{pages}, Total progress: {round((i + 1) / pages * 100)}%"
-            )
             page = requests.get(self.AUCTION_HOUSE_URL, headers=self.HEADERS, params={"page": i}).json()
             for auction in page.get("auctions", []):
                 current_price = prices.get(auction["item_name"], -1)
@@ -117,9 +113,9 @@ class MarketPriceTracker:
 
 
 class ProfitCalculator:
-    def __init__(self, logger: logging.Logger, progress_logger: logging.Logger) -> None:
+    def __init__(self, logger: logging.Logger) -> None:
         self._logger = logger
-        self._market = MarketPriceTracker(logger, progress_logger)
+        self._market = MarketPriceTracker(logger)
 
     def calculate_profits(self, forge_info: dict[str, ForgeItemInfo]) -> list[ForgeProfit]:
         auction_house_prices = self._market.fetch_auction_house_prices()
@@ -169,87 +165,6 @@ class ProfitCalculator:
             for i, item in enumerate(sorted(items_profit, key=lambda x: x["Profit per Hour"], reverse=True))
         ]
 
-    def profits_str(self, profits_list: list[ForgeProfit]) -> str:
-        self._logger.info(f"Top {len(profits_list)} items for investing are as follows:")
-
-        spacing = 3
-
-        top_list = [i + 1 for i in range(len(profits_list))]
-        name_list = [profit["Name"] for profit in profits_list]
-        cost_list = [self._pretty_number(int(profit["Cost"])) for profit in profits_list]
-        sell_value_list = [self._pretty_number(int(profit["Sell Value"])) for profit in profits_list]
-        profit_list = [self._pretty_number(int(profit["Profit"])) for profit in profits_list]
-        duration_list = [str(round(profit["Duration"], 3)) for profit in profits_list]
-        profit_per_hour_list = [self._pretty_number(int(profit["Profit per Hour"])) for profit in profits_list]
-        recipe_list = [
-            material + " x" + str(profit["Recipe"][material])
-            for profit in profits_list
-            for material in profit["Recipe"]
-        ]
-
-        top_width = max(len("Top"), max(len(str(top)) for top in top_list)) + spacing + 2
-        name_width = max(len("Item Name"), max(len(name) for name in name_list)) + spacing
-        cost_width = max(len("Cost"), max(len(cost) for cost in cost_list)) + spacing
-        sell_value_width = max(len("Sell Value"), max(len(sell_value) for sell_value in sell_value_list)) + spacing
-        profit_width = max(len("Profit"), max(len(profit) for profit in profit_list)) + spacing
-        duration_width = max(len("Duration"), max(len(duration) for duration in duration_list)) + spacing
-        profit_per_hour_width = max(len("Profit per Hour"), max(len(pph) for pph in profit_per_hour_list)) + spacing
-        recipe_width = max(len("Recipe"), max(len(recipe) for recipe in recipe_list)) + 2
-
-        divider_width = (
-            top_width
-            + name_width
-            + cost_width
-            + sell_value_width
-            + profit_width
-            + duration_width
-            + profit_per_hour_width
-            + recipe_width
-            - 1
-        )
-
-        profits_pretty = " " + "-" * divider_width + "\n"
-        profits_pretty += (
-            f"{'| Top':<{top_width}}"
-            f"{'Item Name':<{name_width}}"
-            f"{'Cost':<{cost_width}}"
-            f"{'Sell Value':<{sell_value_width}}"
-            f"{'Profit':<{profit_width}}"
-            f"{'Duration':<{duration_width}}"
-            f"{'Profit per Hour':<{profit_per_hour_width}}"
-            f"{'Recipe':<{recipe_width}}|\n"
-        )
-        profits_pretty += "|" + "-" * divider_width + "|\n"
-
-        for i, profit in enumerate(profits_list):
-            profits_pretty += (
-                f"{'| ' + str(i + 1):<{top_width}}"
-                f"{profit['Name']:<{name_width}}"
-                f"{self._pretty_number(int(profit['Cost'])):<{cost_width}}"
-                f"{self._pretty_number(int(profit['Sell Value'])):<{sell_value_width}}"
-                f"{self._pretty_number(int(profit['Profit'])):<{profit_width}}"
-                f"{str(round(profit['Duration'], 3)):<{duration_width}}"
-                f"{self._pretty_number(int(profit['Profit per Hour'])):<{profit_per_hour_width}}"
-                f"{str(profit['Recipe'][list(profit['Recipe'].keys())[0]]) + 'x ' + list(profit['Recipe'].keys())[0]:<{recipe_width}}|\n"
-            )
-
-            for material in list(profit["Recipe"].keys())[1:]:
-                profits_pretty += (
-                    f"{'|':<{top_width + name_width + cost_width + sell_value_width + profit_width + duration_width + profit_per_hour_width}}"
-                    f"{str(profit['Recipe'][material]) + 'x ' + material:<{recipe_width}}|\n"
-                )
-
-            sep = "|" if i < len(profits_list) - 1 else " "
-            profits_pretty += sep + "-" * divider_width + sep + "\n"
-
-        return profits_pretty
-
-    def _pretty_number(self, number: int) -> str:
-        number_list = list(str(number))
-        for i in range(len(number_list) - 3, 0, -3):
-            number_list.insert(i, ",")
-        return "".join(number_list)
-
 
 def main() -> None:
     formatter = logging.Formatter("%(asctime)s - calculator - %(levelname)s - %(message)s")
@@ -259,13 +174,6 @@ def main() -> None:
     handler.setFormatter(formatter)
     logger.addHandler(handler)
     logger.setLevel(logging.INFO)
-
-    progress_logger = logging.getLogger("calculator.progress")
-    progress_handler = logging.StreamHandler(sys.stdout)
-    progress_handler.setFormatter(formatter)
-    progress_logger.addHandler(progress_handler)
-    progress_logger.setLevel(logging.INFO)
-    progress_logger.propagate = False
 
     refresh_time = int(os.getenv("REFRESH_TIME", "120"))
 
@@ -281,7 +189,7 @@ def main() -> None:
         time.sleep(10)
 
     logger.info("Forge data available. Starting calculations.")
-    calculator = ProfitCalculator(logger, progress_logger)
+    calculator = ProfitCalculator(logger)
 
     while True:
         response = requests.get(f"{DB_API_URL}/forge-items", timeout=30)
@@ -296,7 +204,6 @@ def main() -> None:
 
         logger.info(f"Loaded {len(forge_info)} forge items from DB. Calculating profits...")
         profits = calculator.calculate_profits(forge_info)
-        print(calculator.profits_str(profits))
 
         try:
             requests.post(

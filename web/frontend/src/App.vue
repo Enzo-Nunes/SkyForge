@@ -110,35 +110,35 @@
         <main v-else-if="tab === 'guide'" class="content-page">
             <h3>Reading the Table</h3>
             <p>
-                The table defaults to sorting by <strong>Profit / hr</strong> — the most useful metric when you plan to
-                collect the item as soon as it's done. Since forge slots are a time-limited resource, a cheaper item
+                The table defaults to sorting by <strong>Profit / hour</strong> — the most useful metric when you plan
+                to collect the item as soon as it's done. Since forge slots are a time-limited resource, a cheaper item
                 with a shorter duration might earn more per hour than a more profitable one that ties up your slot for
                 several hours.
             </p>
             <p>
                 That said, <strong>total Profit</strong> is worth considering too. If you know you'll be away for a
                 while — going to sleep, for example — and the forge will finish well before you're back, you may as well
-                start an item with higher total profit and a longer duration, even if its Profit / hr is lower. The slot
-                would sit idle anyway.
+                start an item with higher total profit and a longer duration, even if its Profit / hour is lower. The
+                slot would sit idle anyway.
             </p>
             <ul>
                 <li>
-                    <strong>#</strong> — the item's rank by Profit / hr. Always reflects the profit-per-hour order
+                    <strong>#</strong> — the item's rank by Profit / hour. Always reflects the profit-per-hour order
                     regardless of how you sort the table.
                 </li>
                 <li>
-                    <strong>Ingredients Cost</strong> — total cost of all required ingredients, using the cheapest
-                    available source (Bazaar or Auction House).
+                    <strong>Ingredients Cost</strong> — total cost in coins of all required ingredients, using the
+                    cheapest available source (Bazaar or Auction House).
                 </li>
-                <li><strong>Sell Value</strong> — best available sell price (Bazaar or Auction House).</li>
+                <li><strong>Sell Value</strong> — best available sell price in coins (Bazaar or Auction House).</li>
                 <li><strong>Profit</strong> — Sell Value minus Ingredients Cost.</li>
                 <li><strong>Duration</strong> — how long the item takes to forge.</li>
-                <li><strong>Profit / hr</strong> — Profit divided by Duration. Used for default ranking.</li>
+                <li><strong>Profit / hour</strong> — Profit divided by Duration. Used for default ranking.</li>
                 <li><strong>Recipe</strong> — ingredients and quantities needed.</li>
             </ul>
             <p>
                 Click any numeric column header to sort by that column. Click it again to reverse the order. Sorting by
-                <strong>#</strong> and sorting by <strong>Profit / hr</strong> produce the same result.
+                <strong>#</strong> and sorting by <strong>Profit / hour</strong> produce the same result.
             </p>
 
             <h3>Filtering Results</h3>
@@ -149,8 +149,8 @@
                     level than yours will be hidden.
                 </li>
                 <li>
-                    <strong>Max Cost</strong> — enter the maximum you're willing to spend on ingredients per item. Check
-                    <em>No budget limit</em> to show all items regardless of cost.
+                    <strong>Max Cost</strong> — enter the maximum amount of coins you're willing to spend on ingredients
+                    per item. Check <em>No budget limit</em> to show all items regardless of cost.
                 </li>
             </ul>
             <p>Your filter settings are saved automatically and restored the next time you open the page.</p>
@@ -163,7 +163,7 @@
                 should you.
             </p>
             <p>
-                On the Bazaar, always prefer placing a <strong>Buy Order</strong> over Instant Buy — it is cheaper,
+                On the Bazaar, prefer placing a <strong>Buy Order</strong> over Instant Buy — it is cheaper,
                 though it may take time to fill. For fast-moving ingredients or small quantities, Instant Buy is usually
                 fine, but be mindful of the difference in price between Buy Orders and Instant Buy.
             </p>
@@ -182,7 +182,7 @@
                 that appear on both, choose whichever gives you the better sell price.
             </p>
             <p>
-                On the Bazaar, always prefer a <strong>Sell Order</strong> over Instant Sell — it yields more, though it
+                On the Bazaar, prefer placing a <strong>Sell Order</strong> over Instant Sell — it yields more, though it
                 may sit for a while. It's the same logic of Buy Order vs Instant Buy.
             </p>
 
@@ -197,10 +197,11 @@
         <main v-else-if="tab === 'how'" class="content-page">
             <h3>Price Sources</h3>
             <p>
-                SkyForge gathers its data from two sources: the <strong>Official Hypixel Wiki</strong>, which provides
-                forge item recipes, crafting durations and unlock requirements, and the
-                <strong>Official Hypixel API</strong>, which provides live market prices from both the Bazaar and the
-                Auction House.
+                SkyForge gathers its data from two sources: the
+                <a href="https://wiki.hypixel.net/The_Forge" target="_blank" rel="noopener">Official Hypixel Wiki</a>,
+                which provides forge item recipes, crafting durations and unlock requirements, and the
+                <a href="https://api.hypixel.net" target="_blank" rel="noopener">Official Hypixel API</a>, which
+                provides live market prices from both the Bazaar and the Auction House.
             </p>
             <p>
                 Most ingredients and forged items are only tradeable on one of the two markets. For those, the
@@ -212,9 +213,11 @@
             <h3>Profit Calculation</h3>
             <p>Items are scored and ranked by <strong>Profit per Hour</strong>:</p>
             <ul>
-                <li><strong>Ingredients Cost</strong> = sum of (quantity x cheapest price) for each ingredient.</li>
-                <li><strong>Profit</strong> = Sell Value - Ingredients Cost.</li>
-                <li><strong>Profit / hr</strong> = Profit / Duration (hours).</li>
+                <li><strong>Ingredients Cost</strong> = sum of (quantity x cheapest price in coins) for each ingredient.
+                </li>
+                <li><strong>Profit</strong> = Sell Value in coins - Ingredients Cost.</li>
+                <li><strong>Duration</strong> = Crafting duration in hours.</li>
+                <li><strong>Profit / hour</strong> = Profit / Duration.</li>
             </ul>
 
             <h3>Live Updates</h3>
@@ -225,6 +228,16 @@
             </p>
         </main>
     </div>
+
+    <footer>
+        <a href="https://github.com/Enzo-Nunes/SkyForge" target="_blank" rel="noopener" class="footer-link">
+            <svg class="github-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path
+                    d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12" />
+            </svg>
+            Made with 💜 by Enzo
+        </a>
+    </footer>
 </template>
 
 <script setup>
@@ -530,7 +543,6 @@ th {
     white-space: nowrap;
 }
 
-/* #: center, Cost/Sell/Profit/Duration/Profit-hr: right — mirrors td alignment */
 th:nth-child(1) {
     text-align: center;
 }
@@ -563,6 +575,7 @@ th.sortable.active {
     font-style: normal;
     color: #2e3a4e;
 }
+
 th.sortable.active .sort-arrow {
     color: #a78bfa;
 }
@@ -767,6 +780,47 @@ td {
 .content-page strong {
     color: #e2e8f0;
     font-weight: 600;
+}
+
+footer {
+    display: flex;
+    justify-content: center;
+    padding: 2rem 0 1.5rem;
+    margin-top: 2rem;
+    border-top: 1px solid #1e1e2e;
+}
+
+.footer-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #475569;
+    font-size: 0.78rem;
+    text-decoration: none;
+    transition: color 0.15s;
+}
+
+.footer-link:hover {
+    color: #a78bfa;
+}
+
+.github-icon {
+    width: 1.1rem;
+    height: 1.1rem;
+    flex-shrink: 0;
+}
+
+.content-page a {
+    color: #a78bfa;
+    text-decoration: underline;
+    text-decoration-color: #4c3882;
+    text-underline-offset: 2px;
+    transition: color 0.15s, text-decoration-color 0.15s;
+}
+
+.content-page a:hover {
+    color: #c4b5fd;
+    text-decoration-color: #a78bfa;
 }
 
 .content-page em {
