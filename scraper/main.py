@@ -29,7 +29,6 @@ def wait_for_api(logger: logging.Logger, retries: int = 10, delay: int = 3) -> N
 
 class ForgeWikiParser:
     FORGE_URL = "https://wiki.hypixel.net/The_Forge"
-    FORGE_HTML = "TheForge.html"
     WIKI_INDEXES = range(1, 10)
 
     def __init__(self, logger: logging.Logger) -> None:
@@ -46,18 +45,11 @@ class ForgeWikiParser:
         }
 
     def _parse_page(self) -> list[ForgePageItem]:
-        content: str | bytes
-        try:
-            response = cffi_requests.get(self.FORGE_URL, impersonate="chrome")
-            response.raise_for_status()
-            content = response.content
-            self._logger.info("Fetched forge data from wiki.")
-        except Exception as e:
-            self._logger.warning(f"Wiki request failed ({e}), falling back to local HTML.")
-            with open(self.FORGE_HTML, "r", encoding="utf-8") as f:
-                content = f.read()
+        response = cffi_requests.get(self.FORGE_URL, impersonate="chrome")
+        response.raise_for_status()
+        self._logger.info("Fetched forge data from wiki.")
 
-        tables = bs4.BeautifulSoup(content, "html.parser").find_all("table", {"class": "wikitable"})
+        tables = bs4.BeautifulSoup(response.content, "html.parser").find_all("table", {"class": "wikitable"})
 
         item_list: list[ForgePageItem] = []
         for i in self.WIKI_INDEXES:
@@ -149,10 +141,11 @@ def main() -> None:
             forge_info = parser.get_forge_info()
             response = requests.put(f"{DB_API_URL}/forge-items", json={"items": forge_info}, timeout=30)
             response.raise_for_status()
-            logger.info(f"Upserted {len(forge_info)} forge items. Sleeping {wiki_scrape_interval}s...")
+            logger.info(f"Upserted {len(forge_info)} forge items.")
         except Exception as e:
             logger.error(f"Failed to fetch/store forge data: {e}")
 
+        logger.info(f"Sleeping {wiki_scrape_interval}s...")
         time.sleep(wiki_scrape_interval)
 
 
