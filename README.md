@@ -32,14 +32,15 @@ Open your browser at [http://localhost:8000](http://localhost:8000). The UI will
 
 ## Configuration
 
-Intervals are configured via environment variables in `docker-compose.yml`:
+Environment variables control SkyForge's behavior:
 
-| Variable | Container | Default | Description |
-| ----------- | ----------- | --------- | ------------- |
-| `REFRESH_TIME` | `calculator` | `120` | Seconds between profit calculation cycles |
-| `WIKI_SCRAPE_INTERVAL` | `scraper` | `3600` | Seconds between wiki scrape cycles |
+| Variable | Default | Description |
+| ----------- | --------- | ------------- |
+| `POSTGRES_PASSWORD` | `skyforge` | Database password. |
+| `REFRESH_TIME` | `120` | Seconds between profit calculation cycles (120-600 recommended) |
+| `WIKI_SCRAPE_INTERVAL` | `3600` | Seconds between wiki scrapes (3600 for hourly, 86400 for daily) |
 
-Edit the values in `docker-compose.yml` under the relevant service's `environment` block and restart the respective container for changes to take effect.
+Edit these in `docker-compose.yml` or set them as environment variables in your deployment method. See [.env.example](.env.example) for all variables.
 
 ## Using the UI
 

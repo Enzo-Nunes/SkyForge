@@ -4,7 +4,7 @@ services:
     environment:
       POSTGRES_DB: skyforge
       POSTGRES_USER: skyforge
-      POSTGRES_PASSWORD: skyforge
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-skyforge}
     volumes:
       - postgres_data:/var/lib/postgresql
     healthcheck:
@@ -26,7 +26,7 @@ services:
       POSTGRES_HOST: db
       POSTGRES_DB: skyforge
       POSTGRES_USER: skyforge
-      POSTGRES_PASSWORD: skyforge
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-skyforge}
     healthcheck:
       test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:5000/health')\" || exit 1"]
       interval: 5s
@@ -43,7 +43,7 @@ services:
       db-api:
         condition: service_healthy
     environment:
-      WIKI_SCRAPE_INTERVAL: "3600"
+      WIKI_SCRAPE_INTERVAL: ${WIKI_SCRAPE_INTERVAL:-3600}
 
   calculator:
     build:
@@ -54,7 +54,7 @@ services:
       db-api:
         condition: service_healthy
     environment:
-      REFRESH_TIME: "120"
+      REFRESH_TIME: ${REFRESH_TIME:-120}
 
   web:
     build:
