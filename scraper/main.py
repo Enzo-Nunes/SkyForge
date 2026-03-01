@@ -45,7 +45,7 @@ class ForgeWikiParser:
         }
 
     def _parse_page(self) -> list[ForgePageItem]:
-        response = cffi_requests.get(self.FORGE_URL, impersonate="chrome")
+        response = cffi_requests.get(self.FORGE_URL, impersonate="firefox")
         response.raise_for_status()
         self._logger.info("Fetched forge data from wiki.")
 

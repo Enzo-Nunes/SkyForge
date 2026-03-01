@@ -47,10 +47,21 @@ Edit the values in `docker-compose.yml` under the relevant service's `environmen
 
 The main table lists all forge items with a positive profit, ranked by **Profit / hour** by default. Click any numeric column header to re-sort; click again to reverse the order. The **#** column always reflects the Profit / hour rank regardless of how the table is sorted.
 
+Each row displays a colored market indicator (cyan **Bazaar** or purple **AH**) next to the Sell Value, showing which market the item is sold on. Ingredients in the Recipe column also display these indicators, showing where each material's price was sourced from.
+
+The **Weekly Volume** column shows how many units have sold in the past 7 days on the Auction House (Bazaar items use the official API's 7-day moving average). Values prefixed with **~** are estimates based on less than 7 days of data; after 7 days of uptime, you'll see actual numbers.
+
+⚠️ **Early Uptime Warning**: During the first 7 days after starting the tool, all Auction House volume data is extrapolated from incomplete observations. This means:
+
+- Volume numbers will be less accurate and may fluctuate significantly
+- Profit rankings based on low-volume items may be unreliable
+- You should treat recommendations with caution during this period
+
 The filter sidebar on the left lets you narrow down results:
 
 - **Collection dropdowns** — set each to your current level. Items requiring a higher level are hidden.
 - **Max Cost** — maximum ingredient cost you're willing to spend per item. Check **No budget limit** to disable.
+- **Min Weekly Volume** — hide items with sales volume below this threshold (useful for filtering low-movement items).
 
 Filter settings are saved in your browser and restored on the next visit.
 
@@ -62,9 +73,10 @@ However, if you know you'll be away for a while (e.g. going to sleep) and the fo
 
 ## Notes
 
-- Most forge ingredients and forged items trade on only one market (Bazaar or Auction House). For the few available on both, the calculator picks the cheaper source for ingredients and the higher source for sell value.
+- Most forge ingredients and products are only available on one market (Bazaar or Auction House). The calculator prioritizes **Bazaar** for pricing when an item is listed there, otherwise uses the Auction House.
 - On the Bazaar, prefer **Buy Orders** over Instant Buy for ingredients, and **Sell Orders** over Instant Sell for finished items — the price difference can be significant.
 - Prices in the table are estimates based on live API data. Always check the actual market before making a large purchase.
+- Auction House weekly volumes shown with a **~** prefix are extrapolated from partial data and will become actual counts after 7 days of tool uptime.
 
 ## Disclaimer
 

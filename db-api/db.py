@@ -54,6 +54,18 @@ def init_schema(conn: psycopg2.extensions.connection) -> None:
                 PRIMARY KEY (item_name, requirement)
             )
         """)
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS ah_sale_batches (
+                id          SERIAL PRIMARY KEY,
+                item_name   TEXT NOT NULL,
+                quantity    INT  NOT NULL,
+                recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            )
+        """)
+        cur.execute("""
+            CREATE INDEX IF NOT EXISTS idx_ah_sale_batches_lookup
+                ON ah_sale_batches (item_name, recorded_at)
+        """)
     conn.commit()
 
 
@@ -100,3 +112,42 @@ def read_forge_items(conn: psycopg2.extensions.connection) -> dict[str, ForgeIte
             items[row[0]]["Requirements"][row[1]] = row[2]
 
     return items
+
+
+def insert_ah_sale_batch(
+    conn: psycopg2.extensions.connection,
+    sales: dict[str, int],
+) -> None:
+    with conn.cursor() as cur:
+        for item_name, quantity in sales.items():
+            cur.execute(
+                """
+                INSERT INTO ah_sale_batches (item_name, quantity)
+                SELECT %s, %s WHERE EXISTS (SELECT 1 FROM forge_items WHERE name = %s)
+                """,
+                (item_name, quantity, item_name),
+            )
+        # Prune rows older than 8 days to keep the table lean
+        cur.execute("DELETE FROM ah_sale_batches WHERE recorded_at < NOW() - INTERVAL '8 days'")
+    conn.commit()
+
+
+def read_ah_weekly_sales(conn: psycopg2.extensions.connection) -> dict[str, int]:
+    """Read 7-day AH sales totals by item.
+    Returns {item_name: total_quantity}.
+    Estimation logic is handled by the calculator.
+    """
+    with conn.cursor() as cur:
+        cur.execute("""
+            SELECT 
+                item_name,
+                SUM(quantity) as total
+            FROM ah_sale_batches
+            WHERE recorded_at > NOW() - INTERVAL '7 days'
+            GROUP BY item_name
+        """)
+        result: dict[str, int] = {}
+        for row in cur.fetchall():
+            item_name, total = row
+            result[item_name] = total
+        return result

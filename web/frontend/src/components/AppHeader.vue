@@ -5,7 +5,10 @@
 			<span class="subtitle">Hypixel Skyblock Forge Profit Tracker</span>
 		</div>
 		<div class="header-right">
-			<span class="updated" v-if="lastUpdated">Updated {{ lastUpdated }}</span>
+			<div class="meta-info">
+				<span class="updated" v-if="lastUpdated">Updated {{ lastUpdated }}</span>
+				<span class="uptime" v-if="uptimeLabel">Uptime {{ uptimeLabel }}</span>
+			</div>
 			<span class="status" :class="status">{{ statusLabel }}</span>
 		</div>
 	</header>
@@ -17,6 +20,7 @@ import { computed } from "vue";
 const props = defineProps({
 	lastUpdated: String,
 	status: String,
+	uptimeSeconds: Number,
 });
 
 const statusLabel = computed(
@@ -28,6 +32,16 @@ const statusLabel = computed(
 			offline: "Offline",
 		})[props.status],
 );
+
+const uptimeLabel = computed(() => {
+	if (!props.uptimeSeconds) return null;
+	const days = Math.floor(props.uptimeSeconds / 86400);
+	const hours = Math.floor((props.uptimeSeconds % 86400) / 3600);
+	const mins = Math.floor((props.uptimeSeconds % 3600) / 60);
+	if (days > 0) return `${days} day${days > 1 ? "s" : ""}`;
+	if (hours > 0) return `${hours} hour${hours > 1 ? "s" : ""}`;
+	return `${mins} minute${mins > 1 ? "s" : ""}`;
+});
 </script>
 
 <style scoped>
@@ -61,10 +75,22 @@ h1 {
 .header-right {
 	display: flex;
 	align-items: center;
-	gap: 1rem;
+	gap: 1.5rem;
+}
+
+.meta-info {
+	display: flex;
+	flex-direction: column;
+	gap: 0.3rem;
+	align-items: flex-end;
 }
 
 .updated {
+	font-size: 0.75rem;
+	color: #475569;
+}
+
+.uptime {
 	font-size: 0.75rem;
 	color: #475569;
 }

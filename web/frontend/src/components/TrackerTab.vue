@@ -1,7 +1,8 @@
 <template>
 	<div class="tracker-layout">
 		<FilterPanel :REQUIREMENTS="REQUIREMENTS" :myLevels="myLevels" v-model:maxCost="maxCost"
-			v-model:noBudget="noBudget" @levelChange="(key, val) => (myLevels[key] = val)" @reset="resetFilters" />
+			v-model:noBudget="noBudget" v-model:minVolume="minVolume" @levelChange="(key, val) => (myLevels[key] = val)"
+			@reset="resetFilters" />
 
 		<div class="tracker-content">
 			<div class="waiting" v-if="profits.length === 0">
@@ -18,7 +19,7 @@
 							</th>
 							<th>Item</th>
 							<th class="sortable" :class="sortClass('Cost')" @click="sortBy('Cost')">
-								Recipe Cost <span class="sort-arrow">{{ sortArrow("Cost") }}</span>
+								Total Ingredient Cost <span class="sort-arrow">{{ sortArrow("Cost") }}</span>
 							</th>
 							<th class="sortable" :class="sortClass('Sell Value')" @click="sortBy('Sell Value')">
 								Sell Value <span class="sort-arrow">{{ sortArrow("Sell Value") }}</span>
@@ -33,6 +34,10 @@
 								@click="sortBy('Profit per Hour')">
 								Profit / hour <span class="sort-arrow">{{ sortArrow("Profit per Hour") }}</span>
 							</th>
+							<th class="sortable" :class="sortClass('Weekly Volume')" @click="sortBy('Weekly Volume')">
+								Weekly Volume <span class="sort-arrow">{{ sortArrow("Weekly Volume") }}</span>
+							</th>
+
 							<th>Recipe</th>
 						</tr>
 					</thead>
@@ -44,13 +49,24 @@
 							</td>
 							<td class="name">{{ item.Name }}</td>
 							<td class="number cost">{{ fmt(item.Cost) }}</td>
-							<td class="number sell">{{ fmt(item["Sell Value"]) }}</td>
+							<td class="number sell">
+								<span class="vol-source"
+									:class="item['Selling Market'] === 'Bazaar' ? 'vol-bz' : 'vol-ah'">
+									{{ item["Selling Market"] }}
+								</span>
+								{{ fmt(item["Sell Value"]) }}
+							</td>
 							<td class="number profit">+{{ fmt(item.Profit) }}</td>
 							<td class="number">{{ fmtDuration(item.Duration) }}</td>
 							<td class="number pph">{{ fmt(item["Profit per Hour"]) }}</td>
+							<td class="number volume">{{ item["Volume Estimated"] ? "~" : "" }}{{ fmt(item["Weekly Volume"]) }}</td>
 							<td class="recipe">
 								<span v-for="(qty, mat) in item.Recipe" :key="mat" class="ingredient">
 									{{ qty }}x {{ mat }}
+									<span class="vol-source"
+										:class="item['Recipe Markets']?.[mat] === 'Bazaar' ? 'vol-bz' : 'vol-ah'">
+										{{ item["Recipe Markets"]?.[mat] }}
+									</span>
 								</span>
 							</td>
 						</tr>
@@ -87,6 +103,7 @@ const savedLevels = JSON.parse(localStorage.getItem("skyforge_levels") || "null"
 const myLevels = reactive(savedLevels || Object.fromEntries(Object.entries(REQUIREMENTS).map(([k, v]) => [k, v])));
 const maxCost = ref(parseInt(localStorage.getItem("skyforge_maxCost") || "-1"));
 const noBudget = ref(maxCost.value === -1);
+const minVolume = ref(parseInt(localStorage.getItem("skyforge_minVolume") || "0"));
 
 watch(noBudget, (val) => {
 	if (val) {
@@ -106,12 +123,18 @@ watch(maxCost, (val) => {
 	visibleCount.value = 10;
 });
 
+watch(minVolume, (val) => {
+	localStorage.setItem("skyforge_minVolume", String(val));
+	visibleCount.value = 10;
+});
+
 const profitsFiltered = computed(() =>
 	props.profits.filter((item) => {
-		if (maxCost.value > 0 && item.Cost > maxCost.value) return false;
-		for (const [req, level] of Object.entries(item.Requirements || {})) {
-			if ((myLevels[req] ?? REQUIREMENTS[req] ?? 0) < level) return false;
+		for (const [key, level] of Object.entries(myLevels)) {
+			if ((item.Requirements?.[key] ?? 0) > level) return false;
 		}
+		if (!noBudget.value && maxCost.value >= 0 && item.Cost > maxCost.value) return false;
+		if (minVolume.value > 0 && (item["Weekly Volume"] ?? 0) < minVolume.value) return false;
 		return true;
 	}),
 );
@@ -154,6 +177,7 @@ function resetFilters() {
 		myLevels[key] = max;
 	}
 	maxCost.value = -1;
+	minVolume.value = 0;
 }
 
 const fmt = (n) => Number(n).toLocaleString("en-US");
@@ -245,7 +269,8 @@ th:nth-child(3),
 th:nth-child(4),
 th:nth-child(5),
 th:nth-child(6),
-th:nth-child(7) {
+th:nth-child(7),
+th:nth-child(8) {
 	text-align: right;
 }
 
@@ -353,6 +378,34 @@ td {
 .pph {
 	color: #a78bfa;
 	font-weight: 600;
+}
+
+.volume {
+	color: #67e8f9;
+}
+
+.vol-source {
+	display: inline-block;
+	margin-left: 0.35rem;
+	padding: 0.05rem 0.35rem;
+	border-radius: 0.25rem;
+	font-size: 0.65rem;
+	font-weight: 700;
+	line-height: 1;
+	vertical-align: middle;
+	letter-spacing: 0.04em;
+}
+
+.vol-bz {
+	background: #1a2e2e;
+	color: #67e8f9;
+	border: 1px solid #164e6380;
+}
+
+.vol-ah {
+	background: #2a1f2e;
+	color: #c084fc;
+	border: 1px solid #6b21a880;
 }
 
 .recipe {

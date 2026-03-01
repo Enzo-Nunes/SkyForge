@@ -1,6 +1,7 @@
 import logging
 import os
 import sys
+import threading
 import time
 from datetime import datetime, timezone
 from math import ceil
@@ -34,36 +35,79 @@ class MarketPriceTracker:
 
     def __init__(self, logger: logging.Logger) -> None:
         self._logger = logger
+        self._auction_id_map: dict[str, tuple[str, float]] = {}  # auction_id -> (item_name, inserted_at)
+        self._auction_id_map_lock = threading.Lock()
 
     def fetch_auction_house_prices(self) -> dict[str, int]:
-        auction_house = requests.get(self.AUCTION_HOUSE_URL, headers=self.HEADERS).json()
+        response = requests.get(self.AUCTION_HOUSE_URL, headers=self.HEADERS)
+        response.raise_for_status()
+        auction_house = response.json()
         pages = auction_house["totalPages"]
         items = auction_house["totalAuctions"]
 
         self._logger.info(f"Starting Auction House processing, {pages} pages found with a total of {items} auctions:")
         prices: dict[str, int] = {}
+        new_id_map: dict[str, str] = {}
 
         for i in range(pages):
-            page = requests.get(self.AUCTION_HOUSE_URL, headers=self.HEADERS, params={"page": i}).json()
+            try:
+                page_response = requests.get(self.AUCTION_HOUSE_URL, headers=self.HEADERS, params={"page": i})
+                page_response.raise_for_status()
+                page = page_response.json()
+            except Exception as e:
+                self._logger.warning(f"Skipping AH page {i}: {e}")
+                continue
             for auction in page.get("auctions", []):
-                current_price = prices.get(auction["item_name"], -1)
+                item_name = auction["item_name"]
+                new_id_map[auction["uuid"]] = item_name
+                current_price = prices.get(item_name, -1)
                 new_price = auction["starting_bid"]
                 if auction["bin"] and (current_price == -1 or current_price > new_price):
-                    prices[auction["item_name"]] = new_price
+                    prices[item_name] = new_price
+
+        self._update_auction_id_map(new_id_map)
 
         self._logger.info("Auction House processing complete.")
         return prices
 
+    def _update_auction_id_map(self, new_entries: dict[str, str]) -> None:
+        """Accumulate new uuid→item_name entries with a timestamp (called from main thread)."""
+        now = time.monotonic()
+        with self._auction_id_map_lock:
+            for uuid, name in new_entries.items():
+                self._auction_id_map[uuid] = (name, now)
+
+    def resolve_and_remove(self, auction_ids: list[str]) -> dict[str, str]:
+        """Look up item names for the given auction IDs, remove matched entries, and return {uuid: item_name}."""
+        result: dict[str, str] = {}
+        with self._auction_id_map_lock:
+            for auction_id in auction_ids:
+                entry = self._auction_id_map.pop(auction_id, None)
+                if entry:
+                    result[auction_id] = entry[0]
+        return result
+
+    def prune_auction_id_map(self, max_age_seconds: float) -> int:
+        """Remove entries older than max_age_seconds. Returns the number of entries pruned."""
+        cutoff = time.monotonic() - max_age_seconds
+        with self._auction_id_map_lock:
+            stale = [k for k, (_, ts) in self._auction_id_map.items() if ts < cutoff]
+            for k in stale:
+                del self._auction_id_map[k]
+        return len(stale)
+
     def fetch_bazaar_prices(self) -> dict[str, dict[str, int]]:
         self._logger.info("Starting Bazaar processing...")
         bazaar = requests.get(self.BAZAAR_URL, headers=self.HEADERS).json()
-        prices: dict[str, dict[str, int]] = {"Coins": {"Buy Price": 1, "Sell Price": 1}}
+        prices: dict[str, dict[str, int]] = {"Coins": {"Buy Price": 1, "Sell Price": 1, "Weekly Volume": 0}}
 
         for product in bazaar["products"]:
             item_name = self._convert_name(product)
+            qs = bazaar["products"][product]["quick_status"]
             prices[item_name] = {
-                "Buy Price": bazaar["products"][product]["quick_status"]["buyPrice"],
-                "Sell Price": bazaar["products"][product]["quick_status"]["sellPrice"],
+                "Buy Price": qs["buyPrice"],
+                "Sell Price": qs["sellPrice"],
+                "Weekly Volume": qs["sellMovingWeek"],
             }
 
         self._logger.info("Bazaar processing complete.")
@@ -97,29 +141,87 @@ class MarketPriceTracker:
 
         return " ".join([part.capitalize() for part in converted_name.split(":")[0].split("_")])
 
-    def min_price(self, price1: int, price2: int) -> int:
-        if price1 == -1:
-            return price2
-        if price2 == -1:
-            return price1
-        return min(price1, price2)
 
-    def max_price(self, price1: int, price2: int) -> int:
-        if price1 == -1:
-            return price2
-        if price2 == -1:
-            return price1
-        return max(price1, price2)
+class AHSalesTracker:
+    ENDED_URL = "https://api.hypixel.net/v2/skyblock/auctions_ended"
+    POLL_INTERVAL = 60
+
+    def __init__(self, logger: logging.Logger, market: MarketPriceTracker, map_ttl: float = 1200.0) -> None:
+        self._logger = logger
+        self._market = market
+        self._map_ttl = map_ttl
+
+    def _poll_once(self) -> None:
+        try:
+            response = requests.get(self.ENDED_URL, timeout=10)
+            response.raise_for_status()
+            auctions = response.json().get("auctions", [])
+
+            sold_ids = [a["auction_id"] for a in auctions if a.get("buyer") and a.get("bin")]
+            resolved = self._market.resolve_and_remove(sold_ids)
+
+            sales: dict[str, int] = {}
+            for item_name in resolved.values():
+                sales[item_name] = sales.get(item_name, 0) + 1
+
+            pruned = self._market.prune_auction_id_map(self._map_ttl)
+            if pruned:
+                self._logger.info(f"Pruned {pruned} stale entries from auction ID map.")
+
+            if sales:
+                r = requests.post(f"{DB_API_URL}/ah-sales", json={"sales": sales}, timeout=10)
+                r.raise_for_status()
+                self._logger.info(f"Recorded {sum(sales.values())} AH sales across {len(sales)} items.")
+        except Exception as e:
+            self._logger.warning(f"AH sales poll failed: {e}")
+
+    def run(self) -> None:
+        while True:
+            self._poll_once()
+            time.sleep(self.POLL_INTERVAL)
 
 
 class ProfitCalculator:
     def __init__(self, logger: logging.Logger) -> None:
         self._logger = logger
         self._market = MarketPriceTracker(logger)
+        self._start_time = time.time()  # Track uptime for volume estimation
 
-    def calculate_profits(self, forge_info: dict[str, ForgeItemInfo]) -> list[ForgeProfit]:
+    @property
+    def market(self) -> MarketPriceTracker:
+        return self._market
+
+    def calculate_profits(self, forge_info: dict[str, ForgeItemInfo]) -> tuple[list[ForgeProfit], int | None]:
+        """Calculate profits for all forge items.
+        Returns (profits_list, uptime_seconds).
+        """
         auction_house_prices = self._market.fetch_auction_house_prices()
         bazaar_prices = self._market.fetch_bazaar_prices()
+
+        # Calculate uptime and estimate if we have less than 7 days of data
+        uptime_seconds = int(time.time() - self._start_time)
+        is_estimated = uptime_seconds < 604800  # 7 days = 604800 seconds
+
+        ah_weekly_sales: dict[str, int] = {}
+        ah_volume_estimated: dict[str, bool] = {}
+
+        try:
+            response = requests.get(f"{DB_API_URL}/ah-sales", timeout=10)
+            response.raise_for_status()
+            ah_sales_data = response.json().get("sales", {})
+            # Raw sales are just item_name -> total_quantity
+            for item_name, total_quantity in ah_sales_data.items():
+                if is_estimated:
+                    # Extrapolate volume if we don't have 7 days yet
+                    volume = int(total_quantity * 604800 / uptime_seconds)
+                else:
+                    volume = total_quantity
+                ah_weekly_sales[item_name] = volume
+                ah_volume_estimated[item_name] = is_estimated
+        except Exception as e:
+            self._logger.warning(f"Could not fetch AH weekly sales: {e}")
+            ah_weekly_sales = {}
+            ah_volume_estimated = {}
 
         self._logger.info("Starting final profit calculations...")
         items_profit: list[ForgeProfit] = []
@@ -128,20 +230,31 @@ class ProfitCalculator:
             item_cost = 0
             is_craftable = True
             is_sellable = True
+            recipe_markets: dict[str, str] = {}
 
             for material in forge_info[item_name]["Recipe"].keys():
                 material_bazaar_info = bazaar_prices.get(material)
-                material_bazaar_buy_price = material_bazaar_info.get("Buy Price", -1) if material_bazaar_info else -1
-                material_min_price = self._market.min_price(
-                    material_bazaar_buy_price, auction_house_prices.get(material, -1)
-                )
-                if material_min_price < 0:
+                if material_bazaar_info:
+                    material_price = material_bazaar_info.get("Buy Price", -1)
+                    recipe_markets[material] = "Bazaar"
+                else:
+                    material_price = auction_house_prices.get(material, -1)
+                    recipe_markets[material] = "AH"
+                if material_price < 0:
                     is_craftable = False
-                item_cost += forge_info[item_name]["Recipe"][material] * material_min_price
+                item_cost += forge_info[item_name]["Recipe"][material] * material_price
 
-            item_bazaar_sell_info = bazaar_prices.get(item_name)
-            item_bazaar_sell_price = item_bazaar_sell_info.get("Sell Price", -1) if item_bazaar_sell_info else -1
-            item_sell_price = self._market.max_price(item_bazaar_sell_price, auction_house_prices.get(item_name, -1))
+            item_bazaar_info = bazaar_prices.get(item_name)
+            if item_bazaar_info:
+                item_sell_price = item_bazaar_info.get("Sell Price", -1)
+                weekly_volume = item_bazaar_info.get("Weekly Volume", 0)
+                volume_source = "Bazaar"
+                volume_estimated = False
+            else:
+                item_sell_price = auction_house_prices.get(item_name, -1)
+                weekly_volume = ah_weekly_sales.get(item_name, 0)
+                volume_source = "AH"
+                volume_estimated = ah_volume_estimated.get(item_name, False)
             if item_sell_price < 0:
                 is_sellable = False
 
@@ -155,15 +268,22 @@ class ProfitCalculator:
                         "Profit": ceil(item_sell_price - item_cost),
                         "Duration": forge_info[item_name]["Duration"],
                         "Profit per Hour": ceil((item_sell_price - item_cost) / forge_info[item_name]["Duration"]),
+                        "Weekly Volume": weekly_volume,
+                        "Volume Estimated": volume_estimated,
+                        "Selling Market": volume_source,
+                        "Recipe Markets": recipe_markets,
                         "Recipe": forge_info[item_name]["Recipe"],
                         "Requirements": forge_info[item_name]["Requirements"],
                     }
                 )
 
-        return [
-            cast(ForgeProfit, {**item, "Rank": i + 1})
-            for i, item in enumerate(sorted(items_profit, key=lambda x: x["Profit per Hour"], reverse=True))
-        ]
+        return (
+            [
+                cast(ForgeProfit, {**item, "Rank": i + 1})
+                for i, item in enumerate(sorted(items_profit, key=lambda x: x["Profit per Hour"], reverse=True))
+            ],
+            uptime_seconds,
+        )
 
 
 def main() -> None:
@@ -191,6 +311,11 @@ def main() -> None:
     logger.info("Forge data available. Starting calculations.")
     calculator = ProfitCalculator(logger)
 
+    sales_tracker = AHSalesTracker(logger, calculator.market, map_ttl=refresh_time * 10)
+    t = threading.Thread(target=sales_tracker.run, daemon=True, name="ah-sales-tracker")
+    t.start()
+    logger.info("AH sales tracker thread started.")
+
     while True:
         response = requests.get(f"{DB_API_URL}/forge-items", timeout=30)
         response.raise_for_status()
@@ -203,7 +328,7 @@ def main() -> None:
             continue
 
         logger.info(f"Loaded {len(forge_info)} forge items from DB. Calculating profits...")
-        profits = calculator.calculate_profits(forge_info)
+        profits, uptime_seconds = calculator.calculate_profits(forge_info)
 
         try:
             requests.post(
@@ -211,6 +336,7 @@ def main() -> None:
                 json={
                     "profits": profits,
                     "calculated_at": datetime.now(timezone.utc).isoformat(),
+                    "uptime_seconds": uptime_seconds,
                 },
                 timeout=10,
             )

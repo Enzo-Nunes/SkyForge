@@ -23,6 +23,14 @@
 					No budget limit
 				</label>
 			</div>
+			<div class="filter-field">
+				<span class="filter-label">Min Weekly Volume</span>
+				<div class="filter-controls">
+					<input class="cost-input" type="number" min="0" :value="minVolume"
+						@input="$emit('update:minVolume', Number($event.target.value))" />
+					<span class="filter-max">/ week</span>
+				</div>
+			</div>
 		</div>
 		<button class="filter-reset" @click="$emit('reset')">Reset</button>
 	</aside>
@@ -34,9 +42,10 @@ defineProps({
 	myLevels: Object,
 	maxCost: Number,
 	noBudget: Boolean,
+	minVolume: Number,
 });
 
-defineEmits(["levelChange", "update:maxCost", "update:noBudget", "reset"]);
+defineEmits(["levelChange", "update:maxCost", "update:noBudget", "update:minVolume", "reset"]);
 </script>
 
 <style scoped>

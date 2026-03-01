@@ -34,6 +34,7 @@ async def lifespan(app: FastAPI):
 class ResultsPayload(BaseModel):
     profits: list[dict[str, Any]]
     calculated_at: str
+    uptime_seconds: int | None = None
 
 
 app = FastAPI(lifespan=lifespan)
