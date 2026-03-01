@@ -79,6 +79,10 @@ However, if you know you'll be away for a while (e.g. going to sleep) and the fo
 - Prices in the table are estimates based on live API data. Always check the actual market before making a large purchase.
 - Auction House weekly volumes shown with a **~** prefix are extrapolated from partial data and will become actual counts after 7 days of tool uptime.
 
+## Contributing
+
+Interested in contributing? See [CONTRIBUTING.md](CONTRIBUTING.md) for setup instructions and guidelines.
+
 ## Disclaimer
 
 This project is neither endorsed by nor affiliated with Hypixel. Use it at your own discretion.

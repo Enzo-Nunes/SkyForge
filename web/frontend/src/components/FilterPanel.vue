@@ -13,21 +13,35 @@
 			<div class="filter-field">
 				<span class="filter-label">Max Cost</span>
 				<div class="filter-controls">
-					<input class="cost-input" type="number" min="0" :value="maxCost"
-						@input="$emit('update:maxCost', Number($event.target.value))" :disabled="noBudget" />
+					<input
+						class="cost-input"
+						type="number"
+						min="0"
+						:value="maxCost"
+						@input="$emit('update:maxCost', Number($event.target.value))"
+						:disabled="noBudget"
+					/>
 					<span class="filter-max">coins</span>
 				</div>
 				<label class="no-budget-label">
-					<input type="checkbox" :checked="noBudget"
-						@change="$emit('update:noBudget', $event.target.checked)" />
+					<input
+						type="checkbox"
+						:checked="noBudget"
+						@change="$emit('update:noBudget', $event.target.checked)"
+					/>
 					No budget limit
 				</label>
 			</div>
 			<div class="filter-field">
 				<span class="filter-label">Min Weekly Volume</span>
 				<div class="filter-controls">
-					<input class="cost-input" type="number" min="0" :value="minVolume"
-						@input="$emit('update:minVolume', Number($event.target.value))" />
+					<input
+						class="cost-input"
+						type="number"
+						min="0"
+						:value="minVolume"
+						@input="$emit('update:minVolume', Number($event.target.value))"
+					/>
 					<span class="filter-max">/ week</span>
 				</div>
 			</div>

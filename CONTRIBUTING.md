@@ -16,23 +16,36 @@ Thank you for your interest in contributing to SkyForge! This guide explains how
    git checkout dev
    ```
 
-2. **Start the development stack:**
+2. **Install pre-commit hooks** (auto-formats & lints before commit):
+
+   ```bash
+   pip install pre-commit
+   pre-commit install
+   ```
+
+   This installs:
+   - **Ruff** — Python linting and formatting.
+   - **Prettier** — Vue, JavaScript, JSON, YAML formatting.
+
+   These runs automatically on `git commit`.
+
+3. **Start the development stack:**
 
    ```bash
    docker compose up --build -d
    ```
 
-3. **Access the UI:**
+4. **Access the UI:**
    - Open <http://localhost:8000> in your browser
    - Changes to Vue components are reflected after page refresh
 
-4. **Make changes and rebuild as required:**
+5. **Make changes and rebuild as required:**
 
     ```bash
     docker compose up --build -d <service-name>
     ```
 
-5. **View Logs:**
+6. **View Logs:**
 
     ```bash
     docker compose logs -f          # View all services
