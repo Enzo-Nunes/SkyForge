@@ -56,8 +56,8 @@ Thank you for your interest in contributing to SkyForge! This guide explains how
 
 ## Branch Strategy
 
-- **`main`** — Stable, production-ready releases. Protected branch.
-- **`dev`** — Integration branch for community contributions. Base branch for pull requests.
+- **`main`** - Stable, production-ready releases. Protected branch.
+- **`dev`** - Integration branch for community contributions. Base branch for pull requests.
 
 **How it works:**
 
