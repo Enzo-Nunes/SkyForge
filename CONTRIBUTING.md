@@ -27,7 +27,7 @@ Thank you for your interest in contributing to SkyForge! This guide explains how
    - **Ruff** — Python linting and formatting.
    - **Prettier** — Vue, JavaScript, JSON, YAML formatting.
 
-   These runs automatically on `git commit`.
+   These run automatically on `git commit`.
 
 3. **Start the development stack:**
 
