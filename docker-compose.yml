@@ -20,8 +20,7 @@ services:
       dockerfile: db-api/Dockerfile
     init: true
     depends_on:
-      db:
-        condition: service_healthy
+      - db
     environment:
       POSTGRES_HOST: db
       POSTGRES_DB: skyforge
@@ -40,8 +39,7 @@ services:
       dockerfile: scraper/Dockerfile
     init: true
     depends_on:
-      db-api:
-        condition: service_healthy
+      - db-api
     environment:
       WIKI_SCRAPE_INTERVAL: ${WIKI_SCRAPE_INTERVAL:-3600}
 
@@ -51,8 +49,7 @@ services:
       dockerfile: calculator/Dockerfile
     init: true
     depends_on:
-      db-api:
-        condition: service_healthy
+      - db-api
     environment:
       REFRESH_TIME: ${REFRESH_TIME:-120}
 
