@@ -28,7 +28,7 @@ cd SkyForge
 docker compose up --build
 ```
 
-Open your browser at [http://localhost:8000](http://localhost:8000). The UI will show a loading spinner until the first calculation cycle completes, then populate the table automatically.
+Open your browser at [http://localhost:8145](http://localhost:8145). The UI will show a loading spinner until the first calculation cycle completes, then populate the table automatically.
 
 ## Configuration
 

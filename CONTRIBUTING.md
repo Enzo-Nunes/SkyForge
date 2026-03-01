@@ -36,7 +36,7 @@ Thank you for your interest in contributing to SkyForge! This guide explains how
    ```
 
 4. **Access the UI:**
-   - Open <http://localhost:8000> in your browser
+   - Open <http://localhost:8145> in your browser
    - Changes to Vue components are reflected after page refresh
 
 5. **Make changes and rebuild as required:**
