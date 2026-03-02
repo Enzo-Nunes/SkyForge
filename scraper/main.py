@@ -2,7 +2,7 @@ import logging
 import os
 import sys
 import time
-from typing import cast
+import typing
 
 import bs4
 import requests
@@ -60,11 +60,13 @@ class ForgeWikiParser:
                 columns = row.find_all("td")[1:]
                 columns_text = [column.get_text() for column in columns]
                 if len(columns_text) == len(headers):
-                    row_data: ForgePageItem = cast(ForgePageItem, {})
+                    row_data: ForgePageItem = typing.cast(ForgePageItem, {})
                     for j in range(len(headers)):
                         if headers[j] == "Recipe Tree":
-                            tree_container = cast(bs4.Tag, columns[3].find("div", {"class": "mw-hp-tree-container"}))
-                            ul_element = cast(bs4.Tag, tree_container.find("ul"))
+                            tree_container = typing.cast(
+                                bs4.Tag, columns[3].find("div", {"class": "mw-hp-tree-container"})
+                            )
+                            ul_element = typing.cast(bs4.Tag, tree_container.find("ul"))
                             row_data[headers[j]] = [
                                 material.get_text() for material in ul_element.find_all("li", recursive=False)
                             ]

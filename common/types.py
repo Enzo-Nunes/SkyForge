@@ -1,6 +1,6 @@
-from typing import TypedDict
+import typing
 
-ForgePageItem = TypedDict(
+ForgePageItem = typing.TypedDict(
     "ForgePageItem",
     {
         "Name & Rarity": str,
@@ -10,7 +10,7 @@ ForgePageItem = TypedDict(
     },
 )
 
-ForgeItemInfo = TypedDict(
+ForgeItemInfo = typing.TypedDict(
     "ForgeItemInfo",
     {
         "Duration": float,
@@ -19,7 +19,7 @@ ForgeItemInfo = TypedDict(
     },
 )
 
-ForgeProfit = TypedDict(
+ForgeProfit = typing.TypedDict(
     "ForgeProfit",
     {
         "Rank": int,
