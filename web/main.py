@@ -1,9 +1,9 @@
 import asyncio
+import contextlib
 import json
 import logging
 import sys
-from contextlib import asynccontextmanager
-from typing import Any
+import typing
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.staticfiles import StaticFiles
@@ -17,7 +17,7 @@ logger.addHandler(handler)
 logger.setLevel(logging.INFO)
 
 
-@asynccontextmanager
+@contextlib.asynccontextmanager
 async def lifespan(app: FastAPI):
     yield
     logger.info(f"Shutting down: notifying {len(_clients)} client(s)...")
@@ -32,7 +32,7 @@ async def lifespan(app: FastAPI):
 
 
 class ResultsPayload(BaseModel):
-    profits: list[dict[str, Any]]
+    profits: list[dict[str, typing.Any]]
     calculated_at: str
     uptime_seconds: int | None = None
 

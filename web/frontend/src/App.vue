@@ -147,7 +147,9 @@ body {
 	text-decoration: underline;
 	text-decoration-color: #4c3882;
 	text-underline-offset: 2px;
-	transition: color 0.15s, text-decoration-color 0.15s;
+	transition:
+		color 0.15s,
+		text-decoration-color 0.15s;
 }
 
 .content-page a:hover {
