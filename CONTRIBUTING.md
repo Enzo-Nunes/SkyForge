@@ -8,15 +8,19 @@ Thank you for your interest in contributing to SkyForge! This guide explains how
 
 ### Local Development Setup
 
-1. **Clone the repository:**
+1. **Fork the repository:**
+   - Click the **Fork** button on GitHub (top-right)
+   - This creates your personal copy of the repository
+
+2. **Clone your fork:**
 
    ```bash
-   git clone https://github.com/Enzo-Nunes/SkyForge.git
+   git clone https://github.com/YOUR-USERNAME/SkyForge.git
    cd SkyForge
    git checkout dev
    ```
 
-2. **Install pre-commit hooks** (auto-formats & lints before commit):
+3. **Install pre-commit hooks** (auto-formats & lints before commit):
 
    ```bash
    pip install pre-commit
@@ -29,42 +33,28 @@ Thank you for your interest in contributing to SkyForge! This guide explains how
 
    These run automatically on `git commit`.
 
-3. **Start the development stack:**
+4. **Start the development stack:**
 
    ```bash
    docker compose up --build -d
    ```
 
-4. **Access the UI:**
+5. **Access the UI:**
    - Open <http://localhost:8145> in your browser
    - Changes to Vue components are reflected after page refresh
 
-5. **Make changes and rebuild as required:**
+6. **Make changes and rebuild as required:**
 
     ```bash
     docker compose up --build -d <service-name>
     ```
 
-6. **View Logs:**
+7. **View Logs:**
 
     ```bash
     docker compose logs -f          # View all services
     docker compose logs -f db-api   # View specific service (e.g., db-api, calculator, scraper, web)
     ```
-
----
-
-## Branch Strategy
-
-- **`main`** - Stable, production-ready releases. Protected branch.
-- **`dev`** - Integration branch for community contributions. Base branch for pull requests.
-
-**How it works:**
-
-1. Create a feature branch from `dev`: `git checkout -b feature/my-feature dev`
-2. Make your changes and test locally
-3. Submit a Pull Request against `dev` (not `main`)
-4. After review and merge to `dev`, changes go to `main` on the next release
 
 ---
 
@@ -92,47 +82,55 @@ Thank you for your interest in contributing to SkyForge! This guide explains how
 
 ### Submit a Pull Request
 
-#### Code Style
+#### Branch Strategy
 
-- **Python:** Follow PEP 8. Use type hints where possible.
-- **Vue/JavaScript:** Use the existing component structure. Prefer `<script setup>` composition API.
-- **SQL:** Parameterized queries only (never string concatenation). Comments for complex logic.
+- **`main`** — Stable, production-ready releases. Protected branch.
+- **`dev`** — Integration branch for community contributions. **Always submit PRs against `dev`, not `main`.**
 
 #### Before Submitting
 
-1. **Test locally:**
+1. **Create a feature branch from `dev`:**
+
+   ```bash
+   git checkout -b feature/my-feature dev
+   ```
+
+2. **Test locally:**
 
    ```bash
    docker compose down -v  # Clean slate
    docker compose up --build
    ```
 
-2. **Check for obvious issues:**
+3. **Check for obvious issues:**
    - No hardcoded secrets or credentials
    - No `console.log()` or `print()` debug statements left in
    - Database migrations (if schema changes) documented in the PR
 
-3. **Update documentation:**
+4. **Update documentation:**
    - If your change affects usage or configuration, update `README.md` or add docs as needed.
 
-4. **Clean up your commit history:**
+#### Submitting Your PR
 
-   ```bash
-   git rebase -i dev  # Squash WIP commits into logical changes
-   ```
-
-#### Creating a Pull Request
-
-1. **Push your feature branch:**
+1. **Push your feature branch to your fork:**
 
    ```bash
    git push origin feature/my-feature
    ```
 
-2. **Open PR on GitHub:**
-   - Base branch: `dev`
-   - Title: Clear, descriptive (e.g., "Add email notifications for low profit items")
-   - Description:
+2. **Open a Pull Request on GitHub:**
+   - Go to the **original SkyForge repository**
+   - Click **"Pull Requests"** → **"New Pull Request"**
+   - Click **"compare across forks"**
+   - Set:
+     - **Base repository:** `Enzo-Nunes/SkyForge`
+     - **Base branch:** `dev`
+     - **Head repository:** `YOUR-USERNAME/SkyForge`
+     - **Head branch:** `feature/my-feature`
+
+3. **Fill in the PR description:**
+   - **Title:** Clear, descriptive (e.g., "Add email notifications for low profit items")
+   - **Description** (use this template):
 
      ```plaintext
      ## What
@@ -154,7 +152,7 @@ Thank you for your interest in contributing to SkyForge! This guide explains how
      Closes #123
      ```
 
-3. **Address review feedback:**
+4. **Address review feedback:**
    - Push new commits to the same branch
    - Respond to comments with clarifications
    - Request re-review when done
