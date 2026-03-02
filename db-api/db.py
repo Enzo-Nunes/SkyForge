@@ -2,7 +2,6 @@ import os
 import time
 
 import psycopg2
-import psycopg2.extensions
 
 from common.types import ForgeItemInfo
 
@@ -151,3 +150,16 @@ def read_ah_weekly_sales(conn: psycopg2.extensions.connection) -> dict[str, int]
             item_name, total = row
             result[item_name] = total
         return result
+
+
+def read_ah_oldest_record_time(conn: psycopg2.extensions.connection) -> str | None:
+    """Get the ISO timestamp of the oldest AH sale record in the database.
+    Returns None if no records exist.
+    Used by calculator to determine actual data collection span for accurate extrapolation.
+    """
+    with conn.cursor() as cur:
+        cur.execute("SELECT MIN(recorded_at) FROM ah_sale_batches")
+        result = cur.fetchone()
+        if result and result[0]:
+            return result[0].isoformat()
+        return None

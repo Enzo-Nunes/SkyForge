@@ -1,13 +1,15 @@
 <template>
 	<header>
 		<div class="header-left">
-			<h1>⚒ SkyForge</h1>
+			<h1>
+				⚒ SkyForge <span class="version">v{{ version }}</span>
+			</h1>
 			<span class="subtitle">Hypixel Skyblock Forge Profit Tracker</span>
 		</div>
 		<div class="header-right">
 			<div class="meta-info">
-				<span class="updated" v-if="lastUpdated">Updated {{ lastUpdated }}</span>
-				<span class="uptime" v-if="uptimeLabel">Uptime {{ uptimeLabel }}</span>
+				<span v-if="lastUpdated">Updated {{ lastUpdated }}</span>
+				<span v-if="uptimeLabel">Uptime {{ uptimeLabel }}</span>
 			</div>
 			<span class="status" :class="status">{{ statusLabel }}</span>
 		</div>
@@ -22,6 +24,8 @@ const props = defineProps({
 	status: String,
 	uptimeSeconds: Number,
 });
+
+const version = import.meta.env.VITE_APP_VERSION || "dev";
 
 const statusLabel = computed(
 	() =>
@@ -67,6 +71,12 @@ h1 {
 	color: #a78bfa;
 }
 
+.version {
+	font-size: 0.75rem;
+	color: #475569;
+	margin-left: 0.5rem;
+}
+
 .subtitle {
 	font-size: 0.8rem;
 	color: #64748b;
@@ -85,12 +95,7 @@ h1 {
 	align-items: flex-end;
 }
 
-.updated {
-	font-size: 0.75rem;
-	color: #475569;
-}
-
-.uptime {
+.meta-info > span {
 	font-size: 0.75rem;
 	color: #475569;
 }

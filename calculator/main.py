@@ -1,11 +1,11 @@
 import logging
+import math
 import os
 import sys
 import threading
 import time
+import typing
 from datetime import datetime, timezone
-from math import ceil
-from typing import cast
 
 import requests
 
@@ -263,11 +263,11 @@ class ProfitCalculator:
                     {
                         "Rank": 0,
                         "Name": item_name,
-                        "Cost": ceil(item_cost),
-                        "Sell Value": ceil(item_sell_price),
-                        "Profit": ceil(item_sell_price - item_cost),
+                        "Cost": math.ceil(item_cost),
+                        "Sell Value": math.ceil(item_sell_price),
+                        "Profit": math.ceil(item_sell_price - item_cost),
                         "Duration": forge_info[item_name]["Duration"],
-                        "Profit per Hour": ceil((item_sell_price - item_cost) / forge_info[item_name]["Duration"]),
+                        "Profit per Hour": math.ceil((item_sell_price - item_cost) / forge_info[item_name]["Duration"]),
                         "Weekly Volume": weekly_volume,
                         "Volume Estimated": volume_estimated,
                         "Selling Market": volume_source,
@@ -279,7 +279,7 @@ class ProfitCalculator:
 
         return (
             [
-                cast(ForgeProfit, {**item, "Rank": i + 1})
+                typing.cast(ForgeProfit, {**item, "Rank": i + 1})
                 for i, item in enumerate(sorted(items_profit, key=lambda x: x["Profit per Hour"], reverse=True))
             ],
             uptime_seconds,
@@ -320,7 +320,7 @@ def main() -> None:
         response = requests.get(f"{DB_API_URL}/forge-items", timeout=30)
         response.raise_for_status()
         forge_info: dict[str, ForgeItemInfo] = {
-            name: cast(ForgeItemInfo, info) for name, info in response.json()["items"].items()
+            name: typing.cast(ForgeItemInfo, info) for name, info in response.json()["items"].items()
         }
         if not forge_info:
             logger.info("No forge data in database yet, retrying in 10s...")

@@ -1,11 +1,13 @@
 # Stage 1: build Vue frontend
 FROM node:slim AS frontend-build
 
+ARG VERSION=1.0.0
+
 WORKDIR /frontend
 COPY web/frontend/package*.json ./
 RUN npm install
 COPY web/frontend/ ./
-RUN npm run build
+RUN VITE_APP_VERSION=${VERSION} npm run build
 
 # Stage 2: Python backend
 FROM python:slim
