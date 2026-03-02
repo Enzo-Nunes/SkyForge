@@ -1,0 +1,92 @@
+name: Bump Version
+
+on:
+  pull_request:
+    types: [opened, reopened, labeled, unlabeled]
+    branches:
+      - main
+
+jobs:
+  bump-version:
+    if: github.base_ref == 'main'
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write
+      pull-requests: write
+    
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.head_ref }}
+      
+      - name: Get current version
+        id: current-version
+        run: echo "version=$(cat VERSION)" >> $GITHUB_OUTPUT
+      
+      - name: Determine bump type
+        id: bump-type
+        run: |
+          if ${{ contains(github.event.pull_request.labels.*.name, 'major') }}; then
+            echo "type=major" >> $GITHUB_OUTPUT
+          elif ${{ contains(github.event.pull_request.labels.*.name, 'minor') }}; then
+            echo "type=minor" >> $GITHUB_OUTPUT
+          elif ${{ contains(github.event.pull_request.labels.*.name, 'patch') }}; then
+            echo "type=patch" >> $GITHUB_OUTPUT
+          else
+            echo "❌ PR must have a version label: major, minor, or patch" >&2
+            exit 1
+          fi
+      
+      - name: Calculate new version
+        id: new-version
+        run: |
+          CURRENT="${{ steps.current-version.outputs.version }}"
+          TYPE="${{ steps.bump-type.outputs.type }}"
+          
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT"
+          
+          case "$TYPE" in
+            major)
+              MAJOR=$((MAJOR + 1))
+              MINOR=0
+              PATCH=0
+              ;;
+            minor)
+              MINOR=$((MINOR + 1))
+              PATCH=0
+              ;;
+            patch)
+              PATCH=$((PATCH + 1))
+              ;;
+          esac
+          
+          NEW_VERSION="$MAJOR.$MINOR.$PATCH"
+          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+      
+      - name: Update VERSION file
+        if: steps.current-version.outputs.version != steps.new-version.outputs.version
+        run: |
+          echo "${{ steps.new-version.outputs.version }}" > VERSION
+      
+      - name: Commit and push version bump
+        if: steps.current-version.outputs.version != steps.new-version.outputs.version
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add VERSION
+          git commit -m "chore: bump version to ${{ steps.new-version.outputs.version }}"
+          git push
+      
+      - name: Comment on PR
+        if: steps.current-version.outputs.version != steps.new-version.outputs.version
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `✅ Version bumped to **${{ steps.new-version.outputs.version }}** (from ${{ steps.current-version.outputs.version }})`
+            })
