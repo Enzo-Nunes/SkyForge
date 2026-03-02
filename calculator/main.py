@@ -15,10 +15,10 @@ DB_API_URL = "http://db-api:5000"
 WEB_URL = "http://web:8000"
 
 
-def wait_for_api(logger: logging.Logger, retries: int = 10, delay: int = 3) -> None:
+def wait_for_api(logger: logging.Logger, retries: int = 10, delay: int = 5) -> None:
     for attempt in range(retries):
         try:
-            requests.get(f"{DB_API_URL}/health", timeout=5)
+            requests.get(f"{DB_API_URL}/health", timeout=10)
             return
         except requests.exceptions.ConnectionError:
             if attempt < retries - 1:
@@ -198,22 +198,53 @@ class ProfitCalculator:
         auction_house_prices = self._market.fetch_auction_house_prices()
         bazaar_prices = self._market.fetch_bazaar_prices()
 
-        # Calculate uptime and estimate if we have less than 7 days of data
+        # Calculate uptime for UI display
         uptime_seconds = int(time.time() - self._start_time)
-        is_estimated = uptime_seconds < 604800  # 7 days = 604800 seconds
 
         ah_weekly_sales: dict[str, int] = {}
         ah_volume_estimated: dict[str, bool] = {}
 
         try:
+            # Fetch actual data span from database
+            oldest_response = requests.get(f"{DB_API_URL}/ah-sales/oldest", timeout=10)
+            oldest_response.raise_for_status()
+            oldest_recorded_at_str = oldest_response.json().get("oldest_recorded_at")
+
+            # Determine if we need to extrapolate based on actual data collection span
+            # But use uptime to determine if we should show the "estimated" flag
+            data_span_seconds = 604800  # Default to 7 days if we have full data
+            is_estimated = uptime_seconds < 604800  # Show estimated flag if tool hasn't been up 7 days
+
+            if oldest_recorded_at_str:
+                oldest_dt = datetime.fromisoformat(oldest_recorded_at_str)
+                now_dt = datetime.now(timezone.utc)
+                data_span_seconds = max(1, int((now_dt - oldest_dt).total_seconds()))
+                self._logger.info(
+                    f"AH data collection: oldest record at {oldest_recorded_at_str}, "
+                    f"span = {data_span_seconds}s ({data_span_seconds / 86400:.2f} days)"
+                )
+            else:
+                self._logger.info("No AH records in database yet, will not extrapolate")
+
+            self._logger.info(
+                f"Tool uptime: {uptime_seconds}s ({uptime_seconds / 86400:.2f} days), "
+                f"is_estimated flag = {is_estimated}"
+            )
+
             response = requests.get(f"{DB_API_URL}/ah-sales", timeout=10)
             response.raise_for_status()
             ah_sales_data = response.json().get("sales", {})
+            self._logger.info(f"Fetched {len(ah_sales_data)} items from AH sales data")
+
             # Raw sales are just item_name -> total_quantity
             for item_name, total_quantity in ah_sales_data.items():
                 if is_estimated:
-                    # Extrapolate volume if we don't have 7 days yet
-                    volume = int(total_quantity * 604800 / uptime_seconds)
+                    # Extrapolate volume based on actual data collection span
+                    volume = int(total_quantity * 604800 / data_span_seconds)
+                    self._logger.debug(
+                        f"  {item_name}: raw_qty={total_quantity}, "
+                        f"extrapolated={volume} (qty × 604800 / {data_span_seconds})"
+                    )
                 else:
                     volume = total_quantity
                 ah_weekly_sales[item_name] = volume
