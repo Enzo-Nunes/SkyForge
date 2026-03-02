@@ -1,6 +1,7 @@
 services:
   db:
     image: postgres:18-alpine
+    restart: unless-stopped
     environment:
       POSTGRES_DB: skyforge
       POSTGRES_USER: skyforge
@@ -19,6 +20,7 @@ services:
       context: .
       dockerfile: db-api/Dockerfile
     init: true
+    restart: unless-stopped
     depends_on:
       - db
     environment:
@@ -38,6 +40,7 @@ services:
       context: .
       dockerfile: scraper/Dockerfile
     init: true
+    restart: unless-stopped
     depends_on:
       - db-api
     environment:
@@ -48,6 +51,7 @@ services:
       context: .
       dockerfile: calculator/Dockerfile
     init: true
+    restart: unless-stopped
     depends_on:
       - db-api
     environment:
@@ -58,6 +62,7 @@ services:
       context: .
       dockerfile: web/Dockerfile
     init: true
+    restart: unless-stopped
     ports:
       - "8145:8000"
 
