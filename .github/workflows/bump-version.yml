@@ -2,13 +2,13 @@ name: Bump Version
 
 on:
   pull_request:
-    types: [opened, reopened, labeled, unlabeled]
+    types: [labeled]
     branches:
       - main
 
 jobs:
   bump-version:
-    if: github.base_ref == 'main'
+    if: contains(fromJson('["major", "minor", "patch"]'), github.event.label.name)
     runs-on: ubuntu-latest
     
     permissions:
@@ -28,16 +28,7 @@ jobs:
       - name: Determine bump type
         id: bump-type
         run: |
-          if ${{ contains(github.event.pull_request.labels.*.name, 'major') }}; then
-            echo "type=major" >> $GITHUB_OUTPUT
-          elif ${{ contains(github.event.pull_request.labels.*.name, 'minor') }}; then
-            echo "type=minor" >> $GITHUB_OUTPUT
-          elif ${{ contains(github.event.pull_request.labels.*.name, 'patch') }}; then
-            echo "type=patch" >> $GITHUB_OUTPUT
-          else
-            echo "❌ PR must have a version label: major, minor, or patch" >&2
-            exit 1
-          fi
+          echo "type=${{ github.event.label.name }}" >> $GITHUB_OUTPUT
       
       - name: Calculate new version
         id: new-version
@@ -88,5 +79,5 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `✅ Version bumped to **${{ steps.new-version.outputs.version }}** (from ${{ steps.current-version.outputs.version }})`
+              body: `✅ Version bumped to **${{ steps.new-version.outputs.version }}** (from ${{ steps.current-version.outputs.version }})\n\n ⚠️ **Warning:** Version change has been committed and cannot be undone automatically. If the wrong label was selected, manual intervention is required to revert the VERSION file and the commit.`
             })
