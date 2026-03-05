@@ -29,7 +29,7 @@ Thank you for your interest in contributing to SkyForge! This guide explains how
 
    This installs:
    - **Ruff** — Python linting and formatting.
-   - **Prettier** — Vue, JavaScript, JSON, YAML formatting.
+   - **Prettier** — Vue, JavaScript, and HTML.
 
    These run automatically on `git commit`.
 
