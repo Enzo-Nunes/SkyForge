@@ -6,11 +6,6 @@ on:
       - main
     paths:
       - VERSION
-  workflow_dispatch:
-    inputs:
-      version:
-        description: 'Version to release (e.g., 0.1.0)'
-        required: false
 
 jobs:
   create-tag:
@@ -26,12 +21,7 @@ jobs:
       
       - name: Get version
         id: version
-        run: |
-          if [ -n "${{ github.event.inputs.version }}" ]; then
-            echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
-          else
-            echo "version=$(cat VERSION)" >> $GITHUB_OUTPUT
-          fi
+        run: echo "version=$(cat VERSION)" >> $GITHUB_OUTPUT
       
       - name: Check if tag exists
         id: tag-check
