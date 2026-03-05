@@ -11,6 +11,12 @@
 				<span v-if="lastUpdated">Updated {{ lastUpdated }}</span>
 				<span v-if="uptimeLabel">Uptime {{ uptimeLabel }}</span>
 			</div>
+			<div class="theme-switch-container">
+				<label class="theme-switch" :title="theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'">
+					<input type="checkbox" :checked="theme === 'light'" @change="toggleTheme" />
+					<span class="slider"></span>
+				</label>
+			</div>
 			<span class="status" :class="status">{{ statusLabel }}</span>
 		</div>
 	</header>
@@ -18,6 +24,7 @@
 
 <script setup>
 import { computed } from "vue";
+import { useTheme } from "../composables/useTheme.js";
 
 const props = defineProps({
 	lastUpdated: String,
@@ -26,6 +33,7 @@ const props = defineProps({
 });
 
 const version = import.meta.env.VITE_APP_VERSION || "dev";
+const { theme, toggleTheme } = useTheme();
 
 const statusLabel = computed(
 	() =>
@@ -54,7 +62,7 @@ header {
 	justify-content: space-between;
 	align-items: center;
 	padding-bottom: 1.25rem;
-	border-bottom: 1px solid #1e1e2e;
+	border-bottom: 1px solid var(--border);
 	margin-bottom: 1.5rem;
 }
 
@@ -68,18 +76,18 @@ h1 {
 	font-size: 1.6rem;
 	font-weight: 700;
 	letter-spacing: -0.02em;
-	color: #a78bfa;
+	color: var(--accent);
 }
 
 .version {
 	font-size: 0.75rem;
-	color: #475569;
+	color: var(--text-muted);
 	margin-left: 0.5rem;
 }
 
 .subtitle {
 	font-size: 0.8rem;
-	color: #64748b;
+	color: var(--color-secondary-text);
 }
 
 .header-right {
@@ -97,7 +105,65 @@ h1 {
 
 .meta-info > span {
 	font-size: 0.75rem;
-	color: #475569;
+	color: var(--text-muted);
+}
+
+.theme-switch-container {
+	display: flex;
+	align-items: center;
+}
+
+.theme-switch {
+	position: relative;
+	display: inline-block;
+	width: 2.5rem;
+	height: 1.4rem;
+	cursor: pointer;
+}
+
+.theme-switch input {
+	opacity: 0;
+	width: 0;
+	height: 0;
+}
+
+.slider {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-color: var(--text-muted);
+	border-radius: 34px;
+	transition: all 0.3s ease;
+	display: flex;
+	align-items: center;
+	padding: 0 0.2rem;
+}
+
+.slider::before {
+	content: "🌙";
+	position: absolute;
+	height: 1rem;
+	width: 1rem;
+	left: 0.2rem;
+	bottom: 0.2rem;
+	background-color: var(--bg-primary);
+	border-radius: 50%;
+	transition: all 0.3s ease;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 0.6rem;
+}
+
+.theme-switch input:checked + .slider {
+	background-color: var(--accent);
+}
+
+.theme-switch input:checked + .slider::before {
+	content: "☀️";
+	transform: translateX(1.1rem);
 }
 
 .status {
@@ -110,22 +176,22 @@ h1 {
 }
 
 .status.connected {
-	background: #14532d;
-	color: #4ade80;
+	background: var(--status-connected-bg);
+	color: var(--status-connected-text);
 }
 
 .status.connecting {
-	background: #1c1917;
-	color: #a8a29e;
+	background: var(--status-connecting-bg);
+	color: var(--status-connecting-text);
 }
 
 .status.disconnected {
-	background: #450a0a;
-	color: #f87171;
+	background: var(--status-disconnected-bg);
+	color: var(--status-disconnected-text);
 }
 
 .status.offline {
-	background: #1c1917;
-	color: #78716c;
+	background: var(--status-offline-bg);
+	color: var(--status-offline-text);
 }
 </style>

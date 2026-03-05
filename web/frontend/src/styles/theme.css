@@ -1,0 +1,153 @@
+/* SkyForge Theme Variables - Centralized theme configuration */
+
+/* Dark Theme (Default) */
+:root {
+	/* Background Colors */
+	--bg-primary: #0d0d14;
+	--bg-secondary: #1e1e2e;
+
+	/* Text Colors */
+	--text-primary: #e2e8f0;
+	--text-secondary: #cbd5e1;
+	--text-tertiary: #94a3b8;
+	--text-muted: #475569;
+	--text-accent: #f1f5f9;
+
+	/* Borders & Accents */
+	--border: #1e1e2e;
+	--accent: #a78bfa;
+	--accent-light: #c4b5fd;
+	--accent-dark: #4c3882;
+
+	/* Data Colors */
+	--color-cost: #f87171;
+	--color-profit: #4ade80;
+	--color-volume: #67e8f9;
+	--color-secondary-text: #64748b;
+
+	/* Warning */
+	--warning-bg: #1a2332;
+	--warning-text: #f97316;
+
+	/* Table */
+	--table-header-bg: #13131f;
+	--table-row-hover-bg: #13131f;
+	--table-top3-bg: #0f0f1f;
+	--table-row-border: #1a1a2e;
+
+	/* Badges */
+	--badge-bg: #1e1e2e;
+	--badge-color: #94a3b8;
+	--badge-rank1-bg: #713f12;
+	--badge-rank1-color: #fde68a;
+	--badge-rank2-bg: #1c2637;
+	--badge-rank2-color: #93c5fd;
+	--badge-rank3-bg: #1c1917;
+	--badge-rank3-color: #d6a87a;
+
+	/* Volume Indicators */
+	--vol-bz-bg: #1a2e2e;
+	--vol-bz-text: #67e8f9;
+	--vol-bz-border: #164e6380;
+	--vol-ah-bg: #2a1f2e;
+	--vol-ah-text: #c084fc;
+	--vol-ah-border: #6b21a880;
+
+	/* Status Badges */
+	--status-connected-bg: #14532d;
+	--status-connected-text: #4ade80;
+	--status-connecting-bg: #1c1917;
+	--status-connecting-text: #a8a29e;
+	--status-disconnected-bg: #450a0a;
+	--status-disconnected-text: #f87171;
+	--status-offline-bg: #1c1917;
+	--status-offline-text: #78716c;
+
+	/* Filter Panel */
+	--filter-bg: #13131f;
+	--filter-input-bg: #0d0d14;
+	--filter-input-border: #2e2e4e;
+
+	/* Buttons */
+	--load-more-btn-bg: #13131f;
+	--load-more-btn-border: #2e2e4e;
+}
+
+/* Light Theme */
+[data-theme="light"] {
+	/* Background Colors */
+	--bg-primary: #f8f8f8;
+	--bg-secondary: #f0f0f0;
+
+	/* Text Colors */
+	--text-primary: #1a1a1a;
+	--text-secondary: #333333;
+	--text-tertiary: #555555;
+	--text-muted: #888888;
+	--text-accent: #0d0d14;
+
+	/* Borders & Accents */
+	--border: #d0d0d0;
+	--accent: #7c3aed;
+	--accent-light: #6d28d9;
+	--accent-dark: #e9d5ff;
+
+	/* Data Colors */
+	--color-cost: #dc2626;
+	--color-profit: #16a34a;
+	--color-volume: #0891b2;
+	--color-secondary-text: #6b7280;
+
+	/* Warning */
+	--warning-bg: #fef3c7;
+	--warning-text: #d97706;
+
+	/* Table */
+	--table-header-bg: #f3f4f6;
+	--table-row-hover-bg: #f9fafb;
+	--table-top3-bg: #fef3c7;
+	--table-row-border: #e5e7eb;
+
+	/* Badges */
+	--badge-bg: #e5e7eb;
+	--badge-color: #6b7280;
+	--badge-rank1-bg: #fed7aa;
+	--badge-rank1-color: #92400e;
+	--badge-rank2-bg: #bfdbfe;
+	--badge-rank2-color: #1e40af;
+	--badge-rank3-bg: #dbeafe;
+	--badge-rank3-color: #92400e;
+
+	/* Volume Indicators */
+	--vol-bz-bg: #d1fae5;
+	--vol-bz-text: #047857;
+	--vol-bz-border: #10b98180;
+	--vol-ah-bg: #e9d5ff;
+	--vol-ah-text: #7c3aed;
+	--vol-ah-border: #d946ef80;
+
+	/* Status Badges */
+	--status-connected-bg: #dcfce7;
+	--status-connected-text: #166534;
+	--status-connecting-bg: #f3f4f6;
+	--status-connecting-text: #6b7280;
+	--status-disconnected-bg: #fee2e2;
+	--status-disconnected-text: #991b1b;
+	--status-offline-bg: #f3f4f6;
+	--status-offline-text: #6b7280;
+
+	/* Filter Panel */
+	--filter-bg: #f3f4f6;
+	--filter-input-bg: #ffffff;
+	--filter-input-border: #d1d5db;
+
+	/* Buttons */
+	--load-more-btn-bg: #f3f4f6;
+	--load-more-btn-border: #d1d5db;
+}
+
+/* Global transitions for smooth theme switching */
+* {
+	transition: background 0.3s, color 0.3s, border-color 0.3s;
+}
+

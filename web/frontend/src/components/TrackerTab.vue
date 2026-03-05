@@ -1,8 +1,14 @@
 <template>
 	<div class="tracker-layout">
-		<FilterPanel :REQUIREMENTS="REQUIREMENTS" :myLevels="myLevels" v-model:maxCost="maxCost"
-			v-model:noBudget="noBudget" v-model:minVolume="minVolume" @levelChange="(key, val) => (myLevels[key] = val)"
-			@reset="resetFilters" />
+		<FilterPanel
+			:REQUIREMENTS="REQUIREMENTS"
+			:myLevels="myLevels"
+			v-model:maxCost="maxCost"
+			v-model:noBudget="noBudget"
+			v-model:minVolume="minVolume"
+			@levelChange="(key, val) => (myLevels[key] = val)"
+			@reset="resetFilters"
+		/>
 
 		<div class="tracker-content">
 			<div class="waiting" v-if="profits.length === 0">
@@ -30,8 +36,11 @@
 							<th class="sortable" :class="sortClass('Duration')" @click="sortBy('Duration')">
 								Duration <span class="sort-arrow">{{ sortArrow("Duration") }}</span>
 							</th>
-							<th class="sortable" :class="sortClass('Profit per Hour')"
-								@click="sortBy('Profit per Hour')">
+							<th
+								class="sortable"
+								:class="sortClass('Profit per Hour')"
+								@click="sortBy('Profit per Hour')"
+							>
 								Profit / hour <span class="sort-arrow">{{ sortArrow("Profit per Hour") }}</span>
 							</th>
 							<th class="sortable" :class="sortClass('Weekly Volume')" @click="sortBy('Weekly Volume')">
@@ -42,16 +51,21 @@
 						</tr>
 					</thead>
 					<tbody>
-						<tr v-for="item in profitsSorted.slice(0, visibleCount)" :key="item.Rank"
-							:class="{ top3: item.Rank <= 3 }">
+						<tr
+							v-for="item in profitsSorted.slice(0, visibleCount)"
+							:key="item.Rank"
+							:class="{ top3: item.Rank <= 3 }"
+						>
 							<td class="rank">
 								<span class="badge" :class="'rank-' + item.Rank">{{ item.Rank }}</span>
 							</td>
 							<td class="name">{{ item.Name }}</td>
 							<td class="number cost">{{ fmt(item.Cost) }}</td>
 							<td class="number sell">
-								<span class="vol-source"
-									:class="item['Selling Market'] === 'Bazaar' ? 'vol-bz' : 'vol-ah'">
+								<span
+									class="vol-source"
+									:class="item['Selling Market'] === 'Bazaar' ? 'vol-bz' : 'vol-ah'"
+								>
 									{{ item["Selling Market"] }}
 								</span>
 								{{ fmt(item["Sell Value"]) }}
@@ -59,12 +73,16 @@
 							<td class="number profit">+{{ fmt(item.Profit) }}</td>
 							<td class="number">{{ fmtDuration(item.Duration) }}</td>
 							<td class="number pph">{{ fmt(item["Profit per Hour"]) }}</td>
-							<td class="number volume">{{ item["Volume Estimated"] ? "~" : "" }}{{ fmt(item["Weekly Volume"]) }}</td>
+							<td class="number volume">
+								{{ item["Volume Estimated"] ? "~" : "" }}{{ fmt(item["Weekly Volume"]) }}
+							</td>
 							<td class="recipe">
 								<span v-for="(qty, mat) in item.Recipe" :key="mat" class="ingredient">
 									{{ qty }}x {{ mat }}
-									<span class="vol-source"
-										:class="item['Recipe Markets']?.[mat] === 'Bazaar' ? 'vol-bz' : 'vol-ah'">
+									<span
+										class="vol-source"
+										:class="item['Recipe Markets']?.[mat] === 'Bazaar' ? 'vol-bz' : 'vol-ah'"
+									>
 										{{ item["Recipe Markets"]?.[mat] }}
 									</span>
 								</span>
@@ -215,14 +233,14 @@ const fmtDuration = (hours) => {
 	justify-content: center;
 	gap: 1.2rem;
 	padding: 6rem 0;
-	color: #475569;
+	color: var(--text-muted);
 }
 
 .spinner {
 	width: 36px;
 	height: 36px;
-	border: 3px solid #1e1e2e;
-	border-top-color: #a78bfa;
+	border: 3px solid var(--border);
+	border-top-color: var(--accent);
 	border-radius: 50%;
 	animation: spin 0.9s linear infinite;
 }
@@ -237,7 +255,7 @@ const fmtDuration = (hours) => {
 .table-wrap {
 	overflow-x: auto;
 	border-radius: 0.75rem;
-	border: 1px solid #1e1e2e;
+	border: 1px solid var(--border);
 }
 
 table {
@@ -247,7 +265,7 @@ table {
 }
 
 thead tr {
-	background: #13131f;
+	background: var(--table-header-bg);
 }
 
 th {
@@ -257,7 +275,7 @@ th {
 	font-weight: 600;
 	text-transform: uppercase;
 	letter-spacing: 0.07em;
-	color: #475569;
+	color: var(--text-muted);
 	white-space: nowrap;
 }
 
@@ -281,35 +299,35 @@ th.sortable {
 }
 
 th.sortable:hover {
-	color: #94a3b8;
+	color: var(--text-tertiary);
 }
 
 th.sortable.active {
-	color: #a78bfa;
+	color: var(--accent);
 }
 
 .sort-arrow {
 	display: inline-block;
 	width: 0.8em;
 	font-style: normal;
-	color: #2e3a4e;
+	color: var(--text-muted);
 }
 
 th.sortable.active .sort-arrow {
-	color: #a78bfa;
+	color: var(--accent);
 }
 
 tbody tr {
-	border-top: 1px solid #1a1a2e;
+	border-top: 1px solid var(--table-row-border);
 	transition: background 0.15s;
 }
 
 tbody tr:hover {
-	background: #13131f;
+	background: var(--table-row-hover-bg);
 }
 
 tbody tr.top3 {
-	background: #0f0f1f;
+	background: var(--table-top3-bg);
 }
 
 td {
@@ -331,28 +349,28 @@ td {
 	text-align: center;
 	font-size: 0.75rem;
 	font-weight: 700;
-	background: #1e1e2e;
-	color: #94a3b8;
+	background: var(--badge-bg);
+	color: var(--badge-color);
 }
 
 .badge.rank-1 {
-	background: #713f12;
-	color: #fde68a;
+	background: var(--badge-rank1-bg);
+	color: var(--badge-rank1-color);
 }
 
 .badge.rank-2 {
-	background: #1c2637;
-	color: #93c5fd;
+	background: var(--badge-rank2-bg);
+	color: var(--badge-rank2-color);
 }
 
 .badge.rank-3 {
-	background: #1c1917;
-	color: #d6a87a;
+	background: var(--badge-rank3-bg);
+	color: var(--badge-rank3-color);
 }
 
 .name {
 	font-weight: 500;
-	color: #f1f5f9;
+	color: var(--text-accent);
 	white-space: nowrap;
 }
 
@@ -363,25 +381,25 @@ td {
 }
 
 .cost {
-	color: #f87171;
+	color: var(--color-cost);
 }
 
 .sell {
-	color: #94a3b8;
+	color: var(--text-tertiary);
 }
 
 .profit {
-	color: #4ade80;
+	color: var(--color-profit);
 	font-weight: 600;
 }
 
 .pph {
-	color: #a78bfa;
+	color: var(--accent);
 	font-weight: 600;
 }
 
 .volume {
-	color: #67e8f9;
+	color: var(--color-volume);
 }
 
 .vol-source {
@@ -397,19 +415,19 @@ td {
 }
 
 .vol-bz {
-	background: #1a2e2e;
-	color: #67e8f9;
-	border: 1px solid #164e6380;
+	background: var(--vol-bz-bg);
+	color: var(--vol-bz-text);
+	border: 1px solid var(--vol-bz-border);
 }
 
 .vol-ah {
-	background: #2a1f2e;
-	color: #c084fc;
-	border: 1px solid #6b21a880;
+	background: var(--vol-ah-bg);
+	color: var(--vol-ah-text);
+	border: 1px solid var(--vol-ah-border);
 }
 
 .recipe {
-	color: #64748b;
+	color: var(--color-secondary-text);
 	font-size: 0.78rem;
 	line-height: 1.8;
 }
@@ -423,13 +441,13 @@ td {
 	display: flex;
 	justify-content: center;
 	padding: 1rem;
-	border-top: 1px solid #1e1e2e;
+	border-top: 1px solid var(--border);
 }
 
 .load-more button {
-	background: #13131f;
-	color: #a78bfa;
-	border: 1px solid #2e2e4e;
+	background: var(--load-more-btn-bg);
+	color: var(--accent);
+	border: 1px solid var(--load-more-btn-border);
 	border-radius: 0.5rem;
 	padding: 0.5rem 1.25rem;
 	font-size: 0.8rem;
@@ -441,7 +459,7 @@ td {
 }
 
 .load-more button:hover {
-	background: #1a1a2e;
-	border-color: #a78bfa;
+	background: var(--border);
+	border-color: var(--accent);
 }
 </style>

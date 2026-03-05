@@ -41,16 +41,8 @@
 				material showing where the item can be purchased.
 			</li>
 		</ul>
-		<div
-			style="
-				background: #1a2332;
-				padding: 1rem;
-				border-radius: 6px;
-				margin: 1rem 0;
-				border-left: 3px solid #f97316;
-			"
-		>
-			<strong style="color: #f97316">⚠️ Early Uptime Warning</strong>
+		<div class="warning-box">
+			<strong class="warning-title">⚠️ Early Uptime Warning</strong>
 			<p>
 				During the first 7 days after starting the tool, Auction House volume data is incomplete and
 				extrapolated. This means volume numbers will fluctuate as more data arrives, and profit rankings based
@@ -121,3 +113,17 @@
 		</p>
 	</main>
 </template>
+
+<style scoped>
+.warning-box {
+	background: var(--warning-bg);
+	padding: 1rem;
+	border-radius: 6px;
+	margin: 1rem 0;
+	border-left: 3px solid var(--warning-text);
+}
+
+.warning-title {
+	color: var(--warning-text);
+}
+</style>
