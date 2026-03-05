@@ -110,6 +110,15 @@ Thank you for your interest in contributing to SkyForge! This guide explains how
 4. **Update documentation:**
    - If your change affects usage or configuration, update `README.md` or add docs as needed.
 
+5. **Commit your changes:**
+
+   ```bash
+   git add .
+   git commit -m "Add feature X with Y and Z"
+   ```
+
+   - If commit fails due to pre-commit hooks, the hooks will try to format and lint the files for you. Review the changes, stage again, and commit.
+
 #### Submitting Your PR
 
 1. **Push your feature branch to your fork:**
