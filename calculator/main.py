@@ -9,6 +9,7 @@ from datetime import datetime, timezone
 
 import requests
 
+from common.http import request_with_retry
 from common.types import ForgeItemInfo, ForgeProfit
 
 DB_API_URL = "http://db-api:5000"
@@ -18,9 +19,9 @@ WEB_URL = "http://web:8000"
 def wait_for_api(logger: logging.Logger, retries: int = 10, delay: int = 5) -> None:
     for attempt in range(retries):
         try:
-            requests.get(f"{DB_API_URL}/health", timeout=10)
+            request_with_retry(logger, "GET", f"{DB_API_URL}/health", timeout=10, retries=1)
             return
-        except requests.exceptions.ConnectionError:
+        except requests.exceptions.RequestException:
             if attempt < retries - 1:
                 logger.info(f"db-api not ready (attempt {attempt + 1}/{retries}), retrying in {delay}s...")
                 time.sleep(delay)
@@ -39,8 +40,7 @@ class MarketPriceTracker:
         self._auction_id_map_lock = threading.Lock()
 
     def fetch_auction_house_prices(self) -> dict[str, int]:
-        response = requests.get(self.AUCTION_HOUSE_URL, headers=self.HEADERS)
-        response.raise_for_status()
+        response = request_with_retry(self._logger, "GET", self.AUCTION_HOUSE_URL, headers=self.HEADERS)
         auction_house = response.json()
         pages = auction_house["totalPages"]
         items = auction_house["totalAuctions"]
@@ -51,8 +51,14 @@ class MarketPriceTracker:
 
         for i in range(pages):
             try:
-                page_response = requests.get(self.AUCTION_HOUSE_URL, headers=self.HEADERS, params={"page": i})
-                page_response.raise_for_status()
+                page_response = request_with_retry(
+                    self._logger,
+                    "GET",
+                    self.AUCTION_HOUSE_URL,
+                    headers=self.HEADERS,
+                    params={"page": i},
+                    retries=2,
+                )
                 page = page_response.json()
             except Exception as e:
                 self._logger.warning(f"Skipping AH page {i}: {e}")
@@ -98,7 +104,7 @@ class MarketPriceTracker:
 
     def fetch_bazaar_prices(self) -> dict[str, dict[str, int]]:
         self._logger.info("Starting Bazaar processing...")
-        bazaar = requests.get(self.BAZAAR_URL, headers=self.HEADERS).json()
+        bazaar = request_with_retry(self._logger, "GET", self.BAZAAR_URL, headers=self.HEADERS).json()
         prices: dict[str, dict[str, int]] = {"Coins": {"Buy Price": 1, "Sell Price": 1, "Weekly Volume": 0}}
 
         for product in bazaar["products"]:
@@ -153,8 +159,7 @@ class AHSalesTracker:
 
     def _poll_once(self) -> None:
         try:
-            response = requests.get(self.ENDED_URL, timeout=10)
-            response.raise_for_status()
+            response = request_with_retry(self._logger, "GET", self.ENDED_URL, timeout=10)
             auctions = response.json().get("auctions", [])
 
             sold_ids = [a["auction_id"] for a in auctions if a.get("buyer") and a.get("bin")]
@@ -169,8 +174,7 @@ class AHSalesTracker:
                 self._logger.info(f"Pruned {pruned} stale entries from auction ID map.")
 
             if sales:
-                r = requests.post(f"{DB_API_URL}/ah-sales", json={"sales": sales}, timeout=10)
-                r.raise_for_status()
+                request_with_retry(self._logger, "POST", f"{DB_API_URL}/ah-sales", json={"sales": sales}, timeout=10)
                 self._logger.info(f"Recorded {sum(sales.values())} AH sales across {len(sales)} items.")
         except Exception as e:
             self._logger.warning(f"AH sales poll failed: {e}")
@@ -206,8 +210,7 @@ class ProfitCalculator:
 
         try:
             # Fetch actual data span from database
-            oldest_response = requests.get(f"{DB_API_URL}/ah-sales/oldest", timeout=10)
-            oldest_response.raise_for_status()
+            oldest_response = request_with_retry(self._logger, "GET", f"{DB_API_URL}/ah-sales/oldest", timeout=10)
             oldest_recorded_at_str = oldest_response.json().get("oldest_recorded_at")
 
             # Determine if we need to extrapolate based on actual data collection span
@@ -231,8 +234,7 @@ class ProfitCalculator:
                 f"is_estimated flag = {is_estimated}"
             )
 
-            response = requests.get(f"{DB_API_URL}/ah-sales", timeout=10)
-            response.raise_for_status()
+            response = request_with_retry(self._logger, "GET", f"{DB_API_URL}/ah-sales", timeout=10)
             ah_sales_data = response.json().get("sales", {})
             self._logger.info(f"Fetched {len(ah_sales_data)} items from AH sales data")
 
@@ -333,7 +335,7 @@ def main() -> None:
     logger.info("db-api ready. Checking for existing forge data...")
 
     while True:
-        r = requests.get(f"{DB_API_URL}/forge-items", timeout=30)
+        r = request_with_retry(logger, "GET", f"{DB_API_URL}/forge-items", timeout=30)
         if r.json().get("items"):
             break
         logger.info("DB is empty, waiting for first scrape... retrying in 10s...")
@@ -348,8 +350,7 @@ def main() -> None:
     logger.info("AH sales tracker thread started.")
 
     while True:
-        response = requests.get(f"{DB_API_URL}/forge-items", timeout=30)
-        response.raise_for_status()
+        response = request_with_retry(logger, "GET", f"{DB_API_URL}/forge-items", timeout=30)
         forge_info: dict[str, ForgeItemInfo] = {
             name: typing.cast(ForgeItemInfo, info) for name, info in response.json()["items"].items()
         }
@@ -362,7 +363,9 @@ def main() -> None:
         profits, uptime_seconds = calculator.calculate_profits(forge_info)
 
         try:
-            requests.post(
+            request_with_retry(
+                logger,
+                "POST",
                 f"{WEB_URL}/results",
                 json={
                     "profits": profits,

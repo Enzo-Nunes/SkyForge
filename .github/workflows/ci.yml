@@ -1,5 +1,12 @@
 name: CI
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
 on:
   push:
     branches: [main, dev]
@@ -7,6 +14,22 @@ on:
     branches: [dev]
 
 jobs:
+  quality:
+    name: Quality and Style (pre-commit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Run pre-commit hooks
+        uses: pre-commit/action@v3.0.1
+        with:
+          extra_args: --all-files
+
   build-docker:
     name: Build Docker Images
     runs-on: ubuntu-latest
@@ -26,9 +49,11 @@ jobs:
           file: ./${{ matrix.service }}/Dockerfile
           push: false
           tags: skyforge-${{ matrix.service }}:latest
+          cache-from: type=gha,scope=${{ matrix.service }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.service }}
 
   test-compose:
-    name: Test Docker Compose Stack
+    name: Compose Integrity and Boot Smoke
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
@@ -36,11 +61,14 @@ jobs:
       
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+
+      - name: Validate compose config
+        run: docker compose config -q
       
       - name: Start services
         run: docker compose up -d --build
       
-      - name: Wait for services to be healthy
+      - name: Wait for stack startup
         run: |
           for i in {1..30}; do
             if docker compose exec -T db pg_isready -U skyforge > /dev/null 2>&1; then
@@ -54,14 +82,36 @@ jobs:
             fi
             sleep 1
           done
-      
-      - name: Check web service
+
+      - name: Ensure all containers are running
         run: |
-          curl -f http://localhost:8000 || true
-      
-      - name: Check db-api health
+          expected_services=(db db-api scraper calculator web)
+          for service in "${expected_services[@]}"; do
+            container_id=$(docker compose ps -q "$service")
+            if [ -z "$container_id" ]; then
+              echo "Service '$service' has no container"
+              docker compose ps
+              exit 1
+            fi
+            state=$(docker inspect -f '{{.State.Status}}' "$container_id")
+            echo "$service state: $state"
+            if [ "$state" != "running" ]; then
+              echo "Service '$service' is not running"
+              docker compose ps
+              docker compose logs --no-color "$service" || true
+              exit 1
+            fi
+          done
+
+      - name: Fail if any service exited
         run: |
-          curl -f http://localhost:5000/health || true
+          exited_count=$(docker compose ps --all --status exited -q | wc -l)
+          if [ "$exited_count" -gt 0 ]; then
+            echo "Detected exited containers"
+            docker compose ps
+            docker compose logs --no-color
+            exit 1
+          fi
       
       - name: View logs
         if: failure()
@@ -74,12 +124,13 @@ jobs:
   notify:
     name: Notify
     runs-on: ubuntu-latest
-    needs: [build-docker, test-compose]
+    needs: [quality, build-docker, test-compose]
     if: always()
     steps:
       - name: Check status
         run: |
-          if [[ "${{ needs.build-docker.result }}" == "failure" ||
+          if [[ "${{ needs.quality.result }}" == "failure" ||
+                "${{ needs.build-docker.result }}" == "failure" ||
                 "${{ needs.test-compose.result }}" == "failure" ]]; then
             echo "❌ CI pipeline failed"
             exit 1

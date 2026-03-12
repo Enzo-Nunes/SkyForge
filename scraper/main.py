@@ -7,8 +7,8 @@ from typing import cast
 import bs4
 import requests
 import roman
-from curl_cffi import requests as cffi_requests
 
+from common.http import request_with_retry, wiki_get_with_retry
 from common.types import ForgeItemInfo, ForgePageItem
 
 DB_API_URL = "http://db-api:5000"
@@ -17,9 +17,9 @@ DB_API_URL = "http://db-api:5000"
 def wait_for_api(logger: logging.Logger, retries: int = 10, delay: int = 3) -> None:
     for attempt in range(retries):
         try:
-            requests.get(f"{DB_API_URL}/health", timeout=5)
+            request_with_retry(logger, "GET", f"{DB_API_URL}/health", timeout=5, retries=1)
             return
-        except requests.exceptions.ConnectionError:
+        except requests.exceptions.RequestException:
             if attempt < retries - 1:
                 logger.info(f"db-api not ready (attempt {attempt + 1}/{retries}), retrying in {delay}s...")
                 time.sleep(delay)
@@ -45,8 +45,7 @@ class ForgeWikiParser:
         }
 
     def _parse_page(self) -> list[ForgePageItem]:
-        response = cffi_requests.get(self.FORGE_URL, impersonate="firefox")
-        response.raise_for_status()
+        response = wiki_get_with_retry(self._logger, self.FORGE_URL)
         self._logger.info("Fetched forge data from wiki.")
 
         tables = bs4.BeautifulSoup(response.content, "html.parser").find_all("table", {"class": "wikitable"})
@@ -139,8 +138,7 @@ def main() -> None:
         logger.info("Fetching forge data...")
         try:
             forge_info = parser.get_forge_info()
-            response = requests.put(f"{DB_API_URL}/forge-items", json={"items": forge_info}, timeout=30)
-            response.raise_for_status()
+            request_with_retry(logger, "PUT", f"{DB_API_URL}/forge-items", json={"items": forge_info}, timeout=30)
             logger.info(f"Upserted {len(forge_info)} forge items.")
         except Exception as e:
             logger.error(f"Failed to fetch/store forge data: {e}")
