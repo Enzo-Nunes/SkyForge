@@ -45,6 +45,25 @@
 					<span class="filter-max">/ week</span>
 				</div>
 			</div>
+			<div class="filter-field">
+				<span class="filter-label">Recipe Source</span>
+				<div class="filter-controls">
+					<select :value="recipeSource" @change="$emit('update:recipeSource', $event.target.value)">
+						<option value="both">Both</option>
+						<option value="bazaar">Bazaar only</option>
+					</select>
+				</div>
+			</div>
+			<div class="filter-field">
+				<span class="filter-label">Sell Market</span>
+				<div class="filter-controls">
+					<select :value="sellMarket" @change="$emit('update:sellMarket', $event.target.value)">
+						<option value="both">Both</option>
+						<option value="bazaar">Bazaar</option>
+						<option value="ah">AH</option>
+					</select>
+				</div>
+			</div>
 		</div>
 		<button class="filter-reset" @click="$emit('reset')">Reset</button>
 	</aside>
@@ -57,9 +76,19 @@ defineProps({
 	maxCost: Number,
 	noBudget: Boolean,
 	minVolume: Number,
+	recipeSource: String,
+	sellMarket: String,
 });
 
-defineEmits(["levelChange", "update:maxCost", "update:noBudget", "update:minVolume", "reset"]);
+defineEmits([
+	"levelChange",
+	"update:maxCost",
+	"update:noBudget",
+	"update:minVolume",
+	"update:recipeSource",
+	"update:sellMarket",
+	"reset",
+]);
 </script>
 
 <style scoped>

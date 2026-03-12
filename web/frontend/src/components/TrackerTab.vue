@@ -6,6 +6,8 @@
 			v-model:maxCost="maxCost"
 			v-model:noBudget="noBudget"
 			v-model:minVolume="minVolume"
+			v-model:recipeSource="recipeSource"
+			v-model:sellMarket="sellMarket"
 			@levelChange="(key, val) => (myLevels[key] = val)"
 			@reset="resetFilters"
 		/>
@@ -140,6 +142,8 @@ const myLevels = reactive(savedLevels || Object.fromEntries(Object.entries(REQUI
 const maxCost = ref(parseInt(localStorage.getItem("skyforge_maxCost") || "-1"));
 const noBudget = ref(maxCost.value === -1);
 const minVolume = ref(parseInt(localStorage.getItem("skyforge_minVolume") || "0"));
+const recipeSource = ref(localStorage.getItem("skyforge_recipeSource") || "both");
+const sellMarket = ref(localStorage.getItem("skyforge_sellMarket") || "both");
 
 watch(noBudget, (val) => {
 	if (val) {
@@ -164,6 +168,16 @@ watch(minVolume, (val) => {
 	visibleCount.value = 10;
 });
 
+watch(recipeSource, (val) => {
+	localStorage.setItem("skyforge_recipeSource", val);
+	visibleCount.value = 10;
+});
+
+watch(sellMarket, (val) => {
+	localStorage.setItem("skyforge_sellMarket", val);
+	visibleCount.value = 10;
+});
+
 const profitsFiltered = computed(() =>
 	props.profits.filter((item) => {
 		for (const [key, level] of Object.entries(myLevels)) {
@@ -172,6 +186,12 @@ const profitsFiltered = computed(() =>
 		if (!noBudget.value && maxCost.value >= 0 && item.Cost > maxCost.value) return false;
 		if (minVolume.value > 0 && (item["Weekly Volume"] ?? 0) < minVolume.value) return false;
 		if (searchQuery.value && !item.Name.toLowerCase().includes(searchQuery.value.toLowerCase())) return false;
+		if (recipeSource.value === "bazaar") {
+			const markets = Object.values(item["Recipe Markets"] ?? {});
+			if (!(markets.length > 0 && markets.every((m) => m === "Bazaar"))) return false;
+		}
+		if (sellMarket.value !== "both" && (item["Selling Market"] ?? "").toLowerCase() !== sellMarket.value)
+			return false;
 		return true;
 	}),
 );
@@ -216,6 +236,8 @@ function resetFilters() {
 	}
 	maxCost.value = -1;
 	minVolume.value = 0;
+	recipeSource.value = "both";
+	sellMarket.value = "both";
 }
 
 const fmt = (n) => Number(n).toLocaleString("en-US");

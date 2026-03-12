@@ -71,7 +71,19 @@
 				<strong>Min Weekly Volume</strong> — hide items with sales volume below this threshold (useful for
 				filtering low-movement items).
 			</li>
+			<li>
+				<strong>Recipe Source</strong> — filter to show only items whose ingredients are all available on the
+				Bazaar, or also show items with ingredients from the Auction House.
+			</li>
+			<li>
+				<strong>Sell Market</strong> — filter by where the forged item is sold. Choose <em>Bazaar</em> or
+				<em>AH</em> to see only items that sell on that market.
+			</li>
 		</ul>
+		<p>
+			Above the table, a <strong>search bar</strong> lets you quickly find a specific item by name. All active
+			filters and the search query apply simultaneously.
+		</p>
 		<p>Your filter settings are saved automatically and restored the next time you open the page.</p>
 
 		<h3>Buying Ingredients</h3>
