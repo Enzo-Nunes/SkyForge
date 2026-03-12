@@ -22,6 +22,10 @@
 					<button class="guide-link" @click="$emit('go-to-guide')">Learn more in the Guide</button>
 				</div>
 
+				<div class="search-bar-wrapper">
+					<input type="text" class="search-bar" v-model="searchQuery" placeholder="Search items…" />
+				</div>
+
 				<div class="table-wrap">
 					<table>
 						<thead>
@@ -167,6 +171,7 @@ const profitsFiltered = computed(() =>
 		}
 		if (!noBudget.value && maxCost.value >= 0 && item.Cost > maxCost.value) return false;
 		if (minVolume.value > 0 && (item["Weekly Volume"] ?? 0) < minVolume.value) return false;
+		if (searchQuery.value && !item.Name.toLowerCase().includes(searchQuery.value.toLowerCase())) return false;
 		return true;
 	}),
 );
@@ -174,6 +179,7 @@ const profitsFiltered = computed(() =>
 const sortKey = ref("Profit per Hour");
 const sortDir = ref("desc");
 const visibleCount = ref(10);
+const searchQuery = ref("");
 
 function sortBy(key) {
 	if (sortKey.value === key) {
@@ -237,6 +243,34 @@ const fmtDuration = (hours) => {
 .tracker-content {
 	flex: 1;
 	min-width: 0;
+}
+
+/* Search Bar */
+.search-bar-wrapper {
+	margin-bottom: 1rem;
+}
+
+.search-bar {
+	width: 100%;
+	padding: 0.65rem 1rem;
+	background: var(--filter-input-bg);
+	border: 1px solid var(--filter-input-border);
+	border-radius: 0.5rem;
+	color: var(--text-primary);
+	font-size: 0.9rem;
+	transition:
+		border-color 0.15s,
+		background 0.15s;
+}
+
+.search-bar::placeholder {
+	color: var(--text-muted);
+}
+
+.search-bar:focus {
+	outline: none;
+	border-color: var(--accent);
+	background: var(--bg-primary);
 }
 
 /* Waiting state */
