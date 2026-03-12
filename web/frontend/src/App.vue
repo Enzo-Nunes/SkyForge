@@ -8,7 +8,12 @@
 			<button :class="{ active: tab === 'how' }" @click="tab = 'how'">How does it work?</button>
 		</nav>
 
-		<TrackerTab v-if="tab === 'tracker'" :profits="profits" />
+		<TrackerTab
+			v-if="tab === 'tracker'"
+			:profits="profits"
+			:uptimeSeconds="uptimeSeconds"
+			@go-to-guide="tab = 'guide'"
+		/>
 		<GuideTab v-else-if="tab === 'guide'" />
 		<HowTab v-else-if="tab === 'how'" />
 	</div>

@@ -16,86 +16,97 @@
 				<p>Waiting for calculator results…</p>
 			</div>
 
-			<div class="table-wrap" v-else>
-				<table>
-					<thead>
-						<tr>
-							<th class="sortable" :class="sortClass('Rank')" @click="sortBy('Rank')">
-								# <span class="sort-arrow">{{ sortArrow("Rank") }}</span>
-							</th>
-							<th>Item</th>
-							<th class="sortable" :class="sortClass('Cost')" @click="sortBy('Cost')">
-								Total Ingredient Cost <span class="sort-arrow">{{ sortArrow("Cost") }}</span>
-							</th>
-							<th class="sortable" :class="sortClass('Sell Value')" @click="sortBy('Sell Value')">
-								Sell Value <span class="sort-arrow">{{ sortArrow("Sell Value") }}</span>
-							</th>
-							<th class="sortable" :class="sortClass('Profit')" @click="sortBy('Profit')">
-								Profit <span class="sort-arrow">{{ sortArrow("Profit") }}</span>
-							</th>
-							<th class="sortable" :class="sortClass('Duration')" @click="sortBy('Duration')">
-								Duration <span class="sort-arrow">{{ sortArrow("Duration") }}</span>
-							</th>
-							<th
-								class="sortable"
-								:class="sortClass('Profit per Hour')"
-								@click="sortBy('Profit per Hour')"
-							>
-								Profit / hour <span class="sort-arrow">{{ sortArrow("Profit per Hour") }}</span>
-							</th>
-							<th class="sortable" :class="sortClass('Weekly Volume')" @click="sortBy('Weekly Volume')">
-								Weekly Volume <span class="sort-arrow">{{ sortArrow("Weekly Volume") }}</span>
-							</th>
+			<template v-else>
+				<div class="early-warning" v-if="uptimeSeconds !== null && uptimeSeconds < 604800">
+					⚠ AH volume data is incomplete — the tool has been running for less than 7 days.
+					<button class="guide-link" @click="$emit('go-to-guide')">Learn more in the Guide</button>
+				</div>
 
-							<th>Recipe</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr
-							v-for="item in profitsSorted.slice(0, visibleCount)"
-							:key="item.Rank"
-							:class="{ top3: item.Rank <= 3 }"
-						>
-							<td class="rank">
-								<span class="badge" :class="'rank-' + item.Rank">{{ item.Rank }}</span>
-							</td>
-							<td class="name">{{ item.Name }}</td>
-							<td class="number cost">{{ fmt(item.Cost) }}</td>
-							<td class="number sell">
-								<span
-									class="vol-source"
-									:class="item['Selling Market'] === 'Bazaar' ? 'vol-bz' : 'vol-ah'"
+				<div class="table-wrap">
+					<table>
+						<thead>
+							<tr>
+								<th class="sortable" :class="sortClass('Rank')" @click="sortBy('Rank')">
+									# <span class="sort-arrow">{{ sortArrow("Rank") }}</span>
+								</th>
+								<th>Item</th>
+								<th class="sortable" :class="sortClass('Cost')" @click="sortBy('Cost')">
+									Total Ingredient Cost <span class="sort-arrow">{{ sortArrow("Cost") }}</span>
+								</th>
+								<th class="sortable" :class="sortClass('Sell Value')" @click="sortBy('Sell Value')">
+									Sell Value <span class="sort-arrow">{{ sortArrow("Sell Value") }}</span>
+								</th>
+								<th class="sortable" :class="sortClass('Profit')" @click="sortBy('Profit')">
+									Profit <span class="sort-arrow">{{ sortArrow("Profit") }}</span>
+								</th>
+								<th class="sortable" :class="sortClass('Duration')" @click="sortBy('Duration')">
+									Duration <span class="sort-arrow">{{ sortArrow("Duration") }}</span>
+								</th>
+								<th
+									class="sortable"
+									:class="sortClass('Profit per Hour')"
+									@click="sortBy('Profit per Hour')"
 								>
-									{{ item["Selling Market"] }}
-								</span>
-								{{ fmt(item["Sell Value"]) }}
-							</td>
-							<td class="number profit">+{{ fmt(item.Profit) }}</td>
-							<td class="number">{{ fmtDuration(item.Duration) }}</td>
-							<td class="number pph">{{ fmt(item["Profit per Hour"]) }}</td>
-							<td class="number volume">
-								{{ item["Volume Estimated"] ? "~" : "" }}{{ fmt(item["Weekly Volume"]) }}
-							</td>
-							<td class="recipe">
-								<span v-for="(qty, mat) in item.Recipe" :key="mat" class="ingredient">
-									{{ qty }}x {{ mat }}
+									Profit / hour <span class="sort-arrow">{{ sortArrow("Profit per Hour") }}</span>
+								</th>
+								<th
+									class="sortable"
+									:class="sortClass('Weekly Volume')"
+									@click="sortBy('Weekly Volume')"
+								>
+									Weekly Volume <span class="sort-arrow">{{ sortArrow("Weekly Volume") }}</span>
+								</th>
+
+								<th>Recipe</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr
+								v-for="item in profitsSorted.slice(0, visibleCount)"
+								:key="item.Rank"
+								:class="{ top3: item.Rank <= 3 }"
+							>
+								<td class="rank">
+									<span class="badge" :class="'rank-' + item.Rank">{{ item.Rank }}</span>
+								</td>
+								<td class="name">{{ item.Name }}</td>
+								<td class="number cost">{{ fmt(item.Cost) }}</td>
+								<td class="number sell">
 									<span
 										class="vol-source"
-										:class="item['Recipe Markets']?.[mat] === 'Bazaar' ? 'vol-bz' : 'vol-ah'"
+										:class="item['Selling Market'] === 'Bazaar' ? 'vol-bz' : 'vol-ah'"
 									>
-										{{ item["Recipe Markets"]?.[mat] }}
+										{{ item["Selling Market"] }}
 									</span>
-								</span>
-							</td>
-						</tr>
-					</tbody>
-				</table>
-				<div class="load-more" v-if="visibleCount < profitsSorted.length">
-					<button @click="visibleCount += 10">
-						Load 10 more ({{ profitsSorted.length - visibleCount }} remaining)
-					</button>
+									{{ fmt(item["Sell Value"]) }}
+								</td>
+								<td class="number profit">+{{ fmt(item.Profit) }}</td>
+								<td class="number">{{ fmtDuration(item.Duration) }}</td>
+								<td class="number pph">{{ fmt(item["Profit per Hour"]) }}</td>
+								<td class="number volume">
+									{{ item["Volume Estimated"] ? "~" : "" }}{{ fmt(item["Weekly Volume"]) }}
+								</td>
+								<td class="recipe">
+									<span v-for="(qty, mat) in item.Recipe" :key="mat" class="ingredient">
+										{{ qty }}x {{ mat }}
+										<span
+											class="vol-source"
+											:class="item['Recipe Markets']?.[mat] === 'Bazaar' ? 'vol-bz' : 'vol-ah'"
+										>
+											{{ item["Recipe Markets"]?.[mat] }}
+										</span>
+									</span>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+					<div class="load-more" v-if="visibleCount < profitsSorted.length">
+						<button @click="visibleCount += 10">
+							Load 10 more ({{ profitsSorted.length - visibleCount }} remaining)
+						</button>
+					</div>
 				</div>
-			</div>
+			</template>
 		</div>
 	</div>
 </template>
@@ -106,7 +117,10 @@ import FilterPanel from "./FilterPanel.vue";
 
 const props = defineProps({
 	profits: Array,
+	uptimeSeconds: { type: Number, default: null },
 });
+
+const emit = defineEmits(["go-to-guide"]);
 
 const REQUIREMENTS = {
 	"Heart of the Mountain Tier": 10,
@@ -249,6 +263,40 @@ const fmtDuration = (hours) => {
 	to {
 		transform: rotate(360deg);
 	}
+}
+
+/* Early uptime warning */
+.early-warning {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+	padding: 0.75rem 1rem;
+	background: var(--warning-bg);
+	border-left: 3px solid var(--warning-text);
+	border-radius: 6px;
+	color: var(--text-secondary);
+	font-size: 0.8rem;
+	margin-bottom: 1rem;
+}
+
+.guide-link {
+	margin-left: auto;
+	background: none;
+	border: 1px solid var(--warning-text);
+	color: var(--warning-text);
+	border-radius: 4px;
+	padding: 0.25rem 0.65rem;
+	font-size: 0.75rem;
+	cursor: pointer;
+	white-space: nowrap;
+	transition:
+		background 0.15s,
+		color 0.15s;
+}
+
+.guide-link:hover {
+	background: var(--warning-text);
+	color: var(--bg-primary);
 }
 
 /* Table */
