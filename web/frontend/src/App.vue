@@ -54,7 +54,10 @@ function connect() {
 		const data = JSON.parse(e.data);
 		if (data?.profits) {
 			profits.value = data.profits;
-			lastUpdated.value = new Date(data.calculated_at).toLocaleTimeString(undefined, { timeZoneName: "short" });
+			lastUpdated.value = new Date(data.calculated_at).toLocaleTimeString(undefined, {
+				hour12: false,
+				timeZoneName: "short",
+			});
 			uptimeSeconds.value = data.uptime_seconds;
 		} else if (data?.type === "shutdown") {
 			intentionalClose = true;
