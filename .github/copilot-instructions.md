@@ -22,13 +22,13 @@ All inter-service data contracts live in `common/types.py` as `TypedDict`s: `For
 
 ## Key Patterns
 
-**Logging**: Each service configures its own named logger in its `main.py` entry point with `logger.propagate = False` to prevent handler duplication. Never add handlers in non-entrypoint modules (e.g. `db.py` — it only calls `logging.getLogger()`).
+**Logging**: Each service configures its own named logger in its `main.py` entry point with `logger.propagate = False` to prevent handler duplication. Never add handlers in non-entrypoint modules (e.g. `db.py` - it only calls `logging.getLogger()`).
 
 **Bazaar item name mapping**: Bazaar API returns `SNAKE_CASE` IDs that don't match wiki names. Hardcoded overrides live in `MarketPriceTracker._convert_name()` in `calculator/main.py`. When adding new forge items, check if a name override is needed.
 
 **AH volume tracking**: `AHSalesTracker` polls `auctions_ended` every 60s and only counts `bin=True` auctions with a `buyer`. It resolves sold UUIDs against `MarketPriceTracker._auction_id_map` (populated during price fetching). After 7 days of uptime, volume numbers stabilise from estimates to actuals. The extrapolation formula is `volume = quantity × (604800 / uptime_seconds)`.
 
-**WebSocket payload**: `web/main.py:ResultsPayload` is what the browser receives — `profits`, `calculated_at`, `uptime_seconds`. Changing this requires matching updates in `App.vue`.
+**WebSocket payload**: `web/main.py:ResultsPayload` is what the browser receives - `profits`, `calculated_at`, `uptime_seconds`. Changing this requires matching updates in `App.vue`.
 
 ## Developer Workflow
 
@@ -58,7 +58,7 @@ Pre-commit hooks (Ruff + Prettier) run automatically on `git commit` after `pre-
 
 ## Database Schema
 
-Three tables for forge data: `forge_items`, `forge_recipes`, `forge_requirements` (all keyed by item name). One table for AH volume tracking: `ah_sale_batches` (append-only, queried with a 7-day rolling window). Schema is idempotent — defined in `db-api/db.py:init_schema()`.
+Three tables for forge data: `forge_items`, `forge_recipes`, `forge_requirements` (all keyed by item name). One table for AH volume tracking: `ah_sale_batches` (append-only, queried with a 7-day rolling window). Schema is idempotent - defined in `db-api/db.py:init_schema()`.
 
 ## Frontend
 

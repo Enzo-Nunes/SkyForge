@@ -20,7 +20,7 @@
 
 			<template v-else>
 				<div class="early-warning" v-if="uptimeSeconds !== null && uptimeSeconds < 604800">
-					⚠ AH volume data is incomplete — the tool has been running for less than 7 days.
+					⚠ Volume and range data is incomplete because the tool has been running for less than 7 days.
 					<button class="guide-link" @click="$emit('go-to-guide')">Learn more in the Guide</button>
 				</div>
 
@@ -32,35 +32,47 @@
 					<table>
 						<thead>
 							<tr>
-								<th class="sortable" :class="sortClass('Rank')" @click="sortBy('Rank')">
+								<th class="sortable th-center" :class="sortClass('Rank')" @click="sortBy('Rank')">
 									# <span class="sort-arrow">{{ sortArrow("Rank") }}</span>
 								</th>
 								<th>Item</th>
-								<th class="sortable" :class="sortClass('Cost')" @click="sortBy('Cost')">
+								<th class="sortable th-num" :class="sortClass('Cost')" @click="sortBy('Cost')">
 									Total Ingredient Cost <span class="sort-arrow">{{ sortArrow("Cost") }}</span>
 								</th>
-								<th class="sortable" :class="sortClass('Sell Value')" @click="sortBy('Sell Value')">
+								<th
+									class="sortable th-num"
+									:class="sortClass('Sell Value')"
+									@click="sortBy('Sell Value')"
+								>
 									Sell Value <span class="sort-arrow">{{ sortArrow("Sell Value") }}</span>
 								</th>
-								<th class="sortable" :class="sortClass('Profit')" @click="sortBy('Profit')">
+								<th class="sortable th-num" :class="sortClass('Profit')" @click="sortBy('Profit')">
 									Profit <span class="sort-arrow">{{ sortArrow("Profit") }}</span>
 								</th>
-								<th class="sortable" :class="sortClass('Duration')" @click="sortBy('Duration')">
+								<th class="sortable th-num" :class="sortClass('Duration')" @click="sortBy('Duration')">
 									Duration <span class="sort-arrow">{{ sortArrow("Duration") }}</span>
 								</th>
 								<th
-									class="sortable"
+									class="sortable th-num"
 									:class="sortClass('Profit per Hour')"
 									@click="sortBy('Profit per Hour')"
 								>
 									Profit / hour <span class="sort-arrow">{{ sortArrow("Profit per Hour") }}</span>
 								</th>
 								<th
-									class="sortable"
+									class="sortable th-num"
 									:class="sortClass('Weekly Volume')"
 									@click="sortBy('Weekly Volume')"
 								>
-									Weekly Volume <span class="sort-arrow">{{ sortArrow("Weekly Volume") }}</span>
+									Volume (7d) <span class="sort-arrow">{{ sortArrow("Weekly Volume") }}</span>
+								</th>
+								<th
+									class="sortable th-center"
+									:class="sortClass('Sell Price Range % 7d')"
+									@click="sortBy('Sell Price Range % 7d')"
+								>
+									Normalized Range (7d)
+									<span class="sort-arrow">{{ sortArrow("Sell Price Range % 7d") }}</span>
 								</th>
 
 								<th>Recipe</th>
@@ -91,6 +103,14 @@
 								<td class="number pph">{{ fmt(item["Profit per Hour"]) }}</td>
 								<td class="number volume">
 									{{ item["Volume Estimated"] ? "~" : "" }}{{ fmt(item["Weekly Volume"]) }}
+								</td>
+								<td class="range-cell" :title="rangeTitle(item)">
+									{{
+										item["Sell Price Range % 7d"] === null ||
+										item["Sell Price Range % 7d"] === undefined
+											? "n/a"
+											: `${item["Sell Price Range % 7d"]}%`
+									}}
 								</td>
 								<td class="recipe">
 									<span v-for="(qty, mat) in item.Recipe" :key="mat" class="ingredient">
@@ -253,6 +273,29 @@ const fmtDuration = (hours) => {
 	if (m > 0) return s > 0 ? `${m}m ${s}s` : `${m}m`;
 	return `${s}s`;
 };
+
+const rangeTitle = (item) => {
+	const range = item["Sell Price Range % 7d"];
+	const median = item["Sell Price Median 7d"];
+	const low = item["Sell Price Low 7d"];
+	const high = item["Sell Price High 7d"];
+	const samples = item["Price Samples 7d"] ?? 0;
+
+	const parts = [
+		`Samples (7d): ${samples}`,
+		`Range (7d): ${range === null || range === undefined ? "n/a" : `${range}%`}`,
+	];
+
+	if (low !== null && low !== undefined && high !== null && high !== undefined) {
+		parts.push(`Low-High (7d): ${fmt(low)} - ${fmt(high)}`);
+	}
+
+	if (median !== null && median !== undefined) {
+		parts.push(`Median (7d): ${fmt(median)}`);
+	}
+
+	return parts.join("\n");
+};
 </script>
 
 <style scoped>
@@ -365,7 +408,7 @@ const fmtDuration = (hours) => {
 table {
 	width: 100%;
 	border-collapse: collapse;
-	font-size: 0.85rem;
+	font-size: 0.8rem;
 }
 
 thead tr {
@@ -373,27 +416,23 @@ thead tr {
 }
 
 th {
-	padding: 0.75rem 1rem;
+	padding: 0.65rem 0.6rem;
 	text-align: left;
 	font-size: 0.7rem;
 	font-weight: 600;
 	text-transform: uppercase;
 	letter-spacing: 0.07em;
 	color: var(--text-muted);
-	white-space: nowrap;
+	white-space: normal;
+	line-height: 1.25;
 }
 
-th:nth-child(1) {
-	text-align: center;
-}
-
-th:nth-child(3),
-th:nth-child(4),
-th:nth-child(5),
-th:nth-child(6),
-th:nth-child(7),
-th:nth-child(8) {
+.th-num {
 	text-align: right;
+}
+
+.th-center {
+	text-align: center;
 }
 
 th.sortable {
@@ -435,7 +474,7 @@ tbody tr.top3 {
 }
 
 td {
-	padding: 0.65rem 1rem;
+	padding: 0.55rem 0.6rem;
 	vertical-align: top;
 }
 
@@ -475,7 +514,8 @@ td {
 .name {
 	font-weight: 500;
 	color: var(--text-accent);
-	white-space: nowrap;
+	white-space: normal;
+	max-width: 10rem;
 }
 
 .number {
@@ -506,6 +546,12 @@ td {
 	color: var(--color-volume);
 }
 
+.range-cell {
+	text-align: center;
+	white-space: nowrap;
+	color: var(--text-secondary);
+}
+
 .vol-source {
 	display: inline-block;
 	margin-left: 0.35rem;
@@ -534,11 +580,13 @@ td {
 	color: var(--color-secondary-text);
 	font-size: 0.78rem;
 	line-height: 1.8;
+	max-width: 16rem;
 }
 
 .ingredient {
 	display: block;
-	white-space: nowrap;
+	white-space: normal;
+	word-break: break-word;
 }
 
 .load-more {

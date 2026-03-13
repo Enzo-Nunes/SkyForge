@@ -28,8 +28,8 @@ Thank you for your interest in contributing to SkyForge! This guide explains how
    ```
 
    This installs:
-   - **Ruff** — Python linting and formatting.
-   - **Prettier** — Vue, JavaScript, and HTML.
+   - **Ruff** - Python linting and formatting.
+   - **Prettier** - Vue, JavaScript, and HTML.
 
    These run automatically on `git commit`.
 
@@ -84,8 +84,8 @@ Thank you for your interest in contributing to SkyForge! This guide explains how
 
 #### Branch Strategy
 
-- **`main`** — Stable, production-ready releases. Protected branch.
-- **`dev`** — Integration branch for community contributions. **Always submit PRs against `dev`, not `main`.**
+- **`main`** - Stable, production-ready releases. Protected branch.
+- **`dev`** - Integration branch for community contributions. **Always submit PRs against `dev`, not `main`.**
 
 #### Before Submitting
 

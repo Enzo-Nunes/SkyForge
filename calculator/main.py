@@ -15,6 +15,8 @@ from common.types import ForgeItemInfo, ForgeProfit
 DB_API_URL = "http://db-api:5000"
 WEB_URL = "http://web:8000"
 
+PriceStats = dict[str, dict[str, dict[str, int | None]]]
+
 
 def wait_for_api(logger: logging.Logger, retries: int = 10, delay: int = 5) -> None:
     for attempt in range(retries):
@@ -195,12 +197,51 @@ class ProfitCalculator:
     def market(self) -> MarketPriceTracker:
         return self._market
 
+    def _store_price_snapshots(
+        self,
+        forge_info: dict[str, ForgeItemInfo],
+        auction_house_prices: dict[str, int],
+        bazaar_prices: dict[str, dict[str, int]],
+    ) -> None:
+        snapshots: dict[str, dict[str, int]] = {}
+        for item_name in forge_info.keys():
+            item_snapshots: dict[str, int] = {}
+
+            bazaar_sell = bazaar_prices.get(item_name, {}).get("Sell Price", -1)
+            if bazaar_sell and bazaar_sell > 0:
+                item_snapshots["Bazaar"] = int(bazaar_sell)
+
+            ah_sell = auction_house_prices.get(item_name, -1)
+            if ah_sell and ah_sell > 0:
+                item_snapshots["AH"] = int(ah_sell)
+
+            if item_snapshots:
+                snapshots[item_name] = item_snapshots
+
+        if not snapshots:
+            return
+
+        request_with_retry(
+            self._logger, "POST", f"{DB_API_URL}/market-prices", json={"snapshots": snapshots}, timeout=15
+        )
+
+    def _read_price_stats(self) -> PriceStats:
+        response = request_with_retry(self._logger, "GET", f"{DB_API_URL}/market-prices/stats", timeout=15)
+        return typing.cast(PriceStats, response.json().get("stats", {}))
+
     def calculate_profits(self, forge_info: dict[str, ForgeItemInfo]) -> tuple[list[ForgeProfit], int | None]:
         """Calculate profits for all forge items.
         Returns (profits_list, uptime_seconds).
         """
         auction_house_prices = self._market.fetch_auction_house_prices()
         bazaar_prices = self._market.fetch_bazaar_prices()
+
+        price_stats_7d: PriceStats = {}
+        try:
+            self._store_price_snapshots(forge_info, auction_house_prices, bazaar_prices)
+            price_stats_7d = self._read_price_stats()
+        except Exception as e:
+            self._logger.warning(f"Could not store/read market price history: {e}")
 
         # Calculate uptime for UI display
         uptime_seconds = int(time.time() - self._start_time)
@@ -288,6 +329,16 @@ class ProfitCalculator:
                 weekly_volume = ah_weekly_sales.get(item_name, 0)
                 volume_source = "AH"
                 volume_estimated = ah_volume_estimated.get(item_name, False)
+
+            item_price_stats = price_stats_7d.get(item_name, {}).get(volume_source, {})
+            low_7d = item_price_stats.get("low")
+            high_7d = item_price_stats.get("high")
+            median_7d = item_price_stats.get("median")
+            samples_7d = int(item_price_stats.get("samples", 0) or 0)
+            range_pct_7d: int | None = None
+            if median_7d and median_7d > 0 and low_7d is not None and high_7d is not None:
+                range_pct_7d = int(round(((high_7d - low_7d) / median_7d) * 100))
+
             if item_sell_price < 0:
                 is_sellable = False
 
@@ -304,6 +355,11 @@ class ProfitCalculator:
                         "Weekly Volume": weekly_volume,
                         "Volume Estimated": volume_estimated,
                         "Selling Market": volume_source,
+                        "Price Samples 7d": samples_7d,
+                        "Sell Price Low 7d": low_7d,
+                        "Sell Price High 7d": high_7d,
+                        "Sell Price Median 7d": median_7d,
+                        "Sell Price Range % 7d": range_pct_7d,
                         "Recipe Markets": recipe_markets,
                         "Recipe": forge_info[item_name]["Recipe"],
                         "Requirements": forge_info[item_name]["Requirements"],

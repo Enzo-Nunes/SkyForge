@@ -70,7 +70,7 @@ def wiki_get_with_retry(
 
     for attempt in range(1, retries + 1):
         try:
-            response = cffi_requests.get(url, impersonate="firefox", timeout=timeout)
+            response = cffi_requests.get(url, impersonate="safari", timeout=timeout)
             response.raise_for_status()
             return response
         except Exception as e:

@@ -18,12 +18,23 @@
 			column also shows indicators for each ingredient, revealing the source of that material's cost.
 		</p>
 
+		<h3>Profit Calculation</h3>
+		<p>Items are scored and ranked by <strong>Profit per Hour</strong>:</p>
+		<ul>
+			<li>
+				<strong>Ingredients Cost</strong> = sum of (quantity x Bazaar price or AH price if Bazaar unavailable)
+				for each ingredient.
+			</li>
+			<li><strong>Profit</strong> = Sell Value - Ingredients Cost.</li>
+			<li><strong>Profit / hour</strong> = Profit / Duration (hours).</li>
+		</ul>
+
 		<h3>Weekly Volume Tracking</h3>
 		<p>The calculator tracks activity across both markets:</p>
 		<ul>
-			<li><strong>Bazaar Volume</strong> — Taken directly from the Hypixel API's 7-day moving average.</li>
+			<li><strong>Bazaar Volume</strong> - Taken directly from the Hypixel API's 7-day moving count.</li>
 			<li>
-				<strong>Auction House Volume</strong> — Tracked by polling the Ended Auctions endpoint every 60 seconds.
+				<strong>Auction House Volume</strong> - Tracked by polling the Ended Auctions endpoint every 60 seconds.
 				Sales are matched to items using an internal UUID map built during regular price fetches. Only auctions
 				with a buyer (BIN) are counted.
 			</li>
@@ -35,16 +46,25 @@
 			become actual counts.
 		</p>
 
-		<h3>Profit Calculation</h3>
-		<p>Items are scored and ranked by <strong>Profit per Hour</strong>:</p>
+		<h3>Normalized Range (7d)</h3>
+		<p>
+			SkyForge also stores periodic sell-price snapshots for each forge item and market (Bazaar or AH), keeping up
+			to 8 days of history and computing stats over the latest 7 days.
+		</p>
 		<ul>
-			<li>
-				<strong>Ingredients Cost</strong> = sum of (quantity x Bazaar price or AH price if Bazaar unavailable)
-				for each ingredient.
-			</li>
-			<li><strong>Profit</strong> = Sell Value - Ingredients Cost.</li>
-			<li><strong>Profit / hour</strong> = Profit / Duration (hours).</li>
+			<li><strong>Low (7d)</strong> - minimum sampled sell price.</li>
+			<li><strong>High (7d)</strong> - maximum sampled sell price.</li>
+			<li><strong>Median (7d)</strong> - median sampled sell price.</li>
+			<li><strong>Normalized Range (7d)</strong> - <strong>(High - Low) / Median x 100</strong>.</li>
 		</ul>
+		<p>
+			This metric captures quote volatility: lower percentages usually indicate a more stable sell environment,
+			while higher values indicate bigger price swings.
+		</p>
+		<p>
+			Normalized range is based on all captured sell orders, not only on realized sell orders. For best decisions,
+			evaluate it together with <strong>Volume (7d)</strong>.
+		</p>
 
 		<h3>Live Updates</h3>
 		<p>

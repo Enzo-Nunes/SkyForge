@@ -105,6 +105,26 @@ def post_ah_sales() -> RouteResponse:
         return flask.jsonify({"error": "Database unavailable"}), 503
 
 
+@app.post("/market-prices")
+def post_market_prices() -> RouteResponse:
+    data = flask.request.get_json(force=True)
+    raw_snapshots = typing.cast(dict[str, dict[str, typing.Any]], data.get("snapshots", {}))
+    snapshots: dict[str, dict[str, int]] = {}
+    for item_name, markets in raw_snapshots.items():
+        snapshots[item_name] = {}
+        for market, price in markets.items():
+            snapshots[item_name][market] = int(price)
+
+    try:
+        _run_db_op(
+            lambda connection: db.insert_market_price_snapshots(connection, snapshots), retry_on_disconnect=False
+        )
+        return flask.jsonify({"recorded": len(snapshots)})
+    except (psycopg2.OperationalError, psycopg2.InterfaceError):
+        _reconnect_db()
+        return flask.jsonify({"error": "Database unavailable"}), 503
+
+
 @app.get("/ah-sales")
 def get_ah_sales() -> RouteResponse:
     try:
@@ -119,5 +139,14 @@ def get_ah_sales_oldest() -> RouteResponse:
     try:
         oldest_at = _run_db_op(db.read_ah_oldest_record_time, retry_on_disconnect=True)
         return flask.jsonify({"oldest_recorded_at": oldest_at})
+    except (psycopg2.OperationalError, psycopg2.InterfaceError):
+        return flask.jsonify({"error": "Database unavailable"}), 503
+
+
+@app.get("/market-prices/stats")
+def get_market_price_stats() -> RouteResponse:
+    try:
+        stats = _run_db_op(db.read_market_price_stats_7d, retry_on_disconnect=True)
+        return flask.jsonify({"stats": stats})
     except (psycopg2.OperationalError, psycopg2.InterfaceError):
         return flask.jsonify({"error": "Database unavailable"}), 503

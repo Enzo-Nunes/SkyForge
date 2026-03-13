@@ -65,13 +65,23 @@ def init_schema(conn: psycopg2.extensions.connection) -> None:
             CREATE INDEX IF NOT EXISTS idx_ah_sale_batches_lookup
                 ON ah_sale_batches (item_name, recorded_at)
         """)
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS market_price_snapshots (
+                id          SERIAL PRIMARY KEY,
+                item_name   TEXT NOT NULL,
+                market      TEXT NOT NULL CHECK (market IN ('Bazaar', 'AH')),
+                sell_price  BIGINT NOT NULL,
+                sampled_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            )
+        """)
+        cur.execute("""
+            CREATE INDEX IF NOT EXISTS idx_market_price_snapshots_lookup
+                ON market_price_snapshots (item_name, market, sampled_at)
+        """)
     conn.commit()
 
 
-def upsert_forge_items(
-    conn: psycopg2.extensions.connection,
-    items: dict[str, ForgeItemInfo],
-) -> None:
+def upsert_forge_items(conn: psycopg2.extensions.connection, items: dict[str, ForgeItemInfo]) -> None:
     with conn.cursor() as cur:
         cur.execute("DELETE FROM forge_items")
         for name, info in items.items():
@@ -113,10 +123,7 @@ def read_forge_items(conn: psycopg2.extensions.connection) -> dict[str, ForgeIte
     return items
 
 
-def insert_ah_sale_batch(
-    conn: psycopg2.extensions.connection,
-    sales: dict[str, int],
-) -> None:
+def insert_ah_sale_batch(conn: psycopg2.extensions.connection, sales: dict[str, int]) -> None:
     with conn.cursor() as cur:
         for item_name, quantity in sales.items():
             cur.execute(
@@ -163,3 +170,77 @@ def read_ah_oldest_record_time(conn: psycopg2.extensions.connection) -> str | No
         if result and result[0]:
             return result[0].isoformat()
         return None
+
+
+def insert_market_price_snapshots(conn: psycopg2.extensions.connection, snapshots: dict[str, dict[str, int]]) -> None:
+    """Insert one sampled sell price per item and market.
+
+    Input format:
+    {
+        "Item Name": {
+            "Bazaar": 12345,
+            "AH": 13000,
+        }
+    }
+    """
+    with conn.cursor() as cur:
+        for item_name, prices_by_market in snapshots.items():
+            for market, sell_price in prices_by_market.items():
+                if market not in {"Bazaar", "AH"}:
+                    continue
+                cur.execute(
+                    """
+                    INSERT INTO market_price_snapshots (item_name, market, sell_price)
+                    VALUES (%s, %s, %s)
+                    """,
+                    (item_name, market, int(sell_price)),
+                )
+        # Keep eight days of history to support rolling seven-day analytics.
+        cur.execute("DELETE FROM market_price_snapshots WHERE sampled_at < NOW() - INTERVAL '8 days'")
+    conn.commit()
+
+
+def read_market_price_stats_7d(conn: psycopg2.extensions.connection) -> dict[str, dict[str, dict[str, int | None]]]:
+    """Read seven-day low/high/median sell prices by item and market.
+
+    Returns:
+    {
+        "Item Name": {
+            "Bazaar": {"low": 100, "high": 150, "median": 120, "samples": 42},
+            "AH": {"low": 110, "high": 190, "median": 130, "samples": 12},
+        }
+    }
+    """
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            WITH base AS (
+                SELECT
+                    item_name,
+                    market,
+                    sell_price
+                FROM market_price_snapshots
+                WHERE sampled_at > NOW() - INTERVAL '7 days'
+            )
+            SELECT
+                item_name,
+                market,
+                MIN(sell_price) AS low,
+                MAX(sell_price) AS high,
+                CAST(PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY sell_price) AS BIGINT) AS median,
+                COUNT(*)::INT AS samples
+            FROM base
+            GROUP BY item_name, market
+            """
+        )
+        result: dict[str, dict[str, dict[str, int | None]]] = {}
+        for row in cur.fetchall():
+            item_name, market, low, high, median, samples = row
+            item_bucket = result.setdefault(item_name, {})
+            item_bucket[market] = {
+                "low": low,
+                "high": high,
+                "median": median,
+                "samples": samples,
+            }
+        return result

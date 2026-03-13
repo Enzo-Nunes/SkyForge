@@ -4,7 +4,7 @@
 
 It fetches item recipes and unlock requirements from the [Official Hypixel Wiki](https://wiki.hypixel.net/The_Forge) and live market prices from the [Official Hypixel API](https://api.hypixel.net), then ranks every craftable forge item by profit per hour based on current `Bazaar` and `Auction House` prices. Results are displayed in a browser UI that updates live as new data arrives.
 
-This tool is especially useful for filling idle forge slots — even if you have no particular interest in forge items, there's usually free profit just sitting on those idle slots.
+This tool is especially useful for filling idle forge slots - even if you have no particular interest in forge items, there's usually free profit just sitting on those idle slots.
 
 ## Architecture
 
@@ -12,11 +12,11 @@ SkyForge runs as five Docker containers:
 
 | Container | Role |
 | ----------- | ------ |
-| `db` | PostgreSQL database — stores forge recipe and item data |
-| `db-api` | Flask REST API — intermediary between the database and other services |
+| `db` | PostgreSQL database - stores forge recipe and item data |
+| `db-api` | Flask REST API - intermediary between the database and other services |
 | `scraper` | Fetches forge item recipes, durations and requirements from the Hypixel Wiki and writes them to the database |
 | `calculator` | Reads forge data from the database, fetches live market prices from the Hypixel API, calculates profits and pushes results to the web service |
-| `web` | FastAPI backend + Vue 3 frontend — serves the browser UI and broadcasts results to connected clients over WebSocket |
+| `web` | FastAPI backend + Vue 3 frontend - serves the browser UI and broadcasts results to connected clients over WebSocket |
 
 ## Usage
 
