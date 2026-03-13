@@ -11,10 +11,11 @@ def _get_dsn() -> str:
     dbname = os.getenv("POSTGRES_DB", "skyforge")
     user = os.getenv("POSTGRES_USER", "skyforge")
     password = os.getenv("POSTGRES_PASSWORD", "skyforge")
-    return f"host={host} dbname={dbname} user={user} password={password}"
+    connect_timeout = os.getenv("POSTGRES_CONNECT_TIMEOUT", "5")
+    return f"host={host} dbname={dbname} user={user} password={password} connect_timeout={connect_timeout}"
 
 
-def wait_for_db(retries: int = 10, delay: int = 3) -> psycopg2.extensions.connection:
+def wait_for_db(retries: int = 20, delay: int = 3) -> psycopg2.extensions.connection:
     dsn = _get_dsn()
     for attempt in range(retries):
         try:
@@ -22,7 +23,7 @@ def wait_for_db(retries: int = 10, delay: int = 3) -> psycopg2.extensions.connec
             return conn
         except psycopg2.OperationalError as e:
             if attempt < retries - 1:
-                print(f"[db] Not ready yet (attempt {attempt + 1}/{retries}), retrying in {delay}s...")
+                print(f"[db] Not ready yet (attempt {attempt + 1}/{retries}): {e}; retrying in {delay}s...")
                 time.sleep(delay)
             else:
                 raise RuntimeError(f"Could not connect to database after {retries} attempts") from e

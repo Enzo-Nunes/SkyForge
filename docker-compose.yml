@@ -28,6 +28,7 @@ services:
       POSTGRES_DB: skyforge
       POSTGRES_USER: skyforge
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-skyforge}
+      POSTGRES_CONNECT_TIMEOUT: ${POSTGRES_CONNECT_TIMEOUT:-5}
     healthcheck:
       test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:5000/health')\" || exit 1"]
       interval: 5s
