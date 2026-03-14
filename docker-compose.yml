@@ -36,17 +36,6 @@ services:
       retries: 10
       start_period: 30s
 
-  scraper:
-    build:
-      context: .
-      dockerfile: scraper/Dockerfile
-    init: true
-    restart: unless-stopped
-    depends_on:
-      - db-api
-    environment:
-      WIKI_SCRAPE_INTERVAL: ${WIKI_SCRAPE_INTERVAL:-3600}
-
   calculator:
     build:
       context: .

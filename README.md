@@ -2,19 +2,18 @@
 
 `SkyForge` is an open-source project for `Hypixel Skyblock` players interested in making profit through `The Forge` in the `Dwarven Mines`.
 
-It fetches item recipes and unlock requirements from the [Official Hypixel Wiki](https://wiki.hypixel.net/The_Forge) and live market prices from the [Official Hypixel API](https://api.hypixel.net), then ranks every craftable forge item by profit per hour based on current `Bazaar` and `Auction House` prices. Results are displayed in a browser UI that updates live as new data arrives.
+It loads item recipes and unlock requirements from a versioned JSON dataset and live market prices from the [Official Hypixel API](https://api.hypixel.net), then ranks every craftable forge item by profit per hour based on current `Bazaar` and `Auction House` prices. Results are displayed in a browser UI that updates live as new data arrives.
 
 This tool is especially useful for filling idle forge slots - even if you have no particular interest in forge items, there's usually free profit just sitting on those idle slots.
 
 ## Architecture
 
-SkyForge runs as five Docker containers:
+SkyForge runs as four Docker containers:
 
 | Container | Role |
 | ----------- | ------ |
 | `db` | PostgreSQL database - stores forge recipe and item data |
-| `db-api` | Flask REST API - intermediary between the database and other services |
-| `scraper` | Fetches forge item recipes, durations and requirements from the Hypixel Wiki and writes them to the database |
+| `db-api` | Flask REST API - intermediary between the database and other services, and loads forge data from `db-api/forge_data.json` at startup |
 | `calculator` | Reads forge data from the database, fetches live market prices from the Hypixel API, calculates profits and pushes results to the web service |
 | `web` | FastAPI backend + Vue 3 frontend - serves the browser UI and broadcasts results to connected clients over WebSocket |
 
@@ -40,9 +39,9 @@ Environment variables control SkyForge's behavior:
 | ----------- | --------- | ------------- |
 | `POSTGRES_PASSWORD` | `skyforge` | Database password. |
 | `REFRESH_TIME` | `120` | Seconds between profit calculation cycles (120-600 recommended) |
-| `WIKI_SCRAPE_INTERVAL` | `3600` | Seconds between wiki scrapes (3600 for hourly, 86400 for daily) |
 
-Edit these in `docker-compose.yml` or set them as environment variables in your deployment method.
+Forge item metadata is loaded from `db-api/forge_data.json`, which is created and maintained separately from the SkyForge runtime stack.
+If this crafting dataset becomes outdated, contributions updating `db-api/forge_data.json` are welcome.
 
 ## Web UI
 

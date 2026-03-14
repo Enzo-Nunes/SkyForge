@@ -51,10 +51,10 @@ Thank you for your interest in contributing to SkyForge! This guide explains how
 
 7. **View Logs:**
 
-    ```bash
-    docker compose logs -f          # View all services
-    docker compose logs -f db-api   # View specific service (e.g., db-api, calculator, scraper, web)
-    ```
+   ```bash
+   docker compose logs -f          # View all services
+   docker compose logs -f db-api   # View specific service (e.g., db-api, calculator, web)
+   ```
 
 ---
 
@@ -79,6 +79,13 @@ Thank you for your interest in contributing to SkyForge! This guide explains how
    - What you want to add
    - Why it's useful
    - Any design thoughts or mockups
+
+### Report Outdated Crafting Data
+
+If the forge crafting dataset is out of date, both of these contribution paths are welcome:
+
+1. **Open an issue** reporting the outdated entries.
+2. **Open a pull request** against the `dev` branch that updates `db-api/forge_data.json` with corrected data.
 
 ### Submit a Pull Request
 

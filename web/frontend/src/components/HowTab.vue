@@ -2,9 +2,8 @@
 	<main class="content-page">
 		<h3>Price Sources</h3>
 		<p>
-			SkyForge gathers its data from two sources: the
-			<a href="https://wiki.hypixel.net/The_Forge" target="_blank" rel="noopener">Official Hypixel Wiki</a>, which
-			provides forge item recipes, crafting durations and unlock requirements, and the
+			SkyForge gathers its data from two sources: a separately created JSON dataset, which provides forge item
+			recipes, crafting durations, and unlock requirements, and the
 			<a href="https://api.hypixel.net" target="_blank" rel="noopener">Official Hypixel API</a>, which provides
 			live market prices from both the Bazaar and the Auction House.
 		</p>
