@@ -29,7 +29,7 @@ Thank you for your interest in contributing to SkyForge! This guide explains how
 
    This installs:
    - **Ruff** - Python linting and formatting.
-   - **Prettier** - Vue, JavaScript, and HTML.
+   - **Prettier** - Vue, JavaScript, HTML, and YAML.
 
    These run automatically on `git commit`.
 
@@ -106,6 +106,7 @@ If the forge crafting dataset is out of date, both of these contribution paths a
 
    ```bash
    docker compose down -v  # Clean slate
+   docker compose config -q
    docker compose up --build
    ```
 

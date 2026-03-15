@@ -13,7 +13,7 @@ SkyForge runs as four Docker containers:
 | Container | Role |
 | ----------- | ------ |
 | `db` | PostgreSQL database - stores forge recipe and item data |
-| `db-api` | Flask REST API - intermediary between the database and other services, and loads forge data from `db-api/forge_data.json` at startup |
+| `db-api` | FastAPI REST API - intermediary between the database and other services, and loads forge data from `db-api/forge_data.json` at startup |
 | `calculator` | Reads forge data from the database, fetches live market prices from the Hypixel API, calculates profits and pushes results to the web service |
 | `web` | FastAPI backend + Vue 3 frontend - serves the browser UI and broadcasts results to connected clients over WebSocket |
 

@@ -6,8 +6,10 @@ from datetime import datetime
 from pathlib import Path
 
 import db
-import flask
 import psycopg2
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel, Field
 
 from common.types import ForgeItemInfo
 
@@ -23,7 +25,48 @@ logger.propagate = False
 FORGE_DATA_PATH = Path(__file__).with_name("forge_data.json")
 
 T = typing.TypeVar("T")
-RouteResponse = flask.Response | tuple[flask.Response, int]
+PriceStats = dict[str, dict[str, dict[str, int | None]]]
+
+
+class DBUnavailableError(Exception):
+    pass
+
+
+class AHSalesPayload(BaseModel):
+    sales: dict[str, int]
+
+
+class MarketPricesPayload(BaseModel):
+    snapshots: dict[str, dict[str, int]] = Field(default_factory=dict)
+
+
+class ErrorResponse(BaseModel):
+    error: str
+
+
+class HealthResponse(BaseModel):
+    status: str
+
+
+class ForgeItemsResponse(BaseModel):
+    items: dict[str, ForgeItemInfo]
+    last_scraped_at: str | None
+
+
+class RecordedResponse(BaseModel):
+    recorded: int
+
+
+class AHSalesResponse(BaseModel):
+    sales: dict[str, int]
+
+
+class AHSalesOldestResponse(BaseModel):
+    oldest_recorded_at: str | None
+
+
+class MarketPriceStatsResponse(BaseModel):
+    stats: PriceStats
 
 
 def _coerce_int(value: object, *, context: str) -> int:
@@ -112,7 +155,12 @@ def _connect_db() -> psycopg2.extensions.connection:
 
 last_scraped_at: datetime | None = None
 conn: psycopg2.extensions.connection = _connect_db()
-app = flask.Flask(__name__)
+app = FastAPI()
+
+
+@app.exception_handler(DBUnavailableError)
+async def handle_db_unavailable(_request: Request, _exc: DBUnavailableError) -> JSONResponse:
+    return JSONResponse(status_code=503, content={"error": "Database unavailable"})
 
 
 def _reconnect_db() -> None:
@@ -124,11 +172,7 @@ def _reconnect_db() -> None:
     conn = _connect_db()
 
 
-def _run_db_op(
-    operation: typing.Callable[[psycopg2.extensions.connection], T],
-    *,
-    retry_on_disconnect: bool,
-) -> T:
+def _run_db_op(operation: typing.Callable[[psycopg2.extensions.connection], T], *, retry_on_disconnect: bool) -> T:
     global conn
     for attempt in range(2):
         try:
@@ -144,76 +188,62 @@ def _run_db_op(
     raise RuntimeError("Unreachable")
 
 
+def _run_db_read(operation: typing.Callable[[psycopg2.extensions.connection], T]) -> T:
+    try:
+        return _run_db_op(operation, retry_on_disconnect=True)
+    except (psycopg2.OperationalError, psycopg2.InterfaceError) as e:
+        logger.warning(f"DB read failed: {e}")
+        raise DBUnavailableError from e
+
+
+def _run_db_write(operation: typing.Callable[[psycopg2.extensions.connection], T]) -> T:
+    try:
+        return _run_db_op(operation, retry_on_disconnect=False)
+    except (psycopg2.OperationalError, psycopg2.InterfaceError) as e:
+        _reconnect_db()
+        logger.warning(f"DB write failed: {e}")
+        raise DBUnavailableError from e
+
+
 @app.get("/health")
-def health() -> RouteResponse:
-    return flask.jsonify({"status": "ok"})
+def health() -> HealthResponse:
+    return HealthResponse(status="ok")
 
 
-@app.get("/forge-items")
-def get_forge_items() -> RouteResponse:
-    try:
-        items = _run_db_op(db.read_forge_items, retry_on_disconnect=True)
-        return flask.jsonify(
-            {"items": items, "last_scraped_at": last_scraped_at.isoformat() if last_scraped_at else None}
-        )
-    except (psycopg2.OperationalError, psycopg2.InterfaceError):
-        return flask.jsonify({"error": "Database unavailable"}), 503
+@app.get("/forge-items", response_model=ForgeItemsResponse, responses={503: {"model": ErrorResponse}})
+def get_forge_items() -> ForgeItemsResponse:
+    items: dict[str, ForgeItemInfo] = _run_db_read(db.read_forge_items)
+    return ForgeItemsResponse(items=items, last_scraped_at=last_scraped_at.isoformat() if last_scraped_at else None)
 
 
-@app.post("/ah-sales")
-def post_ah_sales() -> RouteResponse:
-    data = flask.request.get_json(force=True)
-    sales: dict[str, int] = {str(k): int(v) for k, v in data["sales"].items()}
-    try:
-        _run_db_op(lambda connection: db.insert_ah_sale_batch(connection, sales), retry_on_disconnect=False)
-        return flask.jsonify({"recorded": len(sales)})
-    except (psycopg2.OperationalError, psycopg2.InterfaceError):
-        _reconnect_db()
-        return flask.jsonify({"error": "Database unavailable"}), 503
+@app.post("/ah-sales", response_model=RecordedResponse, responses={503: {"model": ErrorResponse}})
+def post_ah_sales(payload: AHSalesPayload) -> RecordedResponse:
+    sales = payload.sales
+    _run_db_write(lambda connection: db.insert_ah_sale_batch(connection, sales))
+    return RecordedResponse(recorded=len(sales))
 
 
-@app.post("/market-prices")
-def post_market_prices() -> RouteResponse:
-    data = flask.request.get_json(force=True)
-    raw_snapshots = typing.cast(dict[str, dict[str, typing.Any]], data.get("snapshots", {}))
-    snapshots: dict[str, dict[str, int]] = {}
-    for item_name, markets in raw_snapshots.items():
-        snapshots[item_name] = {}
-        for market, price in markets.items():
-            snapshots[item_name][market] = int(price)
+@app.post("/market-prices", response_model=RecordedResponse, responses={503: {"model": ErrorResponse}})
+def post_market_prices(payload: MarketPricesPayload) -> RecordedResponse:
+    snapshots = payload.snapshots
 
-    try:
-        _run_db_op(
-            lambda connection: db.insert_market_price_snapshots(connection, snapshots), retry_on_disconnect=False
-        )
-        return flask.jsonify({"recorded": len(snapshots)})
-    except (psycopg2.OperationalError, psycopg2.InterfaceError):
-        _reconnect_db()
-        return flask.jsonify({"error": "Database unavailable"}), 503
+    _run_db_write(lambda connection: db.insert_market_price_snapshots(connection, snapshots))
+    return RecordedResponse(recorded=len(snapshots))
 
 
-@app.get("/ah-sales")
-def get_ah_sales() -> RouteResponse:
-    try:
-        sales = _run_db_op(db.read_ah_weekly_sales, retry_on_disconnect=True)
-        return flask.jsonify({"sales": sales})
-    except (psycopg2.OperationalError, psycopg2.InterfaceError):
-        return flask.jsonify({"error": "Database unavailable"}), 503
+@app.get("/ah-sales", response_model=AHSalesResponse, responses={503: {"model": ErrorResponse}})
+def get_ah_sales() -> AHSalesResponse:
+    sales = _run_db_read(db.read_ah_weekly_sales)
+    return AHSalesResponse(sales=sales)
 
 
-@app.get("/ah-sales/oldest")
-def get_ah_sales_oldest() -> RouteResponse:
-    try:
-        oldest_at = _run_db_op(db.read_ah_oldest_record_time, retry_on_disconnect=True)
-        return flask.jsonify({"oldest_recorded_at": oldest_at})
-    except (psycopg2.OperationalError, psycopg2.InterfaceError):
-        return flask.jsonify({"error": "Database unavailable"}), 503
+@app.get("/ah-sales/oldest", response_model=AHSalesOldestResponse, responses={503: {"model": ErrorResponse}})
+def get_ah_sales_oldest() -> AHSalesOldestResponse:
+    oldest_at = _run_db_read(db.read_ah_oldest_record_time)
+    return AHSalesOldestResponse(oldest_recorded_at=oldest_at)
 
 
-@app.get("/market-prices/stats")
-def get_market_price_stats() -> RouteResponse:
-    try:
-        stats = _run_db_op(db.read_market_price_stats_7d, retry_on_disconnect=True)
-        return flask.jsonify({"stats": stats})
-    except (psycopg2.OperationalError, psycopg2.InterfaceError):
-        return flask.jsonify({"error": "Database unavailable"}), 503
+@app.get("/market-prices/stats", response_model=MarketPriceStatsResponse, responses={503: {"model": ErrorResponse}})
+def get_market_price_stats() -> MarketPriceStatsResponse:
+    stats = _run_db_read(db.read_market_price_stats_7d)
+    return MarketPriceStatsResponse(stats=stats)

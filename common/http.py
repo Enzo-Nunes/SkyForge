@@ -65,19 +65,11 @@ def wiki_get_with_retry(
     retries: int = HTTP_RETRIES,
     backoff_seconds: float = HTTP_BACKOFF_SECONDS,
 ):
-    # Imported lazily so services that don't install curl-cffi can still import this module.
-    from curl_cffi import requests as cffi_requests
-
-    for attempt in range(1, retries + 1):
-        try:
-            response = cffi_requests.get(url, impersonate="safari", timeout=timeout)
-            response.raise_for_status()
-            return response
-        except Exception as e:
-            if attempt >= retries:
-                raise
-            wait_seconds = backoff_seconds * (2 ** (attempt - 1))
-            logger.warning(f"GET {url} failed ({e}) (attempt {attempt}/{retries}), retrying in {wait_seconds:.1f}s...")
-            time.sleep(wait_seconds)
-
-    raise RuntimeError("Unreachable")
+    return request_with_retry(
+        logger,
+        "GET",
+        url,
+        timeout=timeout,
+        retries=retries,
+        backoff_seconds=backoff_seconds,
+    )

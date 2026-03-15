@@ -12,5 +12,5 @@ repos:
       name: Prettier
       entry: prettier --write
       language: node
-      types_or: [vue, html, javascript]
+      types_or: [vue, html, javascript, yaml]
       additional_dependencies: [prettier]
