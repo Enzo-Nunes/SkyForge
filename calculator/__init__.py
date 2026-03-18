@@ -1,1 +1,0 @@
-"""Calculator service package."""

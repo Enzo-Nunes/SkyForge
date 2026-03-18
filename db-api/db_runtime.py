@@ -18,7 +18,7 @@ class DBRuntime:
     def __init__(self, logger: logging.Logger, forge_data_path: Path) -> None:
         self._logger = logger
         self._forge_data_path = forge_data_path
-        self.last_scraped_at: datetime | None = None
+        self.last_updated: datetime | None = None
         self._conn = self._connect_db()
 
     def _connect_db(self) -> psycopg2.extensions.connection:
@@ -27,7 +27,7 @@ class DBRuntime:
         db.init_schema(connection)
         items, last_updated = load_forge_items(self._forge_data_path, self._logger)
         db.upsert_forge_items(connection, items)
-        self.last_scraped_at = last_updated or datetime.now()
+        self.last_updated = last_updated or datetime.now()
         self._logger.info(f"Loaded {len(items)} forge items from {self._forge_data_path.name}")
         self._logger.info("Database ready.")
         return connection

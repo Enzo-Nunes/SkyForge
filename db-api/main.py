@@ -40,7 +40,7 @@ class HealthResponse(BaseModel):
 
 class ForgeItemsResponse(BaseModel):
     items: dict[str, ForgeItemInfo]
-    last_scraped_at: str | None
+    last_updated: str | None
 
 
 class RecordedResponse(BaseModel):
@@ -76,8 +76,8 @@ def health() -> HealthResponse:
 @app.get("/forge-items", response_model=ForgeItemsResponse, responses={503: {"model": ErrorResponse}})
 def get_forge_items() -> ForgeItemsResponse:
     items: dict[str, ForgeItemInfo] = runtime.run_read(db.read_forge_items)
-    last_scraped_at = runtime.last_scraped_at.isoformat() if runtime.last_scraped_at else None
-    return ForgeItemsResponse(items=items, last_scraped_at=last_scraped_at)
+    last_updated = runtime.last_updated.isoformat() if runtime.last_updated else None
+    return ForgeItemsResponse(items=items, last_updated=last_updated)
 
 
 @app.post("/ah-sales", response_model=RecordedResponse, responses={503: {"model": ErrorResponse}})
