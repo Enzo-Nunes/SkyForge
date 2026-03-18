@@ -14,6 +14,8 @@ ForgeProfit = typing.TypedDict(
         "Profit per Hour": int,
         "Weekly Volume": int,
         "Volume Estimated": bool,
+        "AH Raw Volume Window": int | None,
+        "AH Data Span Seconds": int | None,
         "Selling Market": str,
         "Price Samples 7d": int,
         "Sell Price Low 7d": int | None,

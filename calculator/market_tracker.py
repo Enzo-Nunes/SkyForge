@@ -22,9 +22,7 @@ class MarketPriceTracker:
         "GOBLIN_EGG_YELLOW": "Yellow Goblin Egg",
         "MITHRIL_ORE": "Mithril",
     }
-    SUFFIX_REPLACEMENTS = {
-        "GEM": "GEMSTONE",
-    }
+    SUFFIX_REPLACEMENTS = {"GEM": "GEMSTONE"}
 
     def __init__(self, logger: logging.Logger) -> None:
         self._logger = logger

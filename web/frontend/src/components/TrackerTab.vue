@@ -101,7 +101,7 @@
 								<td class="number profit">+{{ fmt(item.Profit) }}</td>
 								<td class="number">{{ fmtDuration(item.Duration) }}</td>
 								<td class="number pph">{{ fmt(item["Profit per Hour"]) }}</td>
-								<td class="number volume">
+								<td class="number volume" :title="volumeTitle(item)">
 									{{ item["Volume Estimated"] ? "~" : "" }}{{ fmt(item["Weekly Volume"]) }}
 								</td>
 								<td class="range-cell" :title="rangeTitle(item)">
@@ -295,6 +295,39 @@ const rangeTitle = (item) => {
 	}
 
 	return parts.join("\n");
+};
+
+const volumeTitle = (item) => {
+	const source = item["Selling Market"] ?? "Unknown";
+	const weekly = item["Weekly Volume"] ?? 0;
+	const raw = item["AH Raw Volume Window"];
+	const hasRawObservation = raw !== null && raw !== undefined;
+
+	if (source !== "AH") {
+		return `Market: ${source}\nVolume (7d): ${fmt(weekly)}\nSource: official Bazaar rolling 7-day volume`;
+	}
+
+	if (!item["Volume Estimated"]) {
+		if (!hasRawObservation) {
+			return `Market: AH\nVolume (7d): ${fmt(weekly)}\nSource: no observed AH sales in the last 7 days`;
+		}
+		return `Market: AH\nVolume (7d): ${fmt(weekly)}\nSource: observed AH sales over the last 7 days`;
+	}
+
+	const spanSeconds = item["AH Data Span Seconds"];
+	if (!hasRawObservation || !spanSeconds || spanSeconds <= 0) {
+		return `Market: AH\nVolume (7d): ~${fmt(weekly)}\nEstimated from partial AH uptime`;
+	}
+
+	const spanDays = (spanSeconds / 86400).toFixed(2);
+	const factor = (604800 / spanSeconds).toFixed(2);
+	return [
+		"Market: AH",
+		`Observed sales: ${fmt(raw)} units`,
+		`Observed span: ${spanDays} days`,
+		`Extrapolation: observed x ${factor}`,
+		`Estimated 7d volume: ~${fmt(weekly)} units`,
+	].join("\n");
 };
 </script>
 

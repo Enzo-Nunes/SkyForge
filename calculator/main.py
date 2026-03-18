@@ -3,7 +3,7 @@ import sys
 import threading
 import time
 
-from hypixel_client import AHSalesTracker, MarketPriceTracker
+from market_tracker import AHSalesTracker, MarketPriceTracker
 from profit_calculator import ProfitCalculator
 from runtime import CalculatorRuntime
 

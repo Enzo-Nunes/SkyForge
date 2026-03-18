@@ -34,7 +34,8 @@
 				<strong>Volume (7d)</strong> - units sold in the past 7 days. Some Auction House values are prefixed
 				with <strong>~</strong>, which indicates they are extrapolated estimates based on less than 7 days of
 				data. After 7 days of tool uptime, you'll see actual counts. Values from the Bazaar are always official
-				data.
+				data. Hover the value to see whether it is observed or estimated, and for estimated AH values, the
+				extrapolation details.
 			</li>
 			<li>
 				<strong>Normalized Range (7d)</strong> - price volatility metric for the selected sell market over the

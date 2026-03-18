@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from calc_http import request_with_retry
 from calc_types import ForgeProfit, PriceStats
 from constants import DB_API_URL
-from hypixel_client import MarketPriceTracker
+from market_tracker import MarketPriceTracker
 
 from common.types import ForgeItemInfo
 
@@ -68,7 +68,9 @@ class ProfitCalculator:
         uptime_seconds = int(time.time() - self._start_time)
 
         ah_weekly_sales: dict[str, int] = {}
+        ah_raw_sales_window: dict[str, int] = {}
         ah_volume_estimated: dict[str, bool] = {}
+        ah_data_span_seconds: int | None = None
 
         try:
             oldest_response = request_with_retry(self._logger, "GET", f"{DB_API_URL}/ah-sales/oldest", timeout=10)
@@ -76,11 +78,13 @@ class ProfitCalculator:
 
             data_span_seconds = 604800
             is_estimated = uptime_seconds < 604800
+            ah_data_span_seconds = data_span_seconds
 
             if oldest_recorded_at_str:
                 oldest_dt = datetime.fromisoformat(oldest_recorded_at_str)
                 now_dt = datetime.now(timezone.utc)
                 data_span_seconds = max(1, int((now_dt - oldest_dt).total_seconds()))
+                ah_data_span_seconds = data_span_seconds
                 self._logger.info(
                     f"AH data collection: oldest record at {oldest_recorded_at_str}, "
                     f"span = {data_span_seconds}s ({data_span_seconds / 86400:.2f} days)"
@@ -98,12 +102,9 @@ class ProfitCalculator:
             self._logger.info(f"Fetched {len(ah_sales_data)} items from AH sales data")
 
             for item_name, total_quantity in ah_sales_data.items():
+                ah_raw_sales_window[item_name] = int(total_quantity)
                 if is_estimated:
                     volume = int(total_quantity * 604800 / data_span_seconds)
-                    self._logger.debug(
-                        f"  {item_name}: raw_qty={total_quantity}, "
-                        f"extrapolated={volume} (qty × 604800 / {data_span_seconds})"
-                    )
                 else:
                     volume = total_quantity
                 ah_weekly_sales[item_name] = volume
@@ -111,7 +112,9 @@ class ProfitCalculator:
         except Exception as e:
             self._logger.warning(f"Could not fetch AH weekly sales: {e}")
             ah_weekly_sales = {}
+            ah_raw_sales_window = {}
             ah_volume_estimated = {}
+            ah_data_span_seconds = None
 
         self._logger.info("Starting final profit calculations...")
         items_profit: list[ForgeProfit] = []
@@ -134,6 +137,7 @@ class ProfitCalculator:
                     is_craftable = False
                 item_cost += forge_info[item_name]["Recipe"][material] * material_price
 
+            ah_raw_volume_window: int | None = None
             item_bazaar_info = bazaar_prices.get(item_name)
             if item_bazaar_info:
                 item_sell_price = item_bazaar_info.get("Sell Price", -1)
@@ -145,6 +149,7 @@ class ProfitCalculator:
                 weekly_volume = ah_weekly_sales.get(item_name, 0)
                 volume_source = "AH"
                 volume_estimated = ah_volume_estimated.get(item_name, False)
+                ah_raw_volume_window = ah_raw_sales_window.get(item_name)
 
             item_price_stats = price_stats_7d.get(item_name, {}).get(volume_source, {})
             low_7d = item_price_stats.get("low")
@@ -170,6 +175,8 @@ class ProfitCalculator:
                         "Profit per Hour": math.ceil((item_sell_price - item_cost) / forge_info[item_name]["Duration"]),
                         "Weekly Volume": weekly_volume,
                         "Volume Estimated": volume_estimated,
+                        "AH Raw Volume Window": ah_raw_volume_window,
+                        "AH Data Span Seconds": ah_data_span_seconds if volume_source == "AH" else None,
                         "Selling Market": volume_source,
                         "Price Samples 7d": samples_7d,
                         "Sell Price Low 7d": low_7d,
