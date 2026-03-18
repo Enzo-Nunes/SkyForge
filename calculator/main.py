@@ -1,415 +1,41 @@
 import logging
-import math
-import os
 import sys
 import threading
 import time
-import typing
-from datetime import datetime, timezone
 
-import requests
-
-from common.http import request_with_retry
-from common.types import ForgeItemInfo, ForgeProfit
-
-DB_API_URL = "http://db-api:5000"
-WEB_URL = "http://web:8000"
-
-PriceStats = dict[str, dict[str, dict[str, int | None]]]
-
-
-def wait_for_api(logger: logging.Logger, retries: int = 10, delay: int = 5) -> None:
-    for attempt in range(retries):
-        try:
-            request_with_retry(logger, "GET", f"{DB_API_URL}/health", timeout=10, retries=1)
-            return
-        except requests.exceptions.RequestException:
-            if attempt < retries - 1:
-                logger.info(f"db-api not ready (attempt {attempt + 1}/{retries}), retrying in {delay}s...")
-                time.sleep(delay)
-            else:
-                raise RuntimeError(f"Could not connect to db-api after {retries} attempts")
-
-
-class MarketPriceTracker:
-    BAZAAR_URL = "https://api.hypixel.net/v2/skyblock/bazaar"
-    AUCTION_HOUSE_URL = "https://api.hypixel.net/v2/skyblock/auctions"
-    HEADERS = {"Content-Type": "application/json"}
-
-    def __init__(self, logger: logging.Logger) -> None:
-        self._logger = logger
-        self._auction_id_map: dict[str, tuple[str, float]] = {}  # auction_id -> (item_name, inserted_at)
-        self._auction_id_map_lock = threading.Lock()
-
-    def fetch_auction_house_prices(self) -> dict[str, int]:
-        response = request_with_retry(self._logger, "GET", self.AUCTION_HOUSE_URL, headers=self.HEADERS)
-        auction_house = response.json()
-        pages = auction_house["totalPages"]
-        items = auction_house["totalAuctions"]
-
-        self._logger.info(f"Starting Auction House processing, {pages} pages found with a total of {items} auctions:")
-        prices: dict[str, int] = {}
-        new_id_map: dict[str, str] = {}
-
-        for i in range(pages):
-            try:
-                page_response = request_with_retry(
-                    self._logger,
-                    "GET",
-                    self.AUCTION_HOUSE_URL,
-                    headers=self.HEADERS,
-                    params={"page": i},
-                    retries=2,
-                )
-                page = page_response.json()
-            except Exception as e:
-                self._logger.warning(f"Skipping AH page {i}: {e}")
-                continue
-            for auction in page.get("auctions", []):
-                item_name = auction["item_name"]
-                new_id_map[auction["uuid"]] = item_name
-                current_price = prices.get(item_name, -1)
-                new_price = auction["starting_bid"]
-                if auction["bin"] and (current_price == -1 or current_price > new_price):
-                    prices[item_name] = new_price
-
-        self._update_auction_id_map(new_id_map)
-
-        self._logger.info("Auction House processing complete.")
-        return prices
-
-    def _update_auction_id_map(self, new_entries: dict[str, str]) -> None:
-        """Accumulate new uuid→item_name entries with a timestamp (called from main thread)."""
-        now = time.monotonic()
-        with self._auction_id_map_lock:
-            for uuid, name in new_entries.items():
-                self._auction_id_map[uuid] = (name, now)
-
-    def resolve_and_remove(self, auction_ids: list[str]) -> dict[str, str]:
-        """Look up item names for the given auction IDs, remove matched entries, and return {uuid: item_name}."""
-        result: dict[str, str] = {}
-        with self._auction_id_map_lock:
-            for auction_id in auction_ids:
-                entry = self._auction_id_map.pop(auction_id, None)
-                if entry:
-                    result[auction_id] = entry[0]
-        return result
-
-    def prune_auction_id_map(self, max_age_seconds: float) -> int:
-        """Remove entries older than max_age_seconds. Returns the number of entries pruned."""
-        cutoff = time.monotonic() - max_age_seconds
-        with self._auction_id_map_lock:
-            stale = [k for k, (_, ts) in self._auction_id_map.items() if ts < cutoff]
-            for k in stale:
-                del self._auction_id_map[k]
-        return len(stale)
-
-    def fetch_bazaar_prices(self) -> dict[str, dict[str, int]]:
-        self._logger.info("Starting Bazaar processing...")
-        bazaar = request_with_retry(self._logger, "GET", self.BAZAAR_URL, headers=self.HEADERS).json()
-        prices: dict[str, dict[str, int]] = {"Coins": {"Buy Price": 1, "Sell Price": 1, "Weekly Volume": 0}}
-
-        for product in bazaar["products"]:
-            item_name = self._convert_name(product)
-            qs = bazaar["products"][product]["quick_status"]
-            prices[item_name] = {
-                "Buy Price": qs["buyPrice"],
-                "Sell Price": qs["sellPrice"],
-                "Weekly Volume": qs["sellMovingWeek"],
-            }
-
-        self._logger.info("Bazaar processing complete.")
-        return prices
-
-    def _convert_name(self, bazaar_name: str) -> str:
-        if bazaar_name == "DRILL_ENGINE":
-            return "Drill Motor"
-        if bazaar_name == "FUEL_TANK":
-            return "Fuel Canister"
-        if bazaar_name == "HAY_BLOCK":
-            return "Hay Bale"
-        if bazaar_name == "ENCHANTED_HAY_BLOCK":
-            return "Enchanted Hay Bale"
-        if bazaar_name == "ENCHANTED_COAL_BLOCK":
-            return "Enchanted Block Of Coal"
-        if bazaar_name == "GOBLIN_EGG_BLUE":
-            return "Blue Goblin Egg"
-        if bazaar_name == "GOBLIN_EGG_GREEN":
-            return "Green Goblin Egg"
-        if bazaar_name == "GOBLIN_EGG_RED":
-            return "Red Goblin Egg"
-        if bazaar_name == "GOBLIN_EGG_YELLOW":
-            return "Yellow Goblin Egg"
-        if bazaar_name == "MITHRIL_ORE":
-            return "Mithril"
-
-        converted_name = bazaar_name
-        if bazaar_name.endswith("GEM"):
-            converted_name = bazaar_name.replace("GEM", "GEMSTONE")
-
-        return " ".join([part.capitalize() for part in converted_name.split(":")[0].split("_")])
-
-
-class AHSalesTracker:
-    ENDED_URL = "https://api.hypixel.net/v2/skyblock/auctions_ended"
-    POLL_INTERVAL = 60
-
-    def __init__(self, logger: logging.Logger, market: MarketPriceTracker, map_ttl: float = 1200.0) -> None:
-        self._logger = logger
-        self._market = market
-        self._map_ttl = map_ttl
-
-    def _poll_once(self) -> None:
-        try:
-            response = request_with_retry(self._logger, "GET", self.ENDED_URL, timeout=10)
-            auctions = response.json().get("auctions", [])
-
-            sold_ids = [a["auction_id"] for a in auctions if a.get("buyer") and a.get("bin")]
-            resolved = self._market.resolve_and_remove(sold_ids)
-
-            sales: dict[str, int] = {}
-            for item_name in resolved.values():
-                sales[item_name] = sales.get(item_name, 0) + 1
-
-            pruned = self._market.prune_auction_id_map(self._map_ttl)
-            if pruned:
-                self._logger.info(f"Pruned {pruned} stale entries from auction ID map.")
-
-            if sales:
-                request_with_retry(self._logger, "POST", f"{DB_API_URL}/ah-sales", json={"sales": sales}, timeout=10)
-                self._logger.info(f"Recorded {sum(sales.values())} AH sales across {len(sales)} items.")
-        except Exception as e:
-            self._logger.warning(f"AH sales poll failed: {e}")
-
-    def run(self) -> None:
-        while True:
-            self._poll_once()
-            time.sleep(self.POLL_INTERVAL)
-
-
-class ProfitCalculator:
-    def __init__(self, logger: logging.Logger) -> None:
-        self._logger = logger
-        self._market = MarketPriceTracker(logger)
-        self._start_time = time.time()  # Track uptime for volume estimation
-
-    @property
-    def market(self) -> MarketPriceTracker:
-        return self._market
-
-    def _store_price_snapshots(
-        self,
-        forge_info: dict[str, ForgeItemInfo],
-        auction_house_prices: dict[str, int],
-        bazaar_prices: dict[str, dict[str, int]],
-    ) -> None:
-        snapshots: dict[str, dict[str, int]] = {}
-        for item_name in forge_info.keys():
-            item_snapshots: dict[str, int] = {}
-
-            bazaar_sell = bazaar_prices.get(item_name, {}).get("Sell Price", -1)
-            if bazaar_sell and bazaar_sell > 0:
-                item_snapshots["Bazaar"] = int(bazaar_sell)
-
-            ah_sell = auction_house_prices.get(item_name, -1)
-            if ah_sell and ah_sell > 0:
-                item_snapshots["AH"] = int(ah_sell)
-
-            if item_snapshots:
-                snapshots[item_name] = item_snapshots
-
-        if not snapshots:
-            return
-
-        request_with_retry(
-            self._logger, "POST", f"{DB_API_URL}/market-prices", json={"snapshots": snapshots}, timeout=15
-        )
-
-    def _read_price_stats(self) -> PriceStats:
-        response = request_with_retry(self._logger, "GET", f"{DB_API_URL}/market-prices/stats", timeout=15)
-        return typing.cast(PriceStats, response.json().get("stats", {}))
-
-    def calculate_profits(self, forge_info: dict[str, ForgeItemInfo]) -> tuple[list[ForgeProfit], int | None]:
-        """Calculate profits for all forge items.
-        Returns (profits_list, uptime_seconds).
-        """
-        auction_house_prices = self._market.fetch_auction_house_prices()
-        bazaar_prices = self._market.fetch_bazaar_prices()
-
-        price_stats_7d: PriceStats = {}
-        try:
-            self._store_price_snapshots(forge_info, auction_house_prices, bazaar_prices)
-            price_stats_7d = self._read_price_stats()
-        except Exception as e:
-            self._logger.warning(f"Could not store/read market price history: {e}")
-
-        # Calculate uptime for UI display
-        uptime_seconds = int(time.time() - self._start_time)
-
-        ah_weekly_sales: dict[str, int] = {}
-        ah_volume_estimated: dict[str, bool] = {}
-
-        try:
-            # Fetch actual data span from database
-            oldest_response = request_with_retry(self._logger, "GET", f"{DB_API_URL}/ah-sales/oldest", timeout=10)
-            oldest_recorded_at_str = oldest_response.json().get("oldest_recorded_at")
-
-            # Determine if we need to extrapolate based on actual data collection span
-            # But use uptime to determine if we should show the "estimated" flag
-            data_span_seconds = 604800  # Default to 7 days if we have full data
-            is_estimated = uptime_seconds < 604800  # Show estimated flag if tool hasn't been up 7 days
-
-            if oldest_recorded_at_str:
-                oldest_dt = datetime.fromisoformat(oldest_recorded_at_str)
-                now_dt = datetime.now(timezone.utc)
-                data_span_seconds = max(1, int((now_dt - oldest_dt).total_seconds()))
-                self._logger.info(
-                    f"AH data collection: oldest record at {oldest_recorded_at_str}, "
-                    f"span = {data_span_seconds}s ({data_span_seconds / 86400:.2f} days)"
-                )
-            else:
-                self._logger.info("No AH records in database yet, will not extrapolate")
-
-            self._logger.info(
-                f"Tool uptime: {uptime_seconds}s ({uptime_seconds / 86400:.2f} days), "
-                f"is_estimated flag = {is_estimated}"
-            )
-
-            response = request_with_retry(self._logger, "GET", f"{DB_API_URL}/ah-sales", timeout=10)
-            ah_sales_data = response.json().get("sales", {})
-            self._logger.info(f"Fetched {len(ah_sales_data)} items from AH sales data")
-
-            # Raw sales are just item_name -> total_quantity
-            for item_name, total_quantity in ah_sales_data.items():
-                if is_estimated:
-                    # Extrapolate volume based on actual data collection span
-                    volume = int(total_quantity * 604800 / data_span_seconds)
-                    self._logger.debug(
-                        f"  {item_name}: raw_qty={total_quantity}, "
-                        f"extrapolated={volume} (qty × 604800 / {data_span_seconds})"
-                    )
-                else:
-                    volume = total_quantity
-                ah_weekly_sales[item_name] = volume
-                ah_volume_estimated[item_name] = is_estimated
-        except Exception as e:
-            self._logger.warning(f"Could not fetch AH weekly sales: {e}")
-            ah_weekly_sales = {}
-            ah_volume_estimated = {}
-
-        self._logger.info("Starting final profit calculations...")
-        items_profit: list[ForgeProfit] = []
-
-        for item_name in forge_info.keys():
-            item_cost = 0
-            is_craftable = True
-            is_sellable = True
-            recipe_markets: dict[str, str] = {}
-
-            for material in forge_info[item_name]["Recipe"].keys():
-                material_bazaar_info = bazaar_prices.get(material)
-                if material_bazaar_info:
-                    material_price = material_bazaar_info.get("Buy Price", -1)
-                    recipe_markets[material] = "Bazaar"
-                else:
-                    material_price = auction_house_prices.get(material, -1)
-                    recipe_markets[material] = "AH"
-                if material_price < 0:
-                    is_craftable = False
-                item_cost += forge_info[item_name]["Recipe"][material] * material_price
-
-            item_bazaar_info = bazaar_prices.get(item_name)
-            if item_bazaar_info:
-                item_sell_price = item_bazaar_info.get("Sell Price", -1)
-                weekly_volume = item_bazaar_info.get("Weekly Volume", 0)
-                volume_source = "Bazaar"
-                volume_estimated = False
-            else:
-                item_sell_price = auction_house_prices.get(item_name, -1)
-                weekly_volume = ah_weekly_sales.get(item_name, 0)
-                volume_source = "AH"
-                volume_estimated = ah_volume_estimated.get(item_name, False)
-
-            item_price_stats = price_stats_7d.get(item_name, {}).get(volume_source, {})
-            low_7d = item_price_stats.get("low")
-            high_7d = item_price_stats.get("high")
-            median_7d = item_price_stats.get("median")
-            samples_7d = int(item_price_stats.get("samples", 0) or 0)
-            range_pct_7d: int | None = None
-            if median_7d and median_7d > 0 and low_7d is not None and high_7d is not None:
-                range_pct_7d = int(round(((high_7d - low_7d) / median_7d) * 100))
-
-            if item_sell_price < 0:
-                is_sellable = False
-
-            if is_craftable and is_sellable and item_sell_price > item_cost:
-                items_profit.append(
-                    {
-                        "Rank": 0,
-                        "Name": item_name,
-                        "Cost": math.ceil(item_cost),
-                        "Sell Value": math.ceil(item_sell_price),
-                        "Profit": math.ceil(item_sell_price - item_cost),
-                        "Duration": forge_info[item_name]["Duration"],
-                        "Profit per Hour": math.ceil((item_sell_price - item_cost) / forge_info[item_name]["Duration"]),
-                        "Weekly Volume": weekly_volume,
-                        "Volume Estimated": volume_estimated,
-                        "Selling Market": volume_source,
-                        "Price Samples 7d": samples_7d,
-                        "Sell Price Low 7d": low_7d,
-                        "Sell Price High 7d": high_7d,
-                        "Sell Price Median 7d": median_7d,
-                        "Sell Price Range % 7d": range_pct_7d,
-                        "Recipe Markets": recipe_markets,
-                        "Recipe": forge_info[item_name]["Recipe"],
-                        "Requirements": forge_info[item_name]["Requirements"],
-                    }
-                )
-
-        return (
-            [
-                typing.cast(ForgeProfit, {**item, "Rank": i + 1})
-                for i, item in enumerate(sorted(items_profit, key=lambda x: x["Profit per Hour"], reverse=True))
-            ],
-            uptime_seconds,
-        )
+from hypixel_client import AHSalesTracker, MarketPriceTracker
+from profit_calculator import ProfitCalculator
+from runtime import CalculatorRuntime
 
 
 def main() -> None:
     formatter = logging.Formatter("%(asctime)s - calculator - %(levelname)s - %(message)s")
 
     logger = logging.getLogger("calculator")
+    logger.handlers.clear()
     handler = logging.StreamHandler(sys.stdout)
     handler.setFormatter(formatter)
     logger.addHandler(handler)
     logger.setLevel(logging.INFO)
 
-    refresh_time = int(os.getenv("REFRESH_TIME", "120"))
+    runtime = CalculatorRuntime(logger)
 
     logger.info("Waiting for db-api...")
-    wait_for_api(logger)
+    runtime.wait_for_db_api()
     logger.info("db-api ready. Checking for existing forge data...")
-
-    while True:
-        r = request_with_retry(logger, "GET", f"{DB_API_URL}/forge-items", timeout=30)
-        if r.json().get("items"):
-            break
-        logger.info("DB is empty, waiting for first scrape... retrying in 10s...")
-        time.sleep(10)
+    runtime.wait_for_forge_data()
 
     logger.info("Forge data available. Starting calculations.")
-    calculator = ProfitCalculator(logger)
+    market = MarketPriceTracker(logger)
+    calculator = ProfitCalculator(logger, market)
 
-    sales_tracker = AHSalesTracker(logger, calculator.market, map_ttl=refresh_time * 10)
+    sales_tracker = AHSalesTracker(logger, market, map_ttl=runtime.refresh_time * 10)
     t = threading.Thread(target=sales_tracker.run, daemon=True, name="ah-sales-tracker")
     t.start()
     logger.info("AH sales tracker thread started.")
 
     while True:
-        response = request_with_retry(logger, "GET", f"{DB_API_URL}/forge-items", timeout=30)
-        forge_info: dict[str, ForgeItemInfo] = {
-            name: typing.cast(ForgeItemInfo, info) for name, info in response.json()["items"].items()
-        }
+        forge_info = runtime.fetch_forge_items()
         if not forge_info:
             logger.info("No forge data in database yet, retrying in 10s...")
             time.sleep(10)
@@ -419,23 +45,13 @@ def main() -> None:
         profits, uptime_seconds = calculator.calculate_profits(forge_info)
 
         try:
-            request_with_retry(
-                logger,
-                "POST",
-                f"{WEB_URL}/results",
-                json={
-                    "profits": profits,
-                    "calculated_at": datetime.now(timezone.utc).isoformat(),
-                    "uptime_seconds": uptime_seconds,
-                },
-                timeout=10,
-            )
+            runtime.publish_results(profits, uptime_seconds)
             logger.info("Pushed results to web service.")
         except Exception as e:
             logger.warning(f"Could not push results to web service: {e}")
 
-        logger.info(f"Done. Sleeping {refresh_time}s...")
-        time.sleep(refresh_time)
+        logger.info(f"Done. Sleeping {runtime.refresh_time}s...")
+        time.sleep(runtime.refresh_time)
 
 
 if __name__ == "__main__":

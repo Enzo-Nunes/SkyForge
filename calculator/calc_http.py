@@ -55,21 +55,3 @@ def request_with_retry(
             time.sleep(wait_seconds)
 
     raise RuntimeError("Unreachable")
-
-
-def wiki_get_with_retry(
-    logger: logging.Logger,
-    url: str,
-    *,
-    timeout: float = DEFAULT_HTTP_TIMEOUT,
-    retries: int = HTTP_RETRIES,
-    backoff_seconds: float = HTTP_BACKOFF_SECONDS,
-):
-    return request_with_retry(
-        logger,
-        "GET",
-        url,
-        timeout=timeout,
-        retries=retries,
-        backoff_seconds=backoff_seconds,
-    )

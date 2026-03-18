@@ -1,9 +1,16 @@
 import os
 import time
+import typing
 
 import psycopg2
 
 from common.types import ForgeItemInfo
+
+ForgeItemRow: typing.TypeAlias = tuple[str, float]
+ForgeRecipeRow: typing.TypeAlias = tuple[str, str, int]
+ForgeRequirementRow: typing.TypeAlias = tuple[str, str, int]
+AHSalesRow: typing.TypeAlias = tuple[str, int]
+PriceStatsRow: typing.TypeAlias = tuple[str, str, int | None, int | None, int | None, int]
 
 
 def _get_dsn() -> str:
@@ -108,18 +115,19 @@ def read_forge_items(conn: psycopg2.extensions.connection) -> dict[str, ForgeIte
 
     with conn.cursor() as cur:
         cur.execute("SELECT name, duration_hours FROM forge_items")
-        for row in cur.fetchall():
-            name: str = row[0]
-            duration: float = row[1]
+        item_rows = typing.cast(list[ForgeItemRow], cur.fetchall())
+        for name, duration in item_rows:
             items[name] = ForgeItemInfo({"Duration": duration, "Recipe": {}, "Requirements": {}})
 
         cur.execute("SELECT item_name, material, quantity FROM forge_recipes")
-        for row in cur.fetchall():
-            items[row[0]]["Recipe"][row[1]] = row[2]
+        recipe_rows = typing.cast(list[ForgeRecipeRow], cur.fetchall())
+        for item_name, material, quantity in recipe_rows:
+            items[item_name]["Recipe"][material] = quantity
 
         cur.execute("SELECT item_name, requirement, level FROM forge_requirements")
-        for row in cur.fetchall():
-            items[row[0]]["Requirements"][row[1]] = row[2]
+        requirement_rows = typing.cast(list[ForgeRequirementRow], cur.fetchall())
+        for item_name, requirement, level in requirement_rows:
+            items[item_name]["Requirements"][requirement] = level
 
     return items
 
@@ -153,11 +161,8 @@ def read_ah_weekly_sales(conn: psycopg2.extensions.connection) -> dict[str, int]
             WHERE recorded_at > NOW() - INTERVAL '7 days'
             GROUP BY item_name
         """)
-        result: dict[str, int] = {}
-        for row in cur.fetchall():
-            item_name, total = row
-            result[item_name] = total
-        return result
+        rows = typing.cast(list[AHSalesRow], cur.fetchall())
+        return {item_name: total for item_name, total in rows}
 
 
 def read_ah_oldest_record_time(conn: psycopg2.extensions.connection) -> str | None:
@@ -235,8 +240,8 @@ def read_market_price_stats_7d(conn: psycopg2.extensions.connection) -> dict[str
             """
         )
         result: dict[str, dict[str, dict[str, int | None]]] = {}
-        for row in cur.fetchall():
-            item_name, market, low, high, median, samples = row
+        rows = typing.cast(list[PriceStatsRow], cur.fetchall())
+        for item_name, market, low, high, median, samples in rows:
             item_bucket = result.setdefault(item_name, {})
             item_bucket[market] = {
                 "low": low,

@@ -57,10 +57,10 @@
 		<div class="warning-box">
 			<strong class="warning-title">⚠️ Early Uptime Warning</strong>
 			<p>
-				During the first 7 days after starting the tool, Auction House volume data is incomplete and
+				During the first 7 days after starting SkyForge, Auction House volume data is incomplete and
 				extrapolated, and price-range history for both markets is still building up. This means both volume and
 				normalized range can fluctuate as more data arrives.
-				<strong>Treat rankings with caution during this period.</strong> You can check how long the tool has
+				<strong>Treat rankings with caution during this period.</strong> You can check how long SkyForge has
 				been running by looking at the <strong>Uptime</strong> indicator in the upper right corner.
 			</p>
 		</div>

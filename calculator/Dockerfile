@@ -7,6 +7,6 @@ COPY calculator/requirements.txt ./requirements.txt
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY calculator/main.py ./main.py
+COPY calculator/*.py ./
 
 CMD ["python", "main.py"]

@@ -20,7 +20,7 @@
 
 			<template v-else>
 				<div class="early-warning" v-if="uptimeSeconds !== null && uptimeSeconds < 604800">
-					⚠ Volume and range data is incomplete because the tool has been running for less than 7 days.
+					⚠ Volume and range data is incomplete because SkyForge has been running for less than 7 days.
 					<button class="guide-link" @click="$emit('go-to-guide')">Learn more in the Guide</button>
 				</div>
 
