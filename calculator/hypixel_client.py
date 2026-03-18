@@ -10,6 +10,21 @@ class MarketPriceTracker:
     BAZAAR_URL = "https://api.hypixel.net/v2/skyblock/bazaar"
     AUCTION_HOUSE_URL = "https://api.hypixel.net/v2/skyblock/auctions"
     HEADERS = {"Content-Type": "application/json"}
+    NAME_OVERRIDES = {
+        "DRILL_ENGINE": "Drill Motor",
+        "FUEL_TANK": "Fuel Canister",
+        "HAY_BLOCK": "Hay Bale",
+        "ENCHANTED_HAY_BLOCK": "Enchanted Hay Bale",
+        "ENCHANTED_COAL_BLOCK": "Enchanted Block Of Coal",
+        "GOBLIN_EGG_BLUE": "Blue Goblin Egg",
+        "GOBLIN_EGG_GREEN": "Green Goblin Egg",
+        "GOBLIN_EGG_RED": "Red Goblin Egg",
+        "GOBLIN_EGG_YELLOW": "Yellow Goblin Egg",
+        "MITHRIL_ORE": "Mithril",
+    }
+    SUFFIX_REPLACEMENTS = {
+        "GEM": "GEMSTONE",
+    }
 
     def __init__(self, logger: logging.Logger) -> None:
         self._logger = logger
@@ -94,32 +109,20 @@ class MarketPriceTracker:
         return prices
 
     def _convert_name(self, bazaar_name: str) -> str:
-        if bazaar_name == "DRILL_ENGINE":
-            return "Drill Motor"
-        if bazaar_name == "FUEL_TANK":
-            return "Fuel Canister"
-        if bazaar_name == "HAY_BLOCK":
-            return "Hay Bale"
-        if bazaar_name == "ENCHANTED_HAY_BLOCK":
-            return "Enchanted Hay Bale"
-        if bazaar_name == "ENCHANTED_COAL_BLOCK":
-            return "Enchanted Block Of Coal"
-        if bazaar_name == "GOBLIN_EGG_BLUE":
-            return "Blue Goblin Egg"
-        if bazaar_name == "GOBLIN_EGG_GREEN":
-            return "Green Goblin Egg"
-        if bazaar_name == "GOBLIN_EGG_RED":
-            return "Red Goblin Egg"
-        if bazaar_name == "GOBLIN_EGG_YELLOW":
-            return "Yellow Goblin Egg"
-        if bazaar_name == "MITHRIL_ORE":
-            return "Mithril"
+        base_name = bazaar_name.split(":")[0]
 
-        converted_name = bazaar_name
-        if bazaar_name.endswith("GEM"):
-            converted_name = bazaar_name.replace("GEM", "GEMSTONE")
+        if bazaar_name in self.NAME_OVERRIDES:
+            return self.NAME_OVERRIDES[bazaar_name]
+        if base_name in self.NAME_OVERRIDES:
+            return self.NAME_OVERRIDES[base_name]
 
-        return " ".join([part.capitalize() for part in converted_name.split(":")[0].split("_")])
+        converted_name = base_name
+        for suffix, replacement in self.SUFFIX_REPLACEMENTS.items():
+            if converted_name.endswith(suffix):
+                converted_name = f"{converted_name[: -len(suffix)]}{replacement}"
+                break
+
+        return " ".join(part.capitalize() for part in converted_name.split("_"))
 
 
 class AHSalesTracker:
