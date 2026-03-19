@@ -15,6 +15,10 @@ class CalculatorRuntime:
     def __init__(self, logger: logging.Logger) -> None:
         self._logger = logger
         self.refresh_time = int(os.getenv("REFRESH_TIME", "120"))
+        self.listing_refresh_time = int(os.getenv("LISTING_REFRESH_TIME", "45"))
+        self.ended_auctions_refresh_time = int(os.getenv("ENDED_AUCTIONS_REFRESH_TIME", "60"))
+        self.auction_state_stale_seconds = float(os.getenv("AH_STATE_STALE_SECONDS", "900"))
+        self.auction_state_end_grace_seconds = float(os.getenv("AH_STATE_END_GRACE_SECONDS", "180"))
 
     def wait_for_db_api(self, retries: int = 10, delay: int = 5) -> None:
         for attempt in range(retries):

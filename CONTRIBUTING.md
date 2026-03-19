@@ -117,8 +117,20 @@ If the forge crafting dataset is out of date, both of these contribution paths a
 
 4. **Update documentation:**
    - If your change affects usage or configuration, update `README.md` or add docs as needed.
+   - If your change affects tracker logic or UI explanations, also update in-app docs in
+     `web/frontend/src/components/GuideTab.vue` and `web/frontend/src/components/HowTab.vue`.
 
-5. **Commit your changes:**
+### Calculator and Market-Data Logic Changes
+
+When contributing to market tracking or profit logic, keep these behaviors consistent unless your PR explicitly changes them:
+
+- AH volume history is based on realized BIN sales from ended auctions.
+- Bazaar history is based on periodic sell-price/weekly-volume snapshots.
+- AH 7-day volume extrapolation is only applied during partial uptime and only when an item has at least 3 observed AH sales.
+
+If you intentionally change any of the above behavior, document it clearly in your PR description and update the information presented to the user.
+
+1. **Commit your changes:**
 
    ```bash
    git add .

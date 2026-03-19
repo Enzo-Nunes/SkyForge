@@ -9,8 +9,8 @@ from common.types import ForgeItemInfo
 ForgeItemRow: typing.TypeAlias = tuple[str, float]
 ForgeRecipeRow: typing.TypeAlias = tuple[str, str, int]
 ForgeRequirementRow: typing.TypeAlias = tuple[str, str, int]
-AHSalesRow: typing.TypeAlias = tuple[str, int]
-PriceStatsRow: typing.TypeAlias = tuple[str, str, int | None, int | None, int | None, int]
+AHSalesSummaryRow: typing.TypeAlias = tuple[str, int | None, int | None, int | None, int, str | None]
+BazaarSummaryRow: typing.TypeAlias = tuple[str, int | None, int | None, int | None, int, int | None, str | None]
 
 
 def _get_dsn() -> str:
@@ -62,29 +62,35 @@ def init_schema(conn: psycopg2.extensions.connection) -> None:
             )
         """)
         cur.execute("""
-            CREATE TABLE IF NOT EXISTS ah_sale_batches (
-                id          SERIAL PRIMARY KEY,
-                item_name   TEXT NOT NULL,
-                quantity    INT  NOT NULL,
-                recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            CREATE TABLE IF NOT EXISTS ah_sales (
+                id              SERIAL PRIMARY KEY,
+                item_name       TEXT NOT NULL,
+                effective_price BIGINT NOT NULL,
+                auction_id      TEXT,
+                recorded_at     TIMESTAMPTZ NOT NULL DEFAULT NOW()
             )
         """)
         cur.execute("""
-            CREATE INDEX IF NOT EXISTS idx_ah_sale_batches_lookup
-                ON ah_sale_batches (item_name, recorded_at)
+            CREATE INDEX IF NOT EXISTS idx_ah_sales_lookup
+                ON ah_sales (item_name, recorded_at)
         """)
         cur.execute("""
-            CREATE TABLE IF NOT EXISTS market_price_snapshots (
-                id          SERIAL PRIMARY KEY,
-                item_name   TEXT NOT NULL,
-                market      TEXT NOT NULL CHECK (market IN ('Bazaar', 'AH')),
-                sell_price  BIGINT NOT NULL,
-                sampled_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_ah_sales_auction_id
+                ON ah_sales (auction_id)
+                WHERE auction_id IS NOT NULL
+        """)
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS bazaar_snapshots (
+                id            SERIAL PRIMARY KEY,
+                item_name     TEXT NOT NULL,
+                sell_price    BIGINT NOT NULL,
+                weekly_volume BIGINT NOT NULL,
+                sampled_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
             )
         """)
         cur.execute("""
-            CREATE INDEX IF NOT EXISTS idx_market_price_snapshots_lookup
-                ON market_price_snapshots (item_name, market, sampled_at)
+            CREATE INDEX IF NOT EXISTS idx_bazaar_snapshots_lookup
+                ON bazaar_snapshots (item_name, sampled_at)
         """)
     conn.commit()
 
@@ -132,121 +138,154 @@ def read_forge_items(conn: psycopg2.extensions.connection) -> dict[str, ForgeIte
     return items
 
 
-def insert_ah_sale_batch(conn: psycopg2.extensions.connection, sales: dict[str, int]) -> None:
+def insert_ah_sales_with_price(conn: psycopg2.extensions.connection, sales: list[dict[str, int | str | None]]) -> int:
+    inserted = 0
+
     with conn.cursor() as cur:
-        for item_name, quantity in sales.items():
+        for sale in sales:
+            item_name_raw = sale.get("item_name")
+            price_raw = sale.get("effective_price")
+            auction_id_raw = sale.get("auction_id")
+
+            if not isinstance(item_name_raw, str):
+                continue
+            if not isinstance(price_raw, int) or price_raw < 0:
+                continue
+            auction_id = auction_id_raw if isinstance(auction_id_raw, str) else None
+
             cur.execute(
                 """
-                INSERT INTO ah_sale_batches (item_name, quantity)
-                SELECT %s, %s WHERE EXISTS (SELECT 1 FROM forge_items WHERE name = %s)
+                INSERT INTO ah_sales (item_name, effective_price, auction_id)
+                VALUES (%s, %s, %s)
+                ON CONFLICT (auction_id) WHERE auction_id IS NOT NULL DO NOTHING
                 """,
-                (item_name, quantity, item_name),
+                (item_name_raw, price_raw, auction_id),
             )
-        # Prune rows older than 8 days to keep the table lean
-        cur.execute("DELETE FROM ah_sale_batches WHERE recorded_at < NOW() - INTERVAL '8 days'")
-    conn.commit()
 
+            if cur.rowcount > 0:
+                inserted += 1
 
-def read_ah_weekly_sales(conn: psycopg2.extensions.connection) -> dict[str, int]:
-    """Read 7-day AH sales totals by item.
-    Returns {item_name: total_quantity}.
-    Estimation logic is handled by the calculator.
-    """
-    with conn.cursor() as cur:
-        cur.execute("""
-            SELECT 
-                item_name,
-                SUM(quantity) as total
-            FROM ah_sale_batches
-            WHERE recorded_at > NOW() - INTERVAL '7 days'
-            GROUP BY item_name
-        """)
-        rows = typing.cast(list[AHSalesRow], cur.fetchall())
-        return {item_name: total for item_name, total in rows}
-
-
-def read_ah_oldest_record_time(conn: psycopg2.extensions.connection) -> str | None:
-    """Get the ISO timestamp of the oldest AH sale record in the database.
-    Returns None if no records exist.
-    Used by calculator to determine actual data collection span for accurate extrapolation.
-    """
-    with conn.cursor() as cur:
-        cur.execute("SELECT MIN(recorded_at) FROM ah_sale_batches")
-        result = cur.fetchone()
-        if result and result[0]:
-            return result[0].isoformat()
-        return None
-
-
-def insert_market_price_snapshots(conn: psycopg2.extensions.connection, snapshots: dict[str, dict[str, int]]) -> None:
-    """Insert one sampled sell price per item and market.
-
-    Input format:
-    {
-        "Item Name": {
-            "Bazaar": 12345,
-            "AH": 13000,
-        }
-    }
-    """
-    with conn.cursor() as cur:
-        for item_name, prices_by_market in snapshots.items():
-            for market, sell_price in prices_by_market.items():
-                if market not in {"Bazaar", "AH"}:
-                    continue
-                cur.execute(
-                    """
-                    INSERT INTO market_price_snapshots (item_name, market, sell_price)
-                    VALUES (%s, %s, %s)
-                    """,
-                    (item_name, market, int(sell_price)),
-                )
         # Keep eight days of history to support rolling seven-day analytics.
-        cur.execute("DELETE FROM market_price_snapshots WHERE sampled_at < NOW() - INTERVAL '8 days'")
+        cur.execute("DELETE FROM ah_sales WHERE recorded_at < NOW() - INTERVAL '8 days'")
+
     conn.commit()
+    return inserted
 
 
-def read_market_price_stats_7d(conn: psycopg2.extensions.connection) -> dict[str, dict[str, dict[str, int | None]]]:
-    """Read seven-day low/high/median sell prices by item and market.
+def insert_bazaar_snapshots(conn: psycopg2.extensions.connection, snapshots: dict[str, dict[str, int | None]]) -> int:
+    inserted = 0
+
+    with conn.cursor() as cur:
+        for item_name, snapshot in snapshots.items():
+            sell_price_raw = snapshot.get("sell_price")
+            weekly_volume_raw = snapshot.get("weekly_volume")
+
+            if not isinstance(sell_price_raw, int) or sell_price_raw < 0:
+                continue
+            if not isinstance(weekly_volume_raw, int) or weekly_volume_raw < 0:
+                continue
+
+            cur.execute(
+                """
+                INSERT INTO bazaar_snapshots (item_name, sell_price, weekly_volume)
+                VALUES (%s, %s, %s)
+                """,
+                (item_name, sell_price_raw, weekly_volume_raw),
+            )
+            if cur.rowcount > 0:
+                inserted += 1
+
+        cur.execute("DELETE FROM bazaar_snapshots WHERE sampled_at < NOW() - INTERVAL '8 days'")
+
+    conn.commit()
+    return inserted
+
+
+def read_market_summary_7d(
+    conn: psycopg2.extensions.connection,
+) -> dict[str, dict[str, dict[str, int | str | None]]]:
+    """Read per-item 7-day market summaries for AH + Bazaar.
 
     Returns:
     {
         "Item Name": {
-            "Bazaar": {"low": 100, "high": 150, "median": 120, "samples": 42},
-            "AH": {"low": 110, "high": 190, "median": 130, "samples": 12},
+            "AH": {
+                "low": 110,
+                "high": 190,
+                "median": 130,
+                "quantity": 12,
+                "oldest_recorded_at": "2026-03-17T08:00:00+00:00",
+            },
+            "Bazaar": {
+                "low": 100,
+                "high": 150,
+                "median": 120,
+                "quantity": 42,
+                "weekly_volume": 123456,
+                "oldest_recorded_at": "2026-03-13T08:00:00+00:00",
+            },
         }
     }
     """
     with conn.cursor() as cur:
+        cur.execute("""
+            SELECT
+                item_name,
+                MIN(effective_price) AS low,
+                MAX(effective_price) AS high,
+                CAST(PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY effective_price) AS BIGINT) AS median,
+                COUNT(*)::INT AS quantity,
+                MIN(recorded_at)::TEXT AS oldest_recorded_at
+            FROM ah_sales
+            WHERE recorded_at > NOW() - INTERVAL '7 days'
+            GROUP BY item_name
+        """)
+        rows = typing.cast(list[AHSalesSummaryRow], cur.fetchall())
+        result: dict[str, dict[str, dict[str, int | str | None]]] = {}
+        for item_name, low, high, median, quantity, oldest_recorded_at in rows:
+            item_bucket = result.setdefault(item_name, {})
+            item_bucket["AH"] = {
+                "low": low,
+                "high": high,
+                "median": median,
+                "quantity": quantity,
+                "oldest_recorded_at": oldest_recorded_at,
+            }
+
         cur.execute(
             """
             WITH base AS (
                 SELECT
                     item_name,
-                    market,
-                    sell_price
-                FROM market_price_snapshots
+                    sell_price,
+                    weekly_volume,
+                    sampled_at,
+                    ROW_NUMBER() OVER (PARTITION BY item_name ORDER BY sampled_at DESC) AS rn
+                FROM bazaar_snapshots
                 WHERE sampled_at > NOW() - INTERVAL '7 days'
             )
             SELECT
                 item_name,
-                market,
                 MIN(sell_price) AS low,
                 MAX(sell_price) AS high,
                 CAST(PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY sell_price) AS BIGINT) AS median,
-                COUNT(*)::INT AS samples
+                COUNT(*)::INT AS quantity,
+                MAX(CASE WHEN rn = 1 THEN weekly_volume END)::BIGINT AS weekly_volume,
+                MIN(sampled_at)::TEXT AS oldest_recorded_at
             FROM base
-            GROUP BY item_name, market
+            GROUP BY item_name
             """
         )
-        result: dict[str, dict[str, dict[str, int | None]]] = {}
-        rows = typing.cast(list[PriceStatsRow], cur.fetchall())
-        for item_name, market, low, high, median, samples in rows:
+        bazaar_rows = typing.cast(list[BazaarSummaryRow], cur.fetchall())
+        for item_name, low, high, median, quantity, weekly_volume, oldest_recorded_at in bazaar_rows:
             item_bucket = result.setdefault(item_name, {})
-            item_bucket[market] = {
+            item_bucket["Bazaar"] = {
                 "low": low,
                 "high": high,
                 "median": median,
-                "samples": samples,
+                "quantity": quantity,
+                "weekly_volume": weekly_volume,
+                "oldest_recorded_at": oldest_recorded_at,
             }
+
         return result

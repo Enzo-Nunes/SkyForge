@@ -13,6 +13,8 @@ from common.types import ForgeItemInfo
 
 
 class ProfitCalculator:
+    MIN_AH_SALES_FOR_EXTRAPOLATION = 3
+
     def __init__(self, logger: logging.Logger, market: MarketPriceTracker) -> None:
         self._logger = logger
         self._market = market
@@ -22,110 +24,142 @@ class ProfitCalculator:
     def market(self) -> MarketPriceTracker:
         return self._market
 
-    def _store_price_snapshots(
-        self,
-        forge_info: dict[str, ForgeItemInfo],
-        auction_house_prices: dict[str, int],
-        bazaar_prices: dict[str, dict[str, int]],
+    def _store_bazaar_snapshots(
+        self, forge_info: dict[str, ForgeItemInfo], bazaar_prices: dict[str, dict[str, int]]
     ) -> None:
-        snapshots: dict[str, dict[str, int]] = {}
+        snapshots: dict[str, dict[str, int | None]] = {}
         for item_name in forge_info.keys():
-            item_snapshots: dict[str, int] = {}
+            item_bazaar = bazaar_prices.get(item_name)
+            if not item_bazaar:
+                continue
 
-            bazaar_sell = bazaar_prices.get(item_name, {}).get("Sell Price", -1)
-            if bazaar_sell and bazaar_sell > 0:
-                item_snapshots["Bazaar"] = int(bazaar_sell)
+            sell_price = item_bazaar.get("Sell Price")
+            weekly_volume = item_bazaar.get("Weekly Volume")
+            if not isinstance(sell_price, int) or sell_price < 0:
+                continue
+            if not isinstance(weekly_volume, int) or weekly_volume < 0:
+                continue
 
-            ah_sell = auction_house_prices.get(item_name, -1)
-            if ah_sell and ah_sell > 0:
-                item_snapshots["AH"] = int(ah_sell)
+            snapshots[item_name] = {
+                "sell_price": sell_price,
+                "weekly_volume": weekly_volume,
+            }
 
-            if item_snapshots:
-                snapshots[item_name] = item_snapshots
-
-        if not snapshots:
-            return
-
-        request_with_retry(
-            self._logger, "POST", f"{DB_API_URL}/market-prices", json={"snapshots": snapshots}, timeout=15
-        )
-
-    def _read_price_stats(self) -> PriceStats:
-        response = request_with_retry(self._logger, "GET", f"{DB_API_URL}/market-prices/stats", timeout=15)
-        return typing.cast(PriceStats, response.json().get("stats", {}))
+        if snapshots:
+            request_with_retry(
+                self._logger,
+                "POST",
+                f"{DB_API_URL}/bazaar-snapshots",
+                json={"snapshots": snapshots},
+                timeout=10,
+            )
 
     def calculate_profits(self, forge_info: dict[str, ForgeItemInfo]) -> tuple[list[ForgeProfit], int | None]:
-        auction_house_prices = self._market.fetch_auction_house_prices()
+        auction_house_prices = self._market.get_auction_house_prices_snapshot()
+
         bazaar_prices = self._market.fetch_bazaar_prices()
 
-        price_stats_7d: PriceStats = {}
         try:
-            self._store_price_snapshots(forge_info, auction_house_prices, bazaar_prices)
-            price_stats_7d = self._read_price_stats()
+            self._store_bazaar_snapshots(forge_info, bazaar_prices)
         except Exception as e:
-            self._logger.warning(f"Could not store/read market price history: {e}")
+            self._logger.warning(f"Could not store Bazaar snapshots: {e}")
+
+        price_stats_7d: PriceStats = {}
 
         uptime_seconds = int(time.time() - self._start_time)
 
         ah_weekly_sales: dict[str, int] = {}
         ah_raw_sales_window: dict[str, int] = {}
         ah_volume_estimated: dict[str, bool] = {}
-        ah_data_span_seconds: int | None = None
+        ah_data_span_seconds_by_item: dict[str, int] = {}
+        bazaar_data_span_seconds_by_item: dict[str, int] = {}
 
         try:
-            oldest_response = request_with_retry(self._logger, "GET", f"{DB_API_URL}/ah-sales/oldest", timeout=10)
-            oldest_recorded_at_str = oldest_response.json().get("oldest_recorded_at")
+            response = request_with_retry(self._logger, "GET", f"{DB_API_URL}/market-summary", timeout=10)
+            market_summary = response.json().get("items", {})
+            self._logger.info(f"Fetched {len(market_summary)} items from market summary data")
 
-            data_span_seconds = 604800
-            is_estimated = uptime_seconds < 604800
-            ah_data_span_seconds = data_span_seconds
+            now_dt = datetime.now(timezone.utc)
+            for item_name, market_stats_obj in market_summary.items():
+                market_stats = typing.cast(dict[str, dict[str, int | str | None]], market_stats_obj)
 
-            if oldest_recorded_at_str:
-                oldest_dt = datetime.fromisoformat(oldest_recorded_at_str)
-                now_dt = datetime.now(timezone.utc)
-                data_span_seconds = max(1, int((now_dt - oldest_dt).total_seconds()))
-                ah_data_span_seconds = data_span_seconds
-                self._logger.info(
-                    f"AH data collection: oldest record at {oldest_recorded_at_str}, "
-                    f"span = {data_span_seconds}s ({data_span_seconds / 86400:.2f} days)"
-                )
-            else:
-                self._logger.info("No AH records in database yet, will not extrapolate")
+                ah_stats = market_stats.get("AH", {})
+                quantity_raw = ah_stats.get("quantity")
+                quantity = int(quantity_raw) if isinstance(quantity_raw, int) else 0
+                ah_raw_sales_window[item_name] = quantity
 
-            self._logger.info(
-                f"Tool uptime: {uptime_seconds}s ({uptime_seconds / 86400:.2f} days), "
-                f"is_estimated flag = {is_estimated}"
-            )
+                low = ah_stats.get("low")
+                high = ah_stats.get("high")
+                median = ah_stats.get("median")
+                price_stats_7d[item_name] = {
+                    "AH": {
+                        "low": int(low) if isinstance(low, int) else None,
+                        "high": int(high) if isinstance(high, int) else None,
+                        "median": int(median) if isinstance(median, int) else None,
+                        "samples": quantity,
+                    }
+                }
 
-            response = request_with_retry(self._logger, "GET", f"{DB_API_URL}/ah-sales", timeout=10)
-            ah_sales_data = response.json().get("sales", {})
-            self._logger.info(f"Fetched {len(ah_sales_data)} items from AH sales data")
+                bazaar_stats = market_stats.get("Bazaar", {})
+                bazaar_quantity_raw = bazaar_stats.get("quantity")
+                bazaar_quantity = int(bazaar_quantity_raw) if isinstance(bazaar_quantity_raw, int) else 0
+                bazaar_low = bazaar_stats.get("low")
+                bazaar_high = bazaar_stats.get("high")
+                bazaar_median = bazaar_stats.get("median")
+                bazaar_weekly_volume = bazaar_stats.get("weekly_volume")
+                price_stats_7d[item_name]["Bazaar"] = {
+                    "low": int(bazaar_low) if isinstance(bazaar_low, int) else None,
+                    "high": int(bazaar_high) if isinstance(bazaar_high, int) else None,
+                    "median": int(bazaar_median) if isinstance(bazaar_median, int) else None,
+                    "samples": bazaar_quantity,
+                    "weekly_volume": int(bazaar_weekly_volume) if isinstance(bazaar_weekly_volume, int) else None,
+                }
 
-            for item_name, total_quantity in ah_sales_data.items():
-                ah_raw_sales_window[item_name] = int(total_quantity)
-                if is_estimated:
-                    volume = int(total_quantity * 604800 / data_span_seconds)
+                bazaar_oldest_recorded_at_raw = bazaar_stats.get("oldest_recorded_at")
+                if isinstance(bazaar_oldest_recorded_at_raw, str):
+                    bazaar_oldest_dt = datetime.fromisoformat(bazaar_oldest_recorded_at_raw)
+                    if bazaar_oldest_dt.tzinfo is None:
+                        bazaar_oldest_dt = bazaar_oldest_dt.replace(tzinfo=timezone.utc)
+                    bazaar_data_span_seconds_by_item[item_name] = max(
+                        1, int((now_dt - bazaar_oldest_dt).total_seconds())
+                    )
+
+                oldest_recorded_at_raw = ah_stats.get("oldest_recorded_at")
+                if isinstance(oldest_recorded_at_raw, str):
+                    oldest_dt = datetime.fromisoformat(oldest_recorded_at_raw)
+                    if oldest_dt.tzinfo is None:
+                        oldest_dt = oldest_dt.replace(tzinfo=timezone.utc)
+                    span_seconds = max(1, int((now_dt - oldest_dt).total_seconds()))
+                    ah_data_span_seconds_by_item[item_name] = span_seconds
+                    if span_seconds < 604800 and quantity >= self.MIN_AH_SALES_FOR_EXTRAPOLATION:
+                        ah_weekly_sales[item_name] = int(quantity * 604800 / span_seconds)
+                        ah_volume_estimated[item_name] = True
+                    else:
+                        ah_weekly_sales[item_name] = quantity
+                        ah_volume_estimated[item_name] = False
                 else:
-                    volume = total_quantity
-                ah_weekly_sales[item_name] = volume
-                ah_volume_estimated[item_name] = is_estimated
+                    ah_weekly_sales[item_name] = quantity
+                    ah_volume_estimated[item_name] = False
         except Exception as e:
             self._logger.warning(f"Could not fetch AH weekly sales: {e}")
             ah_weekly_sales = {}
             ah_raw_sales_window = {}
             ah_volume_estimated = {}
-            ah_data_span_seconds = None
+            ah_data_span_seconds_by_item = {}
+            bazaar_data_span_seconds_by_item = {}
 
         self._logger.info("Starting final profit calculations...")
         items_profit: list[ForgeProfit] = []
 
         for item_name in forge_info.keys():
+            item_info = forge_info[item_name]
+            duration = item_info["Duration"]
             item_cost = 0
             is_craftable = True
             is_sellable = True
             recipe_markets: dict[str, str] = {}
 
-            for material in forge_info[item_name]["Recipe"].keys():
+            for material in item_info["Recipe"].keys():
                 material_bazaar_info = bazaar_prices.get(material)
                 if material_bazaar_info:
                     material_price = material_bazaar_info.get("Buy Price", -1)
@@ -135,13 +169,18 @@ class ProfitCalculator:
                     recipe_markets[material] = "AH"
                 if material_price < 0:
                     is_craftable = False
-                item_cost += forge_info[item_name]["Recipe"][material] * material_price
+                item_cost += item_info["Recipe"][material] * material_price
 
             ah_raw_volume_window: int | None = None
             item_bazaar_info = bazaar_prices.get(item_name)
             if item_bazaar_info:
                 item_sell_price = item_bazaar_info.get("Sell Price", -1)
-                weekly_volume = item_bazaar_info.get("Weekly Volume", 0)
+                weekly_volume = int(
+                    price_stats_7d.get(item_name, {})
+                    .get("Bazaar", {})
+                    .get("weekly_volume", item_bazaar_info.get("Weekly Volume", 0))
+                    or 0
+                )
                 volume_source = "Bazaar"
                 volume_estimated = False
             else:
@@ -156,12 +195,19 @@ class ProfitCalculator:
             high_7d = item_price_stats.get("high")
             median_7d = item_price_stats.get("median")
             samples_7d = int(item_price_stats.get("samples", 0) or 0)
+
             range_pct_7d: int | None = None
             if median_7d and median_7d > 0 and low_7d is not None and high_7d is not None:
                 range_pct_7d = int(round(((high_7d - low_7d) / median_7d) * 100))
 
             if item_sell_price < 0:
                 is_sellable = False
+
+            data_span_seconds: int | None = None
+            if volume_source == "AH":
+                data_span_seconds = ah_data_span_seconds_by_item.get(item_name)
+            elif volume_source == "Bazaar":
+                data_span_seconds = bazaar_data_span_seconds_by_item.get(item_name)
 
             if is_craftable and is_sellable and item_sell_price > item_cost:
                 items_profit.append(
@@ -171,12 +217,12 @@ class ProfitCalculator:
                         "Cost": math.ceil(item_cost),
                         "Sell Value": math.ceil(item_sell_price),
                         "Profit": math.ceil(item_sell_price - item_cost),
-                        "Duration": forge_info[item_name]["Duration"],
-                        "Profit per Hour": math.ceil((item_sell_price - item_cost) / forge_info[item_name]["Duration"]),
+                        "Duration": duration,
+                        "Profit per Hour": math.ceil((item_sell_price - item_cost) / duration),
                         "Weekly Volume": weekly_volume,
                         "Volume Estimated": volume_estimated,
                         "AH Raw Volume Window": ah_raw_volume_window,
-                        "AH Data Span Seconds": ah_data_span_seconds if volume_source == "AH" else None,
+                        "Data Span Seconds": data_span_seconds,
                         "Selling Market": volume_source,
                         "Price Samples 7d": samples_7d,
                         "Sell Price Low 7d": low_7d,
@@ -184,8 +230,8 @@ class ProfitCalculator:
                         "Sell Price Median 7d": median_7d,
                         "Sell Price Range % 7d": range_pct_7d,
                         "Recipe Markets": recipe_markets,
-                        "Recipe": forge_info[item_name]["Recipe"],
-                        "Requirements": forge_info[item_name]["Requirements"],
+                        "Recipe": item_info["Recipe"],
+                        "Requirements": item_info["Requirements"],
                     }
                 )
 

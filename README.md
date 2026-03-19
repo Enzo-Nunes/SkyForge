@@ -14,7 +14,7 @@ SkyForge runs as four Docker containers:
 | ----------- | ------ |
 | `db` | PostgreSQL database - stores forge recipe and item data |
 | `db-api` | FastAPI REST API - intermediary between the database and other services, and loads forge data from `db-api/forge_data.json` at startup |
-| `calculator` | Reads forge data from the database, fetches live market prices from the Hypixel API, calculates profits and pushes results to the web service |
+| `calculator` | Reads forge data from the database, polls Bazaar/Auction House data from the Hypixel API, tracks market history, calculates profits and pushes results to the web service |
 | `web` | FastAPI backend + Vue 3 frontend - serves the browser UI and broadcasts results to connected clients over WebSocket |
 
 ## Usage
@@ -39,6 +39,22 @@ Environment variables control SkyForge's behavior:
 | ----------- | --------- | ------------- |
 | `POSTGRES_PASSWORD` | `skyforge` | Database password. |
 | `REFRESH_TIME` | `120` | Seconds between profit calculation cycles (120-600 recommended) |
+| `LISTING_REFRESH_TIME` | `45` | Seconds between Auction House listing snapshots used to track BIN UUID/price state. |
+| `ENDED_AUCTIONS_REFRESH_TIME` | `60` | Seconds between polling the ended-auctions feed used to record realized AH sales. |
+| `AH_STATE_STALE_SECONDS` | `900` | Maximum age for unseen AH listing state entries before pruning. |
+| `AH_STATE_END_GRACE_SECONDS` | `180` | Extra grace period after auction end time before stale-pruning listing state. |
+
+## Market History and Stats
+
+SkyForge stores recent market history in PostgreSQL and computes 7-day stats used by the tracker UI:
+
+- **Auction House (AH)**: records realized BIN sales from ended auctions.
+- **Bazaar**: records periodic snapshots of forge-item sell price and weekly volume.
+
+From that history, SkyForge computes low/high/median and sample counts over the latest 7 days.
+
+AH weekly volume is extrapolated only during partial uptime and only when an item has at least 3 observed AH sales;
+otherwise SkyForge shows observed counts without extrapolation.
 
 Forge item metadata is loaded from `db-api/forge_data.json`, which is created and maintained separately from the SkyForge runtime stack.
 If this crafting dataset becomes outdated, contributions updating `db-api/forge_data.json` are welcome.

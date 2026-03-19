@@ -301,7 +301,8 @@ const volumeTitle = (item) => {
 	const source = item["Selling Market"] ?? "Unknown";
 	const weekly = item["Weekly Volume"] ?? 0;
 	const raw = item["AH Raw Volume Window"];
-	const hasRawObservation = raw !== null && raw !== undefined;
+	const observedSales = Number(raw ?? 0);
+	const hasRawObservation = observedSales > 0;
 
 	if (source !== "AH") {
 		return `Market: ${source}\nVolume (7d): ${fmt(weekly)}\nSource: official Bazaar rolling 7-day volume`;
@@ -309,12 +310,23 @@ const volumeTitle = (item) => {
 
 	if (!item["Volume Estimated"]) {
 		if (!hasRawObservation) {
-			return `Market: AH\nVolume (7d): ${fmt(weekly)}\nSource: no observed AH sales in the last 7 days`;
+			return `Market: AH\nVolume (7d): ${fmt(weekly)}\nSource: no recorded AH sales for this item in the last 7 days`;
 		}
+
+		const spanSeconds = item["Data Span Seconds"];
+		if (spanSeconds && spanSeconds < 604800 && observedSales < 3) {
+			return [
+				"Market: AH",
+				`Observed sales: ${fmt(observedSales)} units`,
+				"Extrapolation: not applied (requires at least 3 observed sales during partial uptime)",
+				`Volume shown: ${fmt(weekly)} units`,
+			].join("\n");
+		}
+
 		return `Market: AH\nVolume (7d): ${fmt(weekly)}\nSource: observed AH sales over the last 7 days`;
 	}
 
-	const spanSeconds = item["AH Data Span Seconds"];
+	const spanSeconds = item["Data Span Seconds"];
 	if (!hasRawObservation || !spanSeconds || spanSeconds <= 0) {
 		return `Market: AH\nVolume (7d): ~${fmt(weekly)}\nEstimated from partial AH uptime`;
 	}

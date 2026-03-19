@@ -1,12 +1,13 @@
 import logging
 import sys
+import typing
 from pathlib import Path
 
 import db
 from db_runtime import DBRuntime, DBUnavailableError
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 from common.types import ForgeItemInfo
 
@@ -23,11 +24,11 @@ logger.propagate = False
 
 
 class AHSalesPayload(BaseModel):
-    sales: dict[str, int]
+    sales: typing.List[dict[str, int | str | None]]
 
 
-class MarketPricesPayload(BaseModel):
-    snapshots: dict[str, dict[str, int]] = Field(default_factory=dict)
+class BazaarSnapshotsPayload(BaseModel):
+    snapshots: dict[str, dict[str, int | None]]
 
 
 class ErrorResponse(BaseModel):
@@ -47,16 +48,8 @@ class RecordedResponse(BaseModel):
     recorded: int
 
 
-class AHSalesResponse(BaseModel):
-    sales: dict[str, int]
-
-
-class AHSalesOldestResponse(BaseModel):
-    oldest_recorded_at: str | None
-
-
-class MarketPriceStatsResponse(BaseModel):
-    stats: dict[str, dict[str, dict[str, int | None]]]
+class MarketSummaryResponse(BaseModel):
+    items: dict[str, dict[str, dict[str, int | str | None]]]
 
 
 runtime = DBRuntime(logger, FORGE_DATA_PATH)
@@ -83,31 +76,18 @@ def get_forge_items() -> ForgeItemsResponse:
 @app.post("/ah-sales", response_model=RecordedResponse, responses={503: {"model": ErrorResponse}})
 def post_ah_sales(payload: AHSalesPayload) -> RecordedResponse:
     sales = payload.sales
-    runtime.run_write(lambda connection: db.insert_ah_sale_batch(connection, sales))
-    return RecordedResponse(recorded=len(sales))
+    recorded = runtime.run_write(lambda connection: db.insert_ah_sales_with_price(connection, sales))
+    return RecordedResponse(recorded=recorded)
 
 
-@app.post("/market-prices", response_model=RecordedResponse, responses={503: {"model": ErrorResponse}})
-def post_market_prices(payload: MarketPricesPayload) -> RecordedResponse:
+@app.post("/bazaar-snapshots", response_model=RecordedResponse, responses={503: {"model": ErrorResponse}})
+def post_market_snapshots(payload: BazaarSnapshotsPayload) -> RecordedResponse:
     snapshots = payload.snapshots
-
-    runtime.run_write(lambda connection: db.insert_market_price_snapshots(connection, snapshots))
-    return RecordedResponse(recorded=len(snapshots))
-
-
-@app.get("/ah-sales", response_model=AHSalesResponse, responses={503: {"model": ErrorResponse}})
-def get_ah_sales() -> AHSalesResponse:
-    sales = runtime.run_read(db.read_ah_weekly_sales)
-    return AHSalesResponse(sales=sales)
+    recorded = runtime.run_write(lambda connection: db.insert_bazaar_snapshots(connection, snapshots))
+    return RecordedResponse(recorded=recorded)
 
 
-@app.get("/ah-sales/oldest", response_model=AHSalesOldestResponse, responses={503: {"model": ErrorResponse}})
-def get_ah_sales_oldest() -> AHSalesOldestResponse:
-    oldest_at = runtime.run_read(db.read_ah_oldest_record_time)
-    return AHSalesOldestResponse(oldest_recorded_at=oldest_at)
-
-
-@app.get("/market-prices/stats", response_model=MarketPriceStatsResponse, responses={503: {"model": ErrorResponse}})
-def get_market_price_stats() -> MarketPriceStatsResponse:
-    stats = runtime.run_read(db.read_market_price_stats_7d)
-    return MarketPriceStatsResponse(stats=stats)
+@app.get("/market-summary", response_model=MarketSummaryResponse, responses={503: {"model": ErrorResponse}})
+def get_market_summary() -> MarketSummaryResponse:
+    items = runtime.run_read(db.read_market_summary_7d)
+    return MarketSummaryResponse(items=items)

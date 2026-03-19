@@ -41,14 +41,16 @@
 		<p>
 			The database stores up to 8 days of AH sales polls, automatically pruning older entries. When calculating
 			weekly volume, if less than 7 days of data is available, the volume is extrapolated to an estimated 7-day
-			projection. The <strong>~</strong> prefix indicates an estimated value; after 7 days of tool uptime, values
-			become actual counts.
+			projection only when there are at least <strong>3 observed AH sales</strong> for that item in the captured
+			window. Otherwise, SkyForge shows the observed count without extrapolation. The <strong>~</strong> prefix
+			indicates an estimated value; after 7 days of tool uptime, values naturally become actual 7-day counts.
 		</p>
 
 		<h3>Normalized Range (7d)</h3>
 		<p>
-			SkyForge also stores periodic sell-price snapshots for each forge item and market (Bazaar or AH), keeping up
-			to 8 days of history and computing stats over the latest 7 days.
+			SkyForge computes sell-price range stats from stored 7-day history: realized AH sale prices from ended
+			auctions and periodic Bazaar sell-price snapshots. The database keeps up to 8 days of history and computes
+			stats over the latest 7 days.
 		</p>
 		<ul>
 			<li><strong>Low (7d)</strong> - minimum sampled sell price.</li>
