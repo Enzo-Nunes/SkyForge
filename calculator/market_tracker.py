@@ -4,13 +4,49 @@ import time
 import typing
 
 from calc_http import request_with_retry
-from constants import DB_API_URL
+from calc_types import DB_API_URL
+
+from common.types import ForgeItemInfo
+
+
+class ForgeItemState:
+    def __init__(self) -> None:
+        self._forge_info: dict[str, ForgeItemInfo] = {}
+        self._tracked_items: set[str] = set()
+        self._sellable_items: set[str] = set()
+        self._lock = threading.Lock()
+
+    def update_from_forge_info(self, forge_info: dict[str, ForgeItemInfo]) -> None:
+        tracked_items: set[str] = set(forge_info.keys())
+        for item_info in forge_info.values():
+            tracked_items.update(item_info["Recipe"].keys())
+
+        sellable_items: set[str] = set(forge_info.keys())
+
+        with self._lock:
+            self._forge_info = dict(forge_info)
+            self._tracked_items = tracked_items
+            self._sellable_items = sellable_items
+
+    def get_forge_info(self) -> dict[str, ForgeItemInfo]:
+        with self._lock:
+            return dict(self._forge_info)
+
+    def get_tracked_items(self) -> set[str]:
+        with self._lock:
+            return set(self._tracked_items)
+
+    def get_sellable_items(self) -> set[str]:
+        with self._lock:
+            return set(self._sellable_items)
 
 
 class MarketPriceTracker:
     BAZAAR_URL = "https://api.hypixel.net/v2/skyblock/bazaar"
     AUCTION_HOUSE_URL = "https://api.hypixel.net/v2/skyblock/auctions"
-    HEADERS = {"Content-Type": "application/json"}
+    HEADERS = {
+        "Content-Type": "application/json",
+    }
     NAME_OVERRIDES = {
         "DRILL_ENGINE": "Drill Motor",
         "FUEL_TANK": "Fuel Canister",
@@ -23,7 +59,9 @@ class MarketPriceTracker:
         "GOBLIN_EGG_YELLOW": "Yellow Goblin Egg",
         "MITHRIL_ORE": "Mithril",
     }
-    SUFFIX_REPLACEMENTS = {"GEM": "GEMSTONE"}
+    SUFFIX_REPLACEMENTS = {
+        "GEM": "GEMSTONE",
+    }
 
     def __init__(self, logger: logging.Logger) -> None:
         self._logger = logger
@@ -31,7 +69,7 @@ class MarketPriceTracker:
         self._auction_id_map_lock = threading.Lock()
         self._snapshot_ready = threading.Event()
 
-    def refresh_auction_house_state(self, tracked_items: set[str] | None = None) -> None:
+    def refresh_auction_house_state(self, tracked_items: set[str]) -> None:
         response = request_with_retry(self._logger, "GET", self.AUCTION_HOUSE_URL, headers=self.HEADERS)
         auction_house = response.json()
         pages = auction_house["totalPages"]
@@ -55,7 +93,7 @@ class MarketPriceTracker:
                     continue
 
                 item_name = auction["item_name"]
-                if tracked_items is not None and item_name not in tracked_items:
+                if item_name not in tracked_items:
                     continue
 
                 auction_id = auction["uuid"]
@@ -100,6 +138,23 @@ class MarketPriceTracker:
                     result[auction_id] = (entry[0], entry[1])
         return result
 
+    def get_sales_events(
+        self, sellable_items: set[str], resolved: dict[str, tuple[str, int]]
+    ) -> list[dict[str, str | int]]:
+
+        sales_events: list[dict[str, typing.Any]] = []
+        for auction_id, (item_name, price) in resolved.items():
+            if item_name not in sellable_items:
+                continue
+            sales_events.append(
+                {
+                    "item_name": item_name,
+                    "effective_price": int(price),
+                    "auction_id": auction_id,
+                }
+            )
+        return sales_events
+
     def prune_auction_state(self, max_stale_seconds: float, end_grace_seconds: float) -> int:
         now_epoch = time.time()
         stale_cutoff = now_epoch - max_stale_seconds
@@ -116,7 +171,13 @@ class MarketPriceTracker:
     def fetch_bazaar_prices(self) -> dict[str, dict[str, int]]:
         self._logger.info("Starting Bazaar processing...")
         bazaar = request_with_retry(self._logger, "GET", self.BAZAAR_URL, headers=self.HEADERS).json()
-        prices: dict[str, dict[str, int]] = {"Coins": {"Buy Price": 1, "Sell Price": 1, "Weekly Volume": 0}}
+        prices: dict[str, dict[str, int]] = {
+            "Coins": {
+                "Buy Price": 1,
+                "Sell Price": 1,
+                "Weekly Volume": 0,
+            },
+        }
 
         for product in bazaar["products"]:
             item_name = self._convert_name(product)
@@ -129,6 +190,37 @@ class MarketPriceTracker:
 
         self._logger.info("Bazaar processing complete.")
         return prices
+
+    def refresh_bazaar_snapshots(self, sellable_items: set[str]) -> None:
+        bazaar_prices = self.fetch_bazaar_prices()
+
+        snapshots: dict[str, dict[str, int | None]] = {}
+        for item_name in sellable_items:
+            item_bazaar = bazaar_prices.get(item_name)
+            if not item_bazaar:
+                continue
+
+            sell_price = item_bazaar.get("Sell Price")
+            weekly_volume = item_bazaar.get("Weekly Volume")
+            if not isinstance(sell_price, int) or sell_price < 0:
+                continue
+            if not isinstance(weekly_volume, int) or weekly_volume < 0:
+                continue
+
+            snapshots[item_name] = {
+                "sell_price": sell_price,
+                "weekly_volume": weekly_volume,
+            }
+
+        if snapshots:
+            request_with_retry(
+                self._logger,
+                "POST",
+                f"{DB_API_URL}/bazaar-snapshots",
+                json={"snapshots": snapshots},
+                timeout=10,
+            )
+            self._logger.info(f"Recorded Bazaar snapshots for {len(snapshots)} forge items.")
 
     def _convert_name(self, bazaar_name: str) -> str:
         base_name = bazaar_name.split(":")[0]
@@ -154,40 +246,26 @@ class AHSalesTracker:
         self,
         logger: logging.Logger,
         market: MarketPriceTracker,
-        get_sellable_items: typing.Callable[[], set[str]],
+        item_state: ForgeItemState,
         poll_interval: int,
         state_stale_seconds: float,
         state_end_grace_seconds: float,
     ) -> None:
         self._logger = logger
         self._market = market
-        self._get_sellable_items = get_sellable_items
+        self._item_state = item_state
         self._poll_interval = poll_interval
         self._state_stale_seconds = state_stale_seconds
         self._state_end_grace_seconds = state_end_grace_seconds
 
-    def _poll_once(self) -> None:
+    def _poll_once(self, sellable_items: set[str]) -> None:
         try:
             response = request_with_retry(self._logger, "GET", self.ENDED_URL, timeout=10)
             auctions = response.json().get("auctions", [])
 
             sold_ids = [a["auction_id"] for a in auctions if a.get("buyer") and a.get("bin")]
             resolved = self._market.resolve_and_remove(sold_ids)
-            sellable_items = self._get_sellable_items()
-
-            sales_events: list[dict[str, typing.Any]] = []
-            sales_count_by_item: dict[str, int] = {}
-            for auction_id, (item_name, price) in resolved.items():
-                if item_name not in sellable_items:
-                    continue
-                sales_events.append(
-                    {
-                        "item_name": item_name,
-                        "effective_price": int(price),
-                        "auction_id": auction_id,
-                    }
-                )
-                sales_count_by_item[item_name] = sales_count_by_item.get(item_name, 0) + 1
+            sales_events = self._market.get_sales_events(sellable_items, resolved)
 
             pruned = self._market.prune_auction_state(self._state_stale_seconds, self._state_end_grace_seconds)
             if pruned:
@@ -201,36 +279,27 @@ class AHSalesTracker:
                     json={"sales": sales_events},
                     timeout=10,
                 )
-                self._logger.info(f"Recorded {len(sales_events)} AH sales across {len(sales_count_by_item)} items.")
+                self._logger.info(f"Recorded {len(sales_events)} AH sales.")
         except Exception as e:
             self._logger.warning(f"AH sales poll failed: {e}")
 
     def run(self) -> None:
         while True:
-            self._poll_once()
+            self._poll_once(self._item_state.get_sellable_items())
             time.sleep(self._poll_interval)
 
 
-class AHListingPoller:
+class MarketListingUpdater:
     def __init__(
-        self,
-        logger: logging.Logger,
-        market: MarketPriceTracker,
-        get_tracked_items: typing.Callable[[], set[str]],
-        poll_interval: int,
+        self, logger: logging.Logger, market: MarketPriceTracker, item_state: ForgeItemState, poll_interval: int
     ) -> None:
         self._logger = logger
         self._market = market
-        self._get_tracked_items = get_tracked_items
+        self._item_state = item_state
         self._poll_interval = poll_interval
-
-    def _poll_once(self) -> None:
-        try:
-            self._market.refresh_auction_house_state(self._get_tracked_items())
-        except Exception as e:
-            self._logger.warning(f"AH listing poll failed: {e}")
 
     def run(self) -> None:
         while True:
-            self._poll_once()
+            self._market.refresh_auction_house_state(self._item_state.get_tracked_items())
+            self._market.refresh_bazaar_snapshots(self._item_state.get_sellable_items())
             time.sleep(self._poll_interval)

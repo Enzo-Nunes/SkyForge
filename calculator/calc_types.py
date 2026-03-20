@@ -1,5 +1,7 @@
 import typing
 
+DB_API_URL = "http://db-api:5000"
+
 PriceStats: typing.TypeAlias = dict[str, dict[str, dict[str, int | None]]]
 
 ForgeProfit = typing.TypedDict(

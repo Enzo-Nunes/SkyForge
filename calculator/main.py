@@ -3,22 +3,9 @@ import sys
 import threading
 import time
 
-from market_tracker import AHListingPoller, AHSalesTracker, MarketPriceTracker
+from market_tracker import AHSalesTracker, ForgeItemState, MarketListingUpdater, MarketPriceTracker
 from profit_calculator import ProfitCalculator
 from runtime import CalculatorRuntime
-
-from common.types import ForgeItemInfo
-
-
-def build_tracked_items(forge_info: dict[str, ForgeItemInfo]) -> set[str]:
-    tracked: set[str] = set(forge_info.keys())
-    for item_info in forge_info.values():
-        tracked.update(item_info["Recipe"].keys())
-    return tracked
-
-
-def build_sellable_items(forge_info: dict[str, ForgeItemInfo]) -> set[str]:
-    return set(forge_info.keys())
 
 
 def main() -> None:
@@ -38,18 +25,17 @@ def main() -> None:
     logger.info("db-api ready. Checking for existing forge data...")
     runtime.wait_for_forge_data()
 
+    item_state = ForgeItemState()
+    item_state.update_from_forge_info(runtime.fetch_forge_items())
+
     logger.info("Forge data available. Starting calculations.")
     market = MarketPriceTracker(logger)
     calculator = ProfitCalculator(logger, market)
 
-    initial_forge_info = runtime.fetch_forge_items()
-    tracked_items: set[str] = build_tracked_items(initial_forge_info)
-    sellable_items: set[str] = build_sellable_items(initial_forge_info)
-
-    listing_poller = AHListingPoller(
+    listing_poller = MarketListingUpdater(
         logger,
         market,
-        get_tracked_items=lambda: tracked_items,
+        item_state,
         poll_interval=runtime.listing_refresh_time,
     )
     listing_thread = threading.Thread(target=listing_poller.run, daemon=True, name="ah-listing-poller")
@@ -64,7 +50,7 @@ def main() -> None:
     sales_tracker = AHSalesTracker(
         logger,
         market,
-        get_sellable_items=lambda: sellable_items,
+        item_state,
         poll_interval=runtime.ended_auctions_refresh_time,
         state_stale_seconds=runtime.auction_state_stale_seconds,
         state_end_grace_seconds=runtime.auction_state_end_grace_seconds,
@@ -74,14 +60,8 @@ def main() -> None:
     logger.info("AH sales tracker thread started.")
 
     while True:
-        forge_info = runtime.fetch_forge_items()
-        if not forge_info:
-            logger.info("No forge data in database yet, retrying in 10s...")
-            time.sleep(10)
-            continue
-
-        tracked_items = build_tracked_items(forge_info)
-        sellable_items = build_sellable_items(forge_info)
+        item_state.update_from_forge_info(runtime.fetch_forge_items())
+        forge_info = item_state.get_forge_info()
 
         logger.info(f"Loaded {len(forge_info)} forge items from DB. Calculating profits...")
         profits, uptime_seconds = calculator.calculate_profits(forge_info)

@@ -5,8 +5,7 @@ import typing
 from datetime import datetime, timezone
 
 from calc_http import request_with_retry
-from calc_types import ForgeProfit, PriceStats
-from constants import DB_API_URL
+from calc_types import DB_API_URL, ForgeProfit, PriceStats
 from market_tracker import MarketPriceTracker
 
 from common.types import ForgeItemInfo
@@ -24,50 +23,11 @@ class ProfitCalculator:
     def market(self) -> MarketPriceTracker:
         return self._market
 
-    def _store_bazaar_snapshots(
-        self, forge_info: dict[str, ForgeItemInfo], bazaar_prices: dict[str, dict[str, int]]
-    ) -> None:
-        snapshots: dict[str, dict[str, int | None]] = {}
-        for item_name in forge_info.keys():
-            item_bazaar = bazaar_prices.get(item_name)
-            if not item_bazaar:
-                continue
-
-            sell_price = item_bazaar.get("Sell Price")
-            weekly_volume = item_bazaar.get("Weekly Volume")
-            if not isinstance(sell_price, int) or sell_price < 0:
-                continue
-            if not isinstance(weekly_volume, int) or weekly_volume < 0:
-                continue
-
-            snapshots[item_name] = {
-                "sell_price": sell_price,
-                "weekly_volume": weekly_volume,
-            }
-
-        if snapshots:
-            request_with_retry(
-                self._logger,
-                "POST",
-                f"{DB_API_URL}/bazaar-snapshots",
-                json={"snapshots": snapshots},
-                timeout=10,
-            )
-
     def calculate_profits(self, forge_info: dict[str, ForgeItemInfo]) -> tuple[list[ForgeProfit], int | None]:
         auction_house_prices = self._market.get_auction_house_prices_snapshot()
-
         bazaar_prices = self._market.fetch_bazaar_prices()
-
-        try:
-            self._store_bazaar_snapshots(forge_info, bazaar_prices)
-        except Exception as e:
-            self._logger.warning(f"Could not store Bazaar snapshots: {e}")
-
         price_stats_7d: PriceStats = {}
-
         uptime_seconds = int(time.time() - self._start_time)
-
         ah_weekly_sales: dict[str, int] = {}
         ah_raw_sales_window: dict[str, int] = {}
         ah_volume_estimated: dict[str, bool] = {}

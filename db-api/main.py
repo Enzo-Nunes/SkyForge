@@ -68,7 +68,7 @@ def health() -> HealthResponse:
 
 @app.get("/forge-items", response_model=ForgeItemsResponse, responses={503: {"model": ErrorResponse}})
 def get_forge_items() -> ForgeItemsResponse:
-    items: dict[str, ForgeItemInfo] = runtime.run_read(db.read_forge_items)
+    items: dict[str, ForgeItemInfo] = runtime.run(db.read_forge_items, retry_on_disconnect=True)
     last_updated = runtime.last_updated.isoformat() if runtime.last_updated else None
     return ForgeItemsResponse(items=items, last_updated=last_updated)
 
@@ -76,18 +76,18 @@ def get_forge_items() -> ForgeItemsResponse:
 @app.post("/ah-sales", response_model=RecordedResponse, responses={503: {"model": ErrorResponse}})
 def post_ah_sales(payload: AHSalesPayload) -> RecordedResponse:
     sales = payload.sales
-    recorded = runtime.run_write(lambda connection: db.insert_ah_sales_with_price(connection, sales))
+    recorded = runtime.run(db.insert_ah_sales_with_price, sales, retry_on_disconnect=True)
     return RecordedResponse(recorded=recorded)
 
 
 @app.post("/bazaar-snapshots", response_model=RecordedResponse, responses={503: {"model": ErrorResponse}})
 def post_market_snapshots(payload: BazaarSnapshotsPayload) -> RecordedResponse:
     snapshots = payload.snapshots
-    recorded = runtime.run_write(lambda connection: db.insert_bazaar_snapshots(connection, snapshots))
+    recorded = runtime.run(db.insert_bazaar_snapshots, snapshots, retry_on_disconnect=False)
     return RecordedResponse(recorded=recorded)
 
 
 @app.get("/market-summary", response_model=MarketSummaryResponse, responses={503: {"model": ErrorResponse}})
 def get_market_summary() -> MarketSummaryResponse:
-    items = runtime.run_read(db.read_market_summary_7d)
+    items = runtime.run(db.read_market_summary_7d, retry_on_disconnect=True)
     return MarketSummaryResponse(items=items)

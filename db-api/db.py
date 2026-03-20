@@ -22,11 +22,14 @@ def _get_dsn() -> str:
     return f"host={host} dbname={dbname} user={user} password={password} connect_timeout={connect_timeout}"
 
 
+def connect_db() -> psycopg2.extensions.connection:
+    return psycopg2.connect(_get_dsn())
+
+
 def wait_for_db(retries: int = 20, delay: int = 3) -> psycopg2.extensions.connection:
-    dsn = _get_dsn()
     for attempt in range(retries):
         try:
-            conn: psycopg2.extensions.connection = psycopg2.connect(dsn)
+            conn: psycopg2.extensions.connection = connect_db()
             return conn
         except psycopg2.OperationalError as e:
             if attempt < retries - 1:
@@ -204,29 +207,7 @@ def insert_bazaar_snapshots(conn: psycopg2.extensions.connection, snapshots: dic
 def read_market_summary_7d(
     conn: psycopg2.extensions.connection,
 ) -> dict[str, dict[str, dict[str, int | str | None]]]:
-    """Read per-item 7-day market summaries for AH + Bazaar.
-
-    Returns:
-    {
-        "Item Name": {
-            "AH": {
-                "low": 110,
-                "high": 190,
-                "median": 130,
-                "quantity": 12,
-                "oldest_recorded_at": "2026-03-17T08:00:00+00:00",
-            },
-            "Bazaar": {
-                "low": 100,
-                "high": 150,
-                "median": 120,
-                "quantity": 42,
-                "weekly_volume": 123456,
-                "oldest_recorded_at": "2026-03-13T08:00:00+00:00",
-            },
-        }
-    }
-    """
+    """Read per-item 7-day market summaries for AH + Bazaar."""
     with conn.cursor() as cur:
         cur.execute("""
             SELECT

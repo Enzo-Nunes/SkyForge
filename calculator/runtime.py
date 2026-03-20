@@ -5,10 +5,11 @@ import typing
 from datetime import datetime, timezone
 
 from calc_http import request_with_retry
-from calc_types import ForgeProfit
-from constants import DB_API_URL, WEB_URL
+from calc_types import DB_API_URL, ForgeProfit
 
 from common.types import ForgeItemInfo
+
+WEB_URL = "http://web:8000"
 
 
 class CalculatorRuntime:
