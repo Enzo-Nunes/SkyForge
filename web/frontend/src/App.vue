@@ -1,5 +1,5 @@
 <template>
-	<div class="app">
+	<div class="app" :data-theme="theme">
 		<AppHeader :lastUpdated="lastUpdated" :status="status" :uptimeSeconds="uptimeSeconds" />
 
 		<nav class="tabs">
@@ -8,7 +8,12 @@
 			<button :class="{ active: tab === 'how' }" @click="tab = 'how'">How does it work?</button>
 		</nav>
 
-		<TrackerTab v-if="tab === 'tracker'" :profits="profits" />
+		<TrackerTab
+			v-if="tab === 'tracker'"
+			:profits="profits"
+			:uptimeSeconds="uptimeSeconds"
+			@go-to-guide="tab = 'guide'"
+		/>
 		<GuideTab v-else-if="tab === 'guide'" />
 		<HowTab v-else-if="tab === 'how'" />
 	</div>
@@ -23,12 +28,14 @@ import AppFooter from "./components/AppFooter.vue";
 import TrackerTab from "./components/TrackerTab.vue";
 import GuideTab from "./components/GuideTab.vue";
 import HowTab from "./components/HowTab.vue";
+import { useTheme } from "./composables/useTheme.js";
 
 const profits = ref([]);
 const status = ref("connecting");
 const lastUpdated = ref(null);
 const uptimeSeconds = ref(null);
 const tab = ref("tracker");
+const { theme } = useTheme();
 
 let ws = null;
 let reconnectTimer = null;
@@ -47,7 +54,10 @@ function connect() {
 		const data = JSON.parse(e.data);
 		if (data?.profits) {
 			profits.value = data.profits;
-			lastUpdated.value = new Date(data.calculated_at).toLocaleTimeString(undefined, { timeZoneName: "short" });
+			lastUpdated.value = new Date(data.calculated_at).toLocaleTimeString(undefined, {
+				hour12: false,
+				timeZoneName: "short",
+			});
 			uptimeSeconds.value = data.uptime_seconds;
 		} else if (data?.type === "shutdown") {
 			intentionalClose = true;
@@ -85,28 +95,28 @@ onUnmounted(() => {
 
 body {
 	font-family: "Inter", sans-serif;
-	background: #0d0d14;
-	color: #e2e8f0;
+	background: var(--bg-primary);
+	color: var(--text-primary);
 	min-height: 100vh;
 }
 
 /* Shared content page styles (used by GuideTab and HowTab) */
 .content-page {
 	line-height: 1.8;
-	color: #cbd5e1;
+	color: var(--text-secondary);
 }
 
 .content-page h2 {
 	font-size: 1.3rem;
 	font-weight: 700;
-	color: #f1f5f9;
+	color: var(--text-accent);
 	margin-bottom: 1.25rem;
 }
 
 .content-page h3 {
 	font-size: 0.95rem;
 	font-weight: 700;
-	color: #a78bfa;
+	color: var(--accent);
 	text-transform: uppercase;
 	letter-spacing: 0.05em;
 	margin-top: 1.75rem;
@@ -114,7 +124,7 @@ body {
 }
 
 .content-page p {
-	color: #94a3b8;
+	color: var(--text-tertiary);
 	margin-bottom: 0.75rem;
 }
 
@@ -125,7 +135,7 @@ body {
 }
 
 .content-page ul li {
-	color: #94a3b8;
+	color: var(--text-tertiary);
 	padding: 0.2rem 0 0.2rem 1.25rem;
 	position: relative;
 }
@@ -134,18 +144,18 @@ body {
 	content: "–";
 	position: absolute;
 	left: 0;
-	color: #475569;
+	color: var(--text-muted);
 }
 
 .content-page strong {
-	color: #e2e8f0;
+	color: var(--text-primary);
 	font-weight: 600;
 }
 
 .content-page a {
-	color: #a78bfa;
+	color: var(--accent);
 	text-decoration: underline;
-	text-decoration-color: #4c3882;
+	text-decoration-color: var(--accent-dark);
 	text-underline-offset: 2px;
 	transition:
 		color 0.15s,
@@ -153,18 +163,18 @@ body {
 }
 
 .content-page a:hover {
-	color: #c4b5fd;
-	text-decoration-color: #a78bfa;
+	color: var(--accent-light);
+	text-decoration-color: var(--accent);
 }
 
 .content-page em {
-	color: #a78bfa;
+	color: var(--accent);
 	font-style: normal;
 }
 
 .content-page code {
-	background: #1e1e2e;
-	color: #a78bfa;
+	background: var(--bg-secondary);
+	color: var(--accent);
 	padding: 0.1rem 0.4rem;
 	border-radius: 0.25rem;
 	font-size: 0.82rem;
@@ -176,21 +186,23 @@ body {
 	width: 90%;
 	margin: 0 auto;
 	padding: 1.5rem 0;
+	transition: all 0.3s;
 }
 
 .tabs {
 	display: flex;
 	gap: 0.25rem;
 	margin-bottom: 1.5rem;
-	border-bottom: 1px solid #1e1e2e;
+	border-bottom: 1px solid var(--border);
 	padding-bottom: 0;
+	transition: border-color 0.3s;
 }
 
 .tabs button {
 	background: none;
 	border: none;
 	border-bottom: 2px solid transparent;
-	color: #475569;
+	color: var(--text-muted);
 	font-size: 0.85rem;
 	font-weight: 600;
 	padding: 0.6rem 1rem;
@@ -202,11 +214,11 @@ body {
 }
 
 .tabs button:hover {
-	color: #94a3b8;
+	color: var(--text-tertiary);
 }
 
 .tabs button.active {
-	color: #a78bfa;
-	border-bottom-color: #a78bfa;
+	color: var(--accent);
+	border-bottom-color: var(--accent);
 }
 </style>

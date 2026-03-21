@@ -1,8 +1,16 @@
 <template>
 	<div class="tracker-layout">
-		<FilterPanel :REQUIREMENTS="REQUIREMENTS" :myLevels="myLevels" v-model:maxCost="maxCost"
-			v-model:noBudget="noBudget" v-model:minVolume="minVolume" @levelChange="(key, val) => (myLevels[key] = val)"
-			@reset="resetFilters" />
+		<FilterPanel
+			:REQUIREMENTS="REQUIREMENTS"
+			:myLevels="myLevels"
+			v-model:maxCost="maxCost"
+			v-model:noBudget="noBudget"
+			v-model:minVolume="minVolume"
+			v-model:recipeSource="recipeSource"
+			v-model:sellMarket="sellMarket"
+			@levelChange="(key, val) => (myLevels[key] = val)"
+			@reset="resetFilters"
+		/>
 
 		<div class="tracker-content">
 			<div class="waiting" v-if="profits.length === 0">
@@ -10,74 +18,121 @@
 				<p>Waiting for calculator results…</p>
 			</div>
 
-			<div class="table-wrap" v-else>
-				<table>
-					<thead>
-						<tr>
-							<th class="sortable" :class="sortClass('Rank')" @click="sortBy('Rank')">
-								# <span class="sort-arrow">{{ sortArrow("Rank") }}</span>
-							</th>
-							<th>Item</th>
-							<th class="sortable" :class="sortClass('Cost')" @click="sortBy('Cost')">
-								Total Ingredient Cost <span class="sort-arrow">{{ sortArrow("Cost") }}</span>
-							</th>
-							<th class="sortable" :class="sortClass('Sell Value')" @click="sortBy('Sell Value')">
-								Sell Value <span class="sort-arrow">{{ sortArrow("Sell Value") }}</span>
-							</th>
-							<th class="sortable" :class="sortClass('Profit')" @click="sortBy('Profit')">
-								Profit <span class="sort-arrow">{{ sortArrow("Profit") }}</span>
-							</th>
-							<th class="sortable" :class="sortClass('Duration')" @click="sortBy('Duration')">
-								Duration <span class="sort-arrow">{{ sortArrow("Duration") }}</span>
-							</th>
-							<th class="sortable" :class="sortClass('Profit per Hour')"
-								@click="sortBy('Profit per Hour')">
-								Profit / hour <span class="sort-arrow">{{ sortArrow("Profit per Hour") }}</span>
-							</th>
-							<th class="sortable" :class="sortClass('Weekly Volume')" @click="sortBy('Weekly Volume')">
-								Weekly Volume <span class="sort-arrow">{{ sortArrow("Weekly Volume") }}</span>
-							</th>
-
-							<th>Recipe</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr v-for="item in profitsSorted.slice(0, visibleCount)" :key="item.Rank"
-							:class="{ top3: item.Rank <= 3 }">
-							<td class="rank">
-								<span class="badge" :class="'rank-' + item.Rank">{{ item.Rank }}</span>
-							</td>
-							<td class="name">{{ item.Name }}</td>
-							<td class="number cost">{{ fmt(item.Cost) }}</td>
-							<td class="number sell">
-								<span class="vol-source"
-									:class="item['Selling Market'] === 'Bazaar' ? 'vol-bz' : 'vol-ah'">
-									{{ item["Selling Market"] }}
-								</span>
-								{{ fmt(item["Sell Value"]) }}
-							</td>
-							<td class="number profit">+{{ fmt(item.Profit) }}</td>
-							<td class="number">{{ fmtDuration(item.Duration) }}</td>
-							<td class="number pph">{{ fmt(item["Profit per Hour"]) }}</td>
-							<td class="number volume">{{ item["Volume Estimated"] ? "~" : "" }}{{ fmt(item["Weekly Volume"]) }}</td>
-							<td class="recipe">
-								<span v-for="(qty, mat) in item.Recipe" :key="mat" class="ingredient">
-									{{ qty }}x {{ mat }}
-									<span class="vol-source"
-										:class="item['Recipe Markets']?.[mat] === 'Bazaar' ? 'vol-bz' : 'vol-ah'">
-										{{ item["Recipe Markets"]?.[mat] }}
-									</span>
-								</span>
-							</td>
-						</tr>
-					</tbody>
-				</table>
-				<div class="load-more" v-if="visibleCount < profitsSorted.length">
-					<button @click="visibleCount += 10">
-						Load 10 more ({{ profitsSorted.length - visibleCount }} remaining)
-					</button>
+			<template v-else>
+				<div class="early-warning" v-if="uptimeSeconds !== null && uptimeSeconds < 604800">
+					⚠ Volume and range data is incomplete because SkyForge has been running for less than 7 days.
+					<button class="guide-link" @click="$emit('go-to-guide')">Learn more in the Guide</button>
 				</div>
-			</div>
+
+				<div class="search-bar-wrapper">
+					<input type="text" class="search-bar" v-model="searchQuery" placeholder="Search items…" />
+				</div>
+
+				<div class="table-wrap">
+					<table>
+						<thead>
+							<tr>
+								<th class="sortable th-center" :class="sortClass('Rank')" @click="sortBy('Rank')">
+									# <span class="sort-arrow">{{ sortArrow("Rank") }}</span>
+								</th>
+								<th>Item</th>
+								<th class="sortable th-num" :class="sortClass('Cost')" @click="sortBy('Cost')">
+									Total Ingredient Cost <span class="sort-arrow">{{ sortArrow("Cost") }}</span>
+								</th>
+								<th
+									class="sortable th-num"
+									:class="sortClass('Sell Value')"
+									@click="sortBy('Sell Value')"
+								>
+									Sell Value <span class="sort-arrow">{{ sortArrow("Sell Value") }}</span>
+								</th>
+								<th class="sortable th-num" :class="sortClass('Profit')" @click="sortBy('Profit')">
+									Profit <span class="sort-arrow">{{ sortArrow("Profit") }}</span>
+								</th>
+								<th class="sortable th-num" :class="sortClass('Duration')" @click="sortBy('Duration')">
+									Duration <span class="sort-arrow">{{ sortArrow("Duration") }}</span>
+								</th>
+								<th
+									class="sortable th-num"
+									:class="sortClass('Profit per Hour')"
+									@click="sortBy('Profit per Hour')"
+								>
+									Profit / hour <span class="sort-arrow">{{ sortArrow("Profit per Hour") }}</span>
+								</th>
+								<th
+									class="sortable th-num"
+									:class="sortClass('Weekly Volume')"
+									@click="sortBy('Weekly Volume')"
+								>
+									Volume (7d) <span class="sort-arrow">{{ sortArrow("Weekly Volume") }}</span>
+								</th>
+								<th
+									class="sortable th-center"
+									:class="sortClass('Sell Price Range % 7d')"
+									@click="sortBy('Sell Price Range % 7d')"
+								>
+									Normalized Range (7d)
+									<span class="sort-arrow">{{ sortArrow("Sell Price Range % 7d") }}</span>
+								</th>
+
+								<th>Recipe</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr
+								v-for="item in profitsSorted.slice(0, visibleCount)"
+								:key="item.Rank"
+								:class="{ top3: item.Rank <= 3 }"
+							>
+								<td class="rank">
+									<span class="badge" :class="'rank-' + item.Rank">{{ item.Rank }}</span>
+								</td>
+								<td class="name">{{ item.Name }}</td>
+								<td class="number cost">{{ fmt(item.Cost) }}</td>
+								<td class="number sell">
+									<span
+										class="vol-source"
+										:class="item['Selling Market'] === 'Bazaar' ? 'vol-bz' : 'vol-ah'"
+									>
+										{{ item["Selling Market"] }}
+									</span>
+									{{ fmt(item["Sell Value"]) }}
+								</td>
+								<td class="number profit">+{{ fmt(item.Profit) }}</td>
+								<td class="number">{{ fmtDuration(item.Duration) }}</td>
+								<td class="number pph">{{ fmt(item["Profit per Hour"]) }}</td>
+								<td class="number volume" :title="volumeTitle(item)">
+									{{ item["Volume Estimated"] ? "~" : "" }}{{ fmt(item["Weekly Volume"]) }}
+								</td>
+								<td class="range-cell" :title="rangeTitle(item)">
+									{{
+										item["Sell Price Range % 7d"] === null ||
+										item["Sell Price Range % 7d"] === undefined
+											? "n/a"
+											: `${item["Sell Price Range % 7d"]}%`
+									}}
+								</td>
+								<td class="recipe">
+									<span v-for="(qty, mat) in item.Recipe" :key="mat" class="ingredient">
+										{{ qty }}x {{ mat }}
+										<span
+											class="vol-source"
+											:class="item['Recipe Markets']?.[mat] === 'Bazaar' ? 'vol-bz' : 'vol-ah'"
+										>
+											{{ item["Recipe Markets"]?.[mat] }}
+										</span>
+									</span>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+					<div class="load-more" v-if="visibleCount < profitsSorted.length">
+						<button @click="visibleCount += 10">
+							Load 10 more ({{ profitsSorted.length - visibleCount }} remaining)
+						</button>
+					</div>
+				</div>
+			</template>
 		</div>
 	</div>
 </template>
@@ -88,7 +143,10 @@ import FilterPanel from "./FilterPanel.vue";
 
 const props = defineProps({
 	profits: Array,
+	uptimeSeconds: { type: Number, default: null },
 });
+
+const emit = defineEmits(["go-to-guide"]);
 
 const REQUIREMENTS = {
 	"Heart of the Mountain Tier": 10,
@@ -104,6 +162,8 @@ const myLevels = reactive(savedLevels || Object.fromEntries(Object.entries(REQUI
 const maxCost = ref(parseInt(localStorage.getItem("skyforge_maxCost") || "-1"));
 const noBudget = ref(maxCost.value === -1);
 const minVolume = ref(parseInt(localStorage.getItem("skyforge_minVolume") || "0"));
+const recipeSource = ref(localStorage.getItem("skyforge_recipeSource") || "both");
+const sellMarket = ref(localStorage.getItem("skyforge_sellMarket") || "both");
 
 watch(noBudget, (val) => {
 	if (val) {
@@ -128,6 +188,16 @@ watch(minVolume, (val) => {
 	visibleCount.value = 10;
 });
 
+watch(recipeSource, (val) => {
+	localStorage.setItem("skyforge_recipeSource", val);
+	visibleCount.value = 10;
+});
+
+watch(sellMarket, (val) => {
+	localStorage.setItem("skyforge_sellMarket", val);
+	visibleCount.value = 10;
+});
+
 const profitsFiltered = computed(() =>
 	props.profits.filter((item) => {
 		for (const [key, level] of Object.entries(myLevels)) {
@@ -135,6 +205,13 @@ const profitsFiltered = computed(() =>
 		}
 		if (!noBudget.value && maxCost.value >= 0 && item.Cost > maxCost.value) return false;
 		if (minVolume.value > 0 && (item["Weekly Volume"] ?? 0) < minVolume.value) return false;
+		if (searchQuery.value && !item.Name.toLowerCase().includes(searchQuery.value.toLowerCase())) return false;
+		if (recipeSource.value === "bazaar") {
+			const markets = Object.values(item["Recipe Markets"] ?? {});
+			if (!(markets.length > 0 && markets.every((m) => m === "Bazaar"))) return false;
+		}
+		if (sellMarket.value !== "both" && (item["Selling Market"] ?? "").toLowerCase() !== sellMarket.value)
+			return false;
 		return true;
 	}),
 );
@@ -142,6 +219,7 @@ const profitsFiltered = computed(() =>
 const sortKey = ref("Profit per Hour");
 const sortDir = ref("desc");
 const visibleCount = ref(10);
+const searchQuery = ref("");
 
 function sortBy(key) {
 	if (sortKey.value === key) {
@@ -178,6 +256,8 @@ function resetFilters() {
 	}
 	maxCost.value = -1;
 	minVolume.value = 0;
+	recipeSource.value = "both";
+	sellMarket.value = "both";
 }
 
 const fmt = (n) => Number(n).toLocaleString("en-US");
@@ -193,6 +273,74 @@ const fmtDuration = (hours) => {
 	if (m > 0) return s > 0 ? `${m}m ${s}s` : `${m}m`;
 	return `${s}s`;
 };
+
+const rangeTitle = (item) => {
+	const range = item["Sell Price Range % 7d"];
+	const median = item["Sell Price Median 7d"];
+	const low = item["Sell Price Low 7d"];
+	const high = item["Sell Price High 7d"];
+	const samples = item["Price Samples 7d"] ?? 0;
+
+	const parts = [
+		`Samples (7d): ${samples}`,
+		`Range (7d): ${range === null || range === undefined ? "n/a" : `${range}%`}`,
+	];
+
+	if (low !== null && low !== undefined && high !== null && high !== undefined) {
+		parts.push(`Low-High (7d): ${fmt(low)} - ${fmt(high)}`);
+	}
+
+	if (median !== null && median !== undefined) {
+		parts.push(`Median (7d): ${fmt(median)}`);
+	}
+
+	return parts.join("\n");
+};
+
+const volumeTitle = (item) => {
+	const source = item["Selling Market"] ?? "Unknown";
+	const weekly = item["Weekly Volume"] ?? 0;
+	const raw = item["AH Raw Volume Window"];
+	const observedSales = Number(raw ?? 0);
+	const hasRawObservation = observedSales > 0;
+
+	if (source !== "AH") {
+		return `Market: ${source}\nVolume (7d): ${fmt(weekly)}\nSource: official Bazaar rolling 7-day volume`;
+	}
+
+	if (!item["Volume Estimated"]) {
+		if (!hasRawObservation) {
+			return `Market: AH\nVolume (7d): ${fmt(weekly)}\nSource: no recorded AH sales for this item in the last 7 days`;
+		}
+
+		const spanSeconds = item["Data Span Seconds"];
+		if (spanSeconds && spanSeconds < 604800 && observedSales < 3) {
+			return [
+				"Market: AH",
+				`Observed sales: ${fmt(observedSales)} units`,
+				"Extrapolation: not applied (requires at least 3 observed sales during partial uptime)",
+				`Volume shown: ${fmt(weekly)} units`,
+			].join("\n");
+		}
+
+		return `Market: AH\nVolume (7d): ${fmt(weekly)}\nSource: observed AH sales over the last 7 days`;
+	}
+
+	const spanSeconds = item["Data Span Seconds"];
+	if (!hasRawObservation || !spanSeconds || spanSeconds <= 0) {
+		return `Market: AH\nVolume (7d): ~${fmt(weekly)}\nEstimated from partial AH uptime`;
+	}
+
+	const spanDays = (spanSeconds / 86400).toFixed(2);
+	const factor = (604800 / spanSeconds).toFixed(2);
+	return [
+		"Market: AH",
+		`Observed sales: ${fmt(raw)} units`,
+		`Observed span: ${spanDays} days`,
+		`Extrapolation: observed x ${factor}`,
+		`Estimated 7d volume: ~${fmt(weekly)} units`,
+	].join("\n");
+};
 </script>
 
 <style scoped>
@@ -207,6 +355,34 @@ const fmtDuration = (hours) => {
 	min-width: 0;
 }
 
+/* Search Bar */
+.search-bar-wrapper {
+	margin-bottom: 1rem;
+}
+
+.search-bar {
+	width: 100%;
+	padding: 0.65rem 1rem;
+	background: var(--filter-input-bg);
+	border: 1px solid var(--filter-input-border);
+	border-radius: 0.5rem;
+	color: var(--text-primary);
+	font-size: 0.9rem;
+	transition:
+		border-color 0.15s,
+		background 0.15s;
+}
+
+.search-bar::placeholder {
+	color: var(--text-muted);
+}
+
+.search-bar:focus {
+	outline: none;
+	border-color: var(--accent);
+	background: var(--bg-primary);
+}
+
 /* Waiting state */
 .waiting {
 	display: flex;
@@ -215,14 +391,14 @@ const fmtDuration = (hours) => {
 	justify-content: center;
 	gap: 1.2rem;
 	padding: 6rem 0;
-	color: #475569;
+	color: var(--text-muted);
 }
 
 .spinner {
 	width: 36px;
 	height: 36px;
-	border: 3px solid #1e1e2e;
-	border-top-color: #a78bfa;
+	border: 3px solid var(--border);
+	border-top-color: var(--accent);
 	border-radius: 50%;
 	animation: spin 0.9s linear infinite;
 }
@@ -233,45 +409,75 @@ const fmtDuration = (hours) => {
 	}
 }
 
+/* Early uptime warning */
+.early-warning {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+	padding: 0.75rem 1rem;
+	background: var(--warning-bg);
+	border-left: 3px solid var(--warning-text);
+	border-radius: 6px;
+	color: var(--text-secondary);
+	font-size: 0.8rem;
+	margin-bottom: 1rem;
+}
+
+.guide-link {
+	margin-left: auto;
+	background: none;
+	border: 1px solid var(--warning-text);
+	color: var(--warning-text);
+	border-radius: 4px;
+	padding: 0.25rem 0.65rem;
+	font-size: 0.75rem;
+	cursor: pointer;
+	white-space: nowrap;
+	transition:
+		background 0.15s,
+		color 0.15s;
+}
+
+.guide-link:hover {
+	background: var(--warning-text);
+	color: var(--bg-primary);
+}
+
 /* Table */
 .table-wrap {
 	overflow-x: auto;
 	border-radius: 0.75rem;
-	border: 1px solid #1e1e2e;
+	border: 1px solid var(--border);
 }
 
 table {
 	width: 100%;
 	border-collapse: collapse;
-	font-size: 0.85rem;
+	font-size: 0.8rem;
 }
 
 thead tr {
-	background: #13131f;
+	background: var(--table-header-bg);
 }
 
 th {
-	padding: 0.75rem 1rem;
+	padding: 0.65rem 0.6rem;
 	text-align: left;
 	font-size: 0.7rem;
 	font-weight: 600;
 	text-transform: uppercase;
 	letter-spacing: 0.07em;
-	color: #475569;
-	white-space: nowrap;
+	color: var(--text-muted);
+	white-space: normal;
+	line-height: 1.25;
 }
 
-th:nth-child(1) {
-	text-align: center;
-}
-
-th:nth-child(3),
-th:nth-child(4),
-th:nth-child(5),
-th:nth-child(6),
-th:nth-child(7),
-th:nth-child(8) {
+.th-num {
 	text-align: right;
+}
+
+.th-center {
+	text-align: center;
 }
 
 th.sortable {
@@ -281,39 +487,39 @@ th.sortable {
 }
 
 th.sortable:hover {
-	color: #94a3b8;
+	color: var(--text-tertiary);
 }
 
 th.sortable.active {
-	color: #a78bfa;
+	color: var(--accent);
 }
 
 .sort-arrow {
 	display: inline-block;
 	width: 0.8em;
 	font-style: normal;
-	color: #2e3a4e;
+	color: var(--text-muted);
 }
 
 th.sortable.active .sort-arrow {
-	color: #a78bfa;
+	color: var(--accent);
 }
 
 tbody tr {
-	border-top: 1px solid #1a1a2e;
+	border-top: 1px solid var(--table-row-border);
 	transition: background 0.15s;
 }
 
 tbody tr:hover {
-	background: #13131f;
+	background: var(--table-row-hover-bg);
 }
 
 tbody tr.top3 {
-	background: #0f0f1f;
+	background: var(--table-top3-bg);
 }
 
 td {
-	padding: 0.65rem 1rem;
+	padding: 0.55rem 0.6rem;
 	vertical-align: top;
 }
 
@@ -331,29 +537,30 @@ td {
 	text-align: center;
 	font-size: 0.75rem;
 	font-weight: 700;
-	background: #1e1e2e;
-	color: #94a3b8;
+	background: var(--badge-bg);
+	color: var(--badge-color);
 }
 
 .badge.rank-1 {
-	background: #713f12;
-	color: #fde68a;
+	background: var(--badge-rank1-bg);
+	color: var(--badge-rank1-color);
 }
 
 .badge.rank-2 {
-	background: #1c2637;
-	color: #93c5fd;
+	background: var(--badge-rank2-bg);
+	color: var(--badge-rank2-color);
 }
 
 .badge.rank-3 {
-	background: #1c1917;
-	color: #d6a87a;
+	background: var(--badge-rank3-bg);
+	color: var(--badge-rank3-color);
 }
 
 .name {
 	font-weight: 500;
-	color: #f1f5f9;
-	white-space: nowrap;
+	color: var(--text-accent);
+	white-space: normal;
+	max-width: 10rem;
 }
 
 .number {
@@ -363,25 +570,31 @@ td {
 }
 
 .cost {
-	color: #f87171;
+	color: var(--color-cost);
 }
 
 .sell {
-	color: #94a3b8;
+	color: var(--text-tertiary);
 }
 
 .profit {
-	color: #4ade80;
+	color: var(--color-profit);
 	font-weight: 600;
 }
 
 .pph {
-	color: #a78bfa;
+	color: var(--accent);
 	font-weight: 600;
 }
 
 .volume {
-	color: #67e8f9;
+	color: var(--color-volume);
+}
+
+.range-cell {
+	text-align: center;
+	white-space: nowrap;
+	color: var(--text-secondary);
 }
 
 .vol-source {
@@ -397,39 +610,41 @@ td {
 }
 
 .vol-bz {
-	background: #1a2e2e;
-	color: #67e8f9;
-	border: 1px solid #164e6380;
+	background: var(--vol-bz-bg);
+	color: var(--vol-bz-text);
+	border: 1px solid var(--vol-bz-border);
 }
 
 .vol-ah {
-	background: #2a1f2e;
-	color: #c084fc;
-	border: 1px solid #6b21a880;
+	background: var(--vol-ah-bg);
+	color: var(--vol-ah-text);
+	border: 1px solid var(--vol-ah-border);
 }
 
 .recipe {
-	color: #64748b;
+	color: var(--color-secondary-text);
 	font-size: 0.78rem;
 	line-height: 1.8;
+	max-width: 16rem;
 }
 
 .ingredient {
 	display: block;
-	white-space: nowrap;
+	white-space: normal;
+	word-break: break-word;
 }
 
 .load-more {
 	display: flex;
 	justify-content: center;
 	padding: 1rem;
-	border-top: 1px solid #1e1e2e;
+	border-top: 1px solid var(--border);
 }
 
 .load-more button {
-	background: #13131f;
-	color: #a78bfa;
-	border: 1px solid #2e2e4e;
+	background: var(--load-more-btn-bg);
+	color: var(--accent);
+	border: 1px solid var(--load-more-btn-border);
 	border-radius: 0.5rem;
 	padding: 0.5rem 1.25rem;
 	font-size: 0.8rem;
@@ -441,7 +656,7 @@ td {
 }
 
 .load-more button:hover {
-	background: #1a1a2e;
-	border-color: #a78bfa;
+	background: var(--border);
+	border-color: var(--accent);
 }
 </style>

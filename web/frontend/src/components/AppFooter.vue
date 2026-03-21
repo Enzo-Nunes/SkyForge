@@ -24,21 +24,22 @@ footer {
 	justify-content: center;
 	padding: 2rem 0 1.5rem;
 	margin-top: 2rem;
-	border-top: 1px solid #1e1e2e;
+	border-top: 1px solid var(--border);
+	transition: border-color 0.3s;
 }
 
 .footer-link {
 	display: inline-flex;
 	align-items: center;
 	gap: 0.5rem;
-	color: #475569;
+	color: var(--text-muted);
 	font-size: 0.78rem;
 	text-decoration: none;
 	transition: color 0.15s;
 }
 
 .footer-link:hover {
-	color: #a78bfa;
+	color: var(--accent);
 }
 
 .github-icon {
