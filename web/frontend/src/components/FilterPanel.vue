@@ -45,6 +45,25 @@
 					<span class="filter-max">/ week</span>
 				</div>
 			</div>
+			<div class="filter-field">
+				<span class="filter-label">Recipe Source</span>
+				<div class="filter-controls">
+					<select :value="recipeSource" @change="$emit('update:recipeSource', $event.target.value)">
+						<option value="both">Both</option>
+						<option value="bazaar">Bazaar only</option>
+					</select>
+				</div>
+			</div>
+			<div class="filter-field">
+				<span class="filter-label">Sell Market</span>
+				<div class="filter-controls">
+					<select :value="sellMarket" @change="$emit('update:sellMarket', $event.target.value)">
+						<option value="both">Both</option>
+						<option value="bazaar">Bazaar</option>
+						<option value="ah">AH</option>
+					</select>
+				</div>
+			</div>
 		</div>
 		<button class="filter-reset" @click="$emit('reset')">Reset</button>
 	</aside>
@@ -57,16 +76,26 @@ defineProps({
 	maxCost: Number,
 	noBudget: Boolean,
 	minVolume: Number,
+	recipeSource: String,
+	sellMarket: String,
 });
 
-defineEmits(["levelChange", "update:maxCost", "update:noBudget", "update:minVolume", "reset"]);
+defineEmits([
+	"levelChange",
+	"update:maxCost",
+	"update:noBudget",
+	"update:minVolume",
+	"update:recipeSource",
+	"update:sellMarket",
+	"reset",
+]);
 </script>
 
 <style scoped>
 .filter-panel {
 	flex: 0 0 13rem;
-	background: #13131f;
-	border: 1px solid #1e1e2e;
+	background: var(--filter-bg);
+	border: 1px solid var(--border);
 	border-radius: 0.75rem;
 	padding: 1rem 1rem 0.75rem;
 	position: sticky;
@@ -94,7 +123,7 @@ defineEmits(["levelChange", "update:maxCost", "update:noBudget", "update:minVolu
 }
 
 .filter-label {
-	color: #94a3b8;
+	color: var(--text-tertiary);
 	font-size: 0.75rem;
 	font-weight: 600;
 	text-transform: uppercase;
@@ -102,35 +131,37 @@ defineEmits(["levelChange", "update:maxCost", "update:noBudget", "update:minVolu
 }
 
 .filter-field select {
-	background: #0d0d14;
-	border: 1px solid #2e2e4e;
+	background: var(--filter-input-bg);
+	border: 1px solid var(--filter-input-border);
 	border-radius: 0.35rem;
-	color: #e2e8f0;
+	color: var(--text-primary);
 	padding: 0.25rem 0.4rem;
 	font-size: 0.8rem;
 	cursor: pointer;
+	transition: all 0.2s;
 }
 
 .filter-field select:focus {
 	outline: none;
-	border-color: #a78bfa;
+	border-color: var(--accent);
 }
 
 .cost-input {
 	width: 100%;
 	max-width: 7rem;
-	background: #0d0d14;
-	border: 1px solid #2e2e4e;
+	background: var(--filter-input-bg);
+	border: 1px solid var(--filter-input-border);
 	border-radius: 0.35rem;
-	color: #e2e8f0;
+	color: var(--text-primary);
 	padding: 0.25rem 0.4rem;
 	font-size: 0.8rem;
 	text-align: center;
+	transition: all 0.2s;
 }
 
 .cost-input:focus {
 	outline: none;
-	border-color: #a78bfa;
+	border-color: var(--accent);
 }
 
 .cost-input:disabled {
@@ -142,7 +173,7 @@ defineEmits(["levelChange", "update:maxCost", "update:noBudget", "update:minVolu
 	display: flex;
 	align-items: center;
 	gap: 0.35rem;
-	color: #64748b;
+	color: var(--color-secondary-text);
 	font-size: 0.78rem;
 	cursor: pointer;
 	user-select: none;
@@ -150,23 +181,23 @@ defineEmits(["levelChange", "update:maxCost", "update:noBudget", "update:minVolu
 }
 
 .no-budget-label input[type="checkbox"] {
-	accent-color: #a78bfa;
+	accent-color: var(--accent);
 	cursor: pointer;
 	width: 0.85rem;
 	height: 0.85rem;
 }
 
 .filter-max {
-	color: #475569;
+	color: var(--text-muted);
 	font-size: 0.75rem;
 	white-space: nowrap;
 }
 
 .filter-reset {
 	background: none;
-	border: 1px solid #2e2e4e;
+	border: 1px solid var(--filter-input-border);
 	border-radius: 0.4rem;
-	color: #64748b;
+	color: var(--color-secondary-text);
 	font-size: 0.75rem;
 	padding: 0.25rem 0.75rem;
 	cursor: pointer;
@@ -176,7 +207,7 @@ defineEmits(["levelChange", "update:maxCost", "update:noBudget", "update:minVolu
 }
 
 .filter-reset:hover {
-	color: #f87171;
-	border-color: #f87171;
+	color: var(--color-cost);
+	border-color: var(--color-cost);
 }
 </style>

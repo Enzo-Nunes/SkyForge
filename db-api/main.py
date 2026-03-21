@@ -1,13 +1,17 @@
 import logging
 import sys
 import typing
-from datetime import datetime
+from pathlib import Path
 
 import db
-import flask
-import psycopg2
+from db_runtime import DBRuntime, DBUnavailableError
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel
 
 from common.types import ForgeItemInfo
+
+FORGE_DATA_PATH = Path(__file__).with_name("forge_data.json")
 
 _formatter = logging.Formatter("%(asctime)s - db-api - %(levelname)s - %(message)s")
 _handler = logging.StreamHandler(sys.stdout)
@@ -17,50 +21,73 @@ logger.handlers.clear()
 logger.addHandler(_handler)
 logger.setLevel(logging.INFO)
 logger.propagate = False
-logger.info("Waiting for database...")
-conn: psycopg2.extensions.connection = db.wait_for_db()
-db.init_schema(conn)
-logger.info("Database ready.")
-last_scraped_at: datetime | None = None
-app = flask.Flask(__name__)
+
+
+class AHSalesPayload(BaseModel):
+    sales: typing.List[dict[str, int | str | None]]
+
+
+class BazaarSnapshotsPayload(BaseModel):
+    snapshots: dict[str, int]
+
+
+class ErrorResponse(BaseModel):
+    error: str
+
+
+class HealthResponse(BaseModel):
+    status: str
+
+
+class ForgeItemsResponse(BaseModel):
+    items: dict[str, ForgeItemInfo]
+    last_updated: str | None
+
+
+class RecordedResponse(BaseModel):
+    recorded: int
+
+
+class MarketSummaryResponse(BaseModel):
+    items: dict[str, dict[str, dict[str, int | str | None]]]
+
+
+runtime = DBRuntime(logger, FORGE_DATA_PATH)
+app = FastAPI()
+
+
+@app.exception_handler(DBUnavailableError)
+async def handle_db_unavailable(_request: Request, _exc: DBUnavailableError) -> JSONResponse:
+    return JSONResponse(status_code=503, content={"error": "Database unavailable"})
 
 
 @app.get("/health")
-def health() -> flask.Response:
-    return flask.jsonify({"status": "ok"})
+def health() -> HealthResponse:
+    return HealthResponse(status="ok")
 
 
-@app.get("/forge-items")
-def get_forge_items() -> flask.Response:
-    items = db.read_forge_items(conn)
-    return flask.jsonify({"items": items, "last_scraped_at": last_scraped_at.isoformat() if last_scraped_at else None})
+@app.get("/forge-items", response_model=ForgeItemsResponse, responses={503: {"model": ErrorResponse}})
+def get_forge_items() -> ForgeItemsResponse:
+    items: dict[str, ForgeItemInfo] = runtime.run(db.read_forge_items, retry_on_disconnect=True)
+    last_updated = runtime.last_updated.isoformat() if runtime.last_updated else None
+    return ForgeItemsResponse(items=items, last_updated=last_updated)
 
 
-@app.put("/forge-items")
-def put_forge_items() -> flask.Response:
-    global last_scraped_at
-    data = flask.request.get_json(force=True)
-    items: dict[str, ForgeItemInfo] = {name: typing.cast(ForgeItemInfo, info) for name, info in data["items"].items()}
-    db.upsert_forge_items(conn, items)
-    last_scraped_at = datetime.now()
-    return flask.jsonify({"upserted": len(items)})
+@app.post("/ah-sales", response_model=RecordedResponse, responses={503: {"model": ErrorResponse}})
+def post_ah_sales(payload: AHSalesPayload) -> RecordedResponse:
+    sales = payload.sales
+    recorded = runtime.run(db.insert_ah_sales_with_price, sales, retry_on_disconnect=True)
+    return RecordedResponse(recorded=recorded)
 
 
-@app.post("/ah-sales")
-def post_ah_sales() -> flask.Response:
-    data = flask.request.get_json(force=True)
-    sales: dict[str, int] = {str(k): int(v) for k, v in data["sales"].items()}
-    db.insert_ah_sale_batch(conn, sales)
-    return flask.jsonify({"recorded": len(sales)})
+@app.post("/bazaar-snapshots", response_model=RecordedResponse, responses={503: {"model": ErrorResponse}})
+def post_market_snapshots(payload: BazaarSnapshotsPayload) -> RecordedResponse:
+    snapshots = payload.snapshots
+    recorded = runtime.run(db.insert_bazaar_snapshots, snapshots, retry_on_disconnect=False)
+    return RecordedResponse(recorded=recorded)
 
 
-@app.get("/ah-sales")
-def get_ah_sales() -> flask.Response:
-    sales = db.read_ah_weekly_sales(conn)
-    return flask.jsonify({"sales": sales})
-
-
-@app.get("/ah-sales/oldest")
-def get_ah_sales_oldest() -> flask.Response:
-    oldest_at = db.read_ah_oldest_record_time(conn)
-    return flask.jsonify({"oldest_recorded_at": oldest_at})
+@app.get("/market-summary", response_model=MarketSummaryResponse, responses={503: {"model": ErrorResponse}})
+def get_market_summary() -> MarketSummaryResponse:
+    items = runtime.run(db.read_market_summary_7d, retry_on_disconnect=True)
+    return MarketSummaryResponse(items=items)

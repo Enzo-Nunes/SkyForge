@@ -10,34 +10,34 @@ jobs:
   bump-version:
     if: contains(fromJson('["major", "minor", "patch"]'), github.event.label.name)
     runs-on: ubuntu-latest
-    
+
     permissions:
       contents: write
       pull-requests: write
-    
+
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           ref: ${{ github.head_ref }}
-      
+
       - name: Get current version
         id: current-version
         run: echo "version=$(cat VERSION)" >> $GITHUB_OUTPUT
-      
+
       - name: Determine bump type
         id: bump-type
         run: |
           echo "type=${{ github.event.label.name }}" >> $GITHUB_OUTPUT
-      
+
       - name: Calculate new version
         id: new-version
         run: |
           CURRENT="${{ steps.current-version.outputs.version }}"
           TYPE="${{ steps.bump-type.outputs.type }}"
-          
+
           IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT"
-          
+
           case "$TYPE" in
             major)
               MAJOR=$((MAJOR + 1))
@@ -52,15 +52,15 @@ jobs:
               PATCH=$((PATCH + 1))
               ;;
           esac
-          
+
           NEW_VERSION="$MAJOR.$MINOR.$PATCH"
           echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
-      
+
       - name: Update VERSION file
         if: steps.current-version.outputs.version != steps.new-version.outputs.version
         run: |
           echo "${{ steps.new-version.outputs.version }}" > VERSION
-      
+
       - name: Commit and push version bump
         if: steps.current-version.outputs.version != steps.new-version.outputs.version
         run: |
@@ -69,7 +69,7 @@ jobs:
           git add VERSION
           git commit -m "chore: bump version to ${{ steps.new-version.outputs.version }}"
           git push
-      
+
       - name: Comment on PR
         if: steps.current-version.outputs.version != steps.new-version.outputs.version
         uses: actions/github-script@v7

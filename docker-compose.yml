@@ -10,7 +10,7 @@ services:
       - postgres_data:/var/lib/postgresql
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "skyforge"]
-      interval: 5s
+      interval: 15s
       timeout: 5s
       retries: 5
       start_period: 10s
@@ -28,23 +28,17 @@ services:
       POSTGRES_DB: skyforge
       POSTGRES_USER: skyforge
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-skyforge}
+      POSTGRES_CONNECT_TIMEOUT: ${POSTGRES_CONNECT_TIMEOUT:-5}
     healthcheck:
-      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:5000/health')\" || exit 1"]
-      interval: 5s
-      timeout: 10s
-      retries: 10
-      start_period: 30s
-
-  scraper:
-    build:
-      context: .
-      dockerfile: scraper/Dockerfile
-    init: true
-    restart: unless-stopped
-    depends_on:
-      - db-api
-    environment:
-      WIKI_SCRAPE_INTERVAL: ${WIKI_SCRAPE_INTERVAL:-3600}
+      test:
+        [
+          "CMD-SHELL",
+          'python -c "import urllib.request; urllib.request.urlopen(''http://localhost:5000/health'')" || exit 1',
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   calculator:
     build:

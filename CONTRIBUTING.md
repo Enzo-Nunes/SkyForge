@@ -28,8 +28,8 @@ Thank you for your interest in contributing to SkyForge! This guide explains how
    ```
 
    This installs:
-   - **Ruff** — Python linting and formatting.
-   - **Prettier** — Vue, JavaScript, JSON, YAML formatting.
+   - **Ruff** - Python linting and formatting.
+   - **Prettier** - Vue, JavaScript, HTML, and YAML.
 
    These run automatically on `git commit`.
 
@@ -51,10 +51,10 @@ Thank you for your interest in contributing to SkyForge! This guide explains how
 
 7. **View Logs:**
 
-    ```bash
-    docker compose logs -f          # View all services
-    docker compose logs -f db-api   # View specific service (e.g., db-api, calculator, scraper, web)
-    ```
+   ```bash
+   docker compose logs -f          # View all services
+   docker compose logs -f db-api   # View specific service (e.g., db-api, calculator, web)
+   ```
 
 ---
 
@@ -80,12 +80,19 @@ Thank you for your interest in contributing to SkyForge! This guide explains how
    - Why it's useful
    - Any design thoughts or mockups
 
+### Report Outdated Crafting Data
+
+If the forge crafting dataset is out of date, both of these contribution paths are welcome:
+
+1. **Open an issue** reporting the outdated entries.
+2. **Open a pull request** against the `dev` branch that updates `db-api/forge_data.json` with corrected data.
+
 ### Submit a Pull Request
 
 #### Branch Strategy
 
-- **`main`** — Stable, production-ready releases. Protected branch.
-- **`dev`** — Integration branch for community contributions. **Always submit PRs against `dev`, not `main`.**
+- **`main`** - Stable, production-ready releases. Protected branch.
+- **`dev`** - Integration branch for community contributions. **Always submit PRs against `dev`, not `main`.**
 
 #### Before Submitting
 
@@ -99,6 +106,7 @@ Thank you for your interest in contributing to SkyForge! This guide explains how
 
    ```bash
    docker compose down -v  # Clean slate
+   docker compose config -q
    docker compose up --build
    ```
 
@@ -109,6 +117,27 @@ Thank you for your interest in contributing to SkyForge! This guide explains how
 
 4. **Update documentation:**
    - If your change affects usage or configuration, update `README.md` or add docs as needed.
+   - If your change affects tracker logic or UI explanations, also update in-app docs in
+     `web/frontend/src/components/GuideTab.vue` and `web/frontend/src/components/HowTab.vue`.
+
+### Calculator and Market-Data Logic Changes
+
+When contributing to market tracking or profit logic, keep these behaviors consistent unless your PR explicitly changes them:
+
+- AH volume history is based on realized BIN sales from ended auctions.
+- Bazaar history is based on periodic sell-price/weekly-volume snapshots.
+- AH 7-day volume extrapolation is only applied during partial uptime and only when an item has at least 3 observed AH sales.
+
+If you intentionally change any of the above behavior, document it clearly in your PR description and update the information presented to the user.
+
+1. **Commit your changes:**
+
+   ```bash
+   git add .
+   git commit -m "Add feature X with Y and Z"
+   ```
+
+   - If commit fails due to pre-commit hooks, the hooks will try to format and lint the files for you. Review the changes, stage again, and commit.
 
 #### Submitting Your PR
 

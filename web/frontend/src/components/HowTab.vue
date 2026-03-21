@@ -2,11 +2,10 @@
 	<main class="content-page">
 		<h3>Price Sources</h3>
 		<p>
-			SkyForge gathers its data from two sources: the
-			<a href="https://wiki.hypixel.net/The_Forge" target="_blank" rel="noopener">Official Hypixel Wiki</a>,
-			which provides forge item recipes, crafting durations and unlock requirements, and the
-			<a href="https://api.hypixel.net" target="_blank" rel="noopener">Official Hypixel API</a>, which
-			provides live market prices from both the Bazaar and the Auction House.
+			SkyForge gathers its data from two sources: a separately created JSON dataset, which provides forge item
+			recipes, crafting durations, and unlock requirements, and the
+			<a href="https://api.hypixel.net" target="_blank" rel="noopener">Official Hypixel API</a>, which provides
+			live market prices from both the Bazaar and the Auction House.
 		</p>
 		<p>
 			The calculator prioritizes <strong>Bazaar</strong> for pricing. If an item is listed on the Bazaar, that
@@ -18,31 +17,56 @@
 			column also shows indicators for each ingredient, revealing the source of that material's cost.
 		</p>
 
-		<h3>Weekly Volume Tracking</h3>
-		<p>
-			The calculator tracks activity across both markets:
-		</p>
+		<h3>Profit Calculation</h3>
+		<p>Items are scored and ranked by <strong>Profit per Hour</strong>:</p>
 		<ul>
-			<li><strong>Bazaar Volume</strong> — Taken directly from the Hypixel API's 7-day moving average.</li>
-			<li><strong>Auction House Volume</strong> — Tracked by polling the Ended Auctions endpoint every 60 seconds.
+			<li>
+				<strong>Ingredients Cost</strong> = sum of (quantity x Bazaar price or AH price if Bazaar unavailable)
+				for each ingredient.
+			</li>
+			<li><strong>Profit</strong> = Sell Value - Ingredients Cost.</li>
+			<li><strong>Profit / hour</strong> = Profit / Duration (hours).</li>
+		</ul>
+
+		<h3>Weekly Volume Tracking</h3>
+		<p>The calculator tracks activity across both markets:</p>
+		<ul>
+			<li><strong>Bazaar Volume</strong> - Taken directly from the Hypixel API's 7-day moving count.</li>
+			<li>
+				<strong>Auction House Volume</strong> - Tracked by polling the Ended Auctions endpoint every 45 seconds.
 				Sales are matched to items using an internal UUID map built during regular price fetches. Only auctions
-				with a buyer (BIN) are counted.</li>
+				with a buyer (BIN) are counted.
+			</li>
 		</ul>
 		<p>
 			The database stores up to 8 days of AH sales polls, automatically pruning older entries. When calculating
 			weekly volume, if less than 7 days of data is available, the volume is extrapolated to an estimated 7-day
-			projection. The <strong>~</strong> prefix indicates an estimated value; after 7 days of tool uptime, values
-			become actual counts.
+			projection only when there are at least <strong>3 observed AH sales</strong> for that item in the captured
+			window. Otherwise, SkyForge shows the observed count without extrapolation. The <strong>~</strong> prefix
+			indicates an estimated value; after 7 days of tool uptime, values naturally become actual 7-day counts.
 		</p>
 
-		<h3>Profit Calculation</h3>
-		<p>Items are scored and ranked by <strong>Profit per Hour</strong>:</p>
+		<h3>Normalized Range (7d)</h3>
+		<p>
+			SkyForge computes sell-price range stats from stored 7-day history: realized AH sale prices from ended
+			auctions and periodic Bazaar sell-price snapshots. The database keeps up to 8 days of history and computes
+			stats over the latest 7 days.
+		</p>
 		<ul>
-			<li><strong>Ingredients Cost</strong> = sum of (quantity x Bazaar price or AH price if Bazaar unavailable)
-				for each ingredient.</li>
-			<li><strong>Profit</strong> = Sell Value - Ingredients Cost.</li>
-			<li><strong>Profit / hour</strong> = Profit / Duration (hours).</li>
+			<li><strong>Low (7d)</strong> - minimum sampled sell price.</li>
+			<li><strong>High (7d)</strong> - maximum sampled sell price.</li>
+			<li><strong>Median (7d)</strong> - median sampled sell price.</li>
+			<li><strong>Normalized Range (7d)</strong> - <strong>(High - Low) / Median x 100</strong>.</li>
 		</ul>
+		<p>
+			This metric captures quote volatility: lower percentages usually indicate a more stable sell environment,
+			while higher values indicate bigger price swings.
+		</p>
+		<p>
+			For the Auction House, normalized range is based on realized sell orders. For the Bazaar, it's based on
+			periodic snapshots of the market. For best decisions, evaluate it together with
+			<strong>Volume (7d)</strong>.
+		</p>
 
 		<h3>Live Updates</h3>
 		<p>
