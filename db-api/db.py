@@ -10,7 +10,7 @@ ForgeItemRow: typing.TypeAlias = tuple[str, float]
 ForgeRecipeRow: typing.TypeAlias = tuple[str, str, int]
 ForgeRequirementRow: typing.TypeAlias = tuple[str, str, int]
 AHSalesSummaryRow: typing.TypeAlias = tuple[str, int | None, int | None, int | None, int, str | None]
-BazaarSummaryRow: typing.TypeAlias = tuple[str, int | None, int | None, int | None, int, int | None, str | None]
+BazaarSummaryRow: typing.TypeAlias = tuple[str, int | None, int | None, int | None, int, str | None]
 
 
 def _get_dsn() -> str:
@@ -87,7 +87,6 @@ def init_schema(conn: psycopg2.extensions.connection) -> None:
                 id            SERIAL PRIMARY KEY,
                 item_name     TEXT NOT NULL,
                 sell_price    BIGINT NOT NULL,
-                weekly_volume BIGINT NOT NULL,
                 sampled_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
             )
         """)
@@ -175,25 +174,20 @@ def insert_ah_sales_with_price(conn: psycopg2.extensions.connection, sales: list
     return inserted
 
 
-def insert_bazaar_snapshots(conn: psycopg2.extensions.connection, snapshots: dict[str, dict[str, int | None]]) -> int:
+def insert_bazaar_snapshots(conn: psycopg2.extensions.connection, snapshots: dict[str, int]) -> int:
     inserted = 0
 
     with conn.cursor() as cur:
-        for item_name, snapshot in snapshots.items():
-            sell_price_raw = snapshot.get("sell_price")
-            weekly_volume_raw = snapshot.get("weekly_volume")
-
-            if not isinstance(sell_price_raw, int) or sell_price_raw < 0:
-                continue
-            if not isinstance(weekly_volume_raw, int) or weekly_volume_raw < 0:
+        for item_name, sell_price_raw in snapshots.items():
+            if sell_price_raw < 0:
                 continue
 
             cur.execute(
                 """
-                INSERT INTO bazaar_snapshots (item_name, sell_price, weekly_volume)
-                VALUES (%s, %s, %s)
+                INSERT INTO bazaar_snapshots (item_name, sell_price)
+                VALUES (%s, %s)
                 """,
-                (item_name, sell_price_raw, weekly_volume_raw),
+                (item_name, sell_price_raw),
             )
             if cur.rowcount > 0:
                 inserted += 1
@@ -239,9 +233,7 @@ def read_market_summary_7d(
                 SELECT
                     item_name,
                     sell_price,
-                    weekly_volume,
-                    sampled_at,
-                    ROW_NUMBER() OVER (PARTITION BY item_name ORDER BY sampled_at DESC) AS rn
+                    sampled_at
                 FROM bazaar_snapshots
                 WHERE sampled_at > NOW() - INTERVAL '7 days'
             )
@@ -251,21 +243,19 @@ def read_market_summary_7d(
                 MAX(sell_price) AS high,
                 CAST(PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY sell_price) AS BIGINT) AS median,
                 COUNT(*)::INT AS quantity,
-                MAX(CASE WHEN rn = 1 THEN weekly_volume END)::BIGINT AS weekly_volume,
                 MIN(sampled_at)::TEXT AS oldest_recorded_at
             FROM base
             GROUP BY item_name
             """
         )
         bazaar_rows = typing.cast(list[BazaarSummaryRow], cur.fetchall())
-        for item_name, low, high, median, quantity, weekly_volume, oldest_recorded_at in bazaar_rows:
+        for item_name, low, high, median, quantity, oldest_recorded_at in bazaar_rows:
             item_bucket = result.setdefault(item_name, {})
             item_bucket["Bazaar"] = {
                 "low": low,
                 "high": high,
                 "median": median,
                 "quantity": quantity,
-                "weekly_volume": weekly_volume,
                 "oldest_recorded_at": oldest_recorded_at,
             }
 

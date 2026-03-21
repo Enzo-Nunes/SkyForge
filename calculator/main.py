@@ -30,7 +30,7 @@ def main() -> None:
 
     logger.info("Forge data available. Starting calculations.")
     market = MarketPriceTracker(logger)
-    calculator = ProfitCalculator(logger, market)
+    calculator = ProfitCalculator(logger, market, item_state)
 
     listing_poller = MarketListingUpdater(
         logger,
@@ -51,9 +51,8 @@ def main() -> None:
         logger,
         market,
         item_state,
-        poll_interval=runtime.ended_auctions_refresh_time,
+        poll_interval=runtime.listing_refresh_time,
         state_stale_seconds=runtime.auction_state_stale_seconds,
-        state_end_grace_seconds=runtime.auction_state_end_grace_seconds,
     )
     sales_thread = threading.Thread(target=sales_tracker.run, daemon=True, name="ah-sales-tracker")
     sales_thread.start()

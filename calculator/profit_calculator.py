@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 
 from calc_http import request_with_retry
 from calc_types import DB_API_URL, ForgeProfit, PriceStats
-from market_tracker import MarketPriceTracker
+from market_tracker import ForgeItemState, MarketPriceTracker
 
 from common.types import ForgeItemInfo
 
@@ -14,18 +14,15 @@ from common.types import ForgeItemInfo
 class ProfitCalculator:
     MIN_AH_SALES_FOR_EXTRAPOLATION = 3
 
-    def __init__(self, logger: logging.Logger, market: MarketPriceTracker) -> None:
+    def __init__(self, logger: logging.Logger, market: MarketPriceTracker, item_state: ForgeItemState) -> None:
         self._logger = logger
         self._market = market
+        self._item_state = item_state
         self._start_time = time.time()
-
-    @property
-    def market(self) -> MarketPriceTracker:
-        return self._market
 
     def calculate_profits(self, forge_info: dict[str, ForgeItemInfo]) -> tuple[list[ForgeProfit], int | None]:
         auction_house_prices = self._market.get_auction_house_prices_snapshot()
-        bazaar_prices = self._market.fetch_bazaar_prices()
+        bazaar_prices = self._market.fetch_bazaar_prices(self._item_state.get_tracked_items())
         price_stats_7d: PriceStats = {}
         uptime_seconds = int(time.time() - self._start_time)
         ah_weekly_sales: dict[str, int] = {}
@@ -66,13 +63,11 @@ class ProfitCalculator:
                 bazaar_low = bazaar_stats.get("low")
                 bazaar_high = bazaar_stats.get("high")
                 bazaar_median = bazaar_stats.get("median")
-                bazaar_weekly_volume = bazaar_stats.get("weekly_volume")
                 price_stats_7d[item_name]["Bazaar"] = {
                     "low": int(bazaar_low) if isinstance(bazaar_low, int) else None,
                     "high": int(bazaar_high) if isinstance(bazaar_high, int) else None,
                     "median": int(bazaar_median) if isinstance(bazaar_median, int) else None,
                     "samples": bazaar_quantity,
-                    "weekly_volume": int(bazaar_weekly_volume) if isinstance(bazaar_weekly_volume, int) else None,
                 }
 
                 bazaar_oldest_recorded_at_raw = bazaar_stats.get("oldest_recorded_at")
@@ -135,12 +130,7 @@ class ProfitCalculator:
             item_bazaar_info = bazaar_prices.get(item_name)
             if item_bazaar_info:
                 item_sell_price = item_bazaar_info.get("Sell Price", -1)
-                weekly_volume = int(
-                    price_stats_7d.get(item_name, {})
-                    .get("Bazaar", {})
-                    .get("weekly_volume", item_bazaar_info.get("Weekly Volume", 0))
-                    or 0
-                )
+                weekly_volume = int(item_bazaar_info.get("Weekly Volume", 0) or 0)
                 volume_source = "Bazaar"
                 volume_estimated = False
             else:

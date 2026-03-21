@@ -34,15 +34,14 @@
 				<strong>Volume (7d)</strong> - units sold in the past 7 days. Some Auction House values are prefixed
 				with <strong>~</strong>, which indicates they are extrapolated estimates based on less than 7 days of
 				data. Extrapolation is only applied when at least <strong>3 observed AH sales</strong> exist for that
-				item in the captured window; otherwise SkyForge shows observed counts without extrapolation. After 7
-				days of tool uptime, AH values naturally become observed 7-day totals. Values from the Bazaar are always
-				official data. Hover the value to see whether it is observed or estimated, and for estimated AH values,
-				the extrapolation details.
+				item in the captured window. After 7 days of tool uptime, AH values naturally become observed 7-day
+				totals. Values from the Bazaar are always official data. Hover the value to see whether it is observed
+				or estimated, and for estimated AH values, the extrapolation details.
 			</li>
 			<li>
-				<strong>Normalized Range (7d)</strong> - price volatility metric for the selected sell market over the
-				last 7 days. Lower is generally better: it means the quoted sell value has been more stable. Hover this
-				value in a row to see a tooltip with extra details (sample count, low-high range and median).
+				<strong>Normalized Range (7d)</strong> - measure of how much the sell price has fluctuated over the last
+				7 days. Lower is generally better: it means the quoted sell value has been more stable. Hover this value
+				in a row to see a tooltip with extra details.
 			</li>
 			<li>
 				<strong>Recipe</strong> - ingredients and quantities needed, with market indicators next to each

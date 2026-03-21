@@ -33,7 +33,7 @@
 		<ul>
 			<li><strong>Bazaar Volume</strong> - Taken directly from the Hypixel API's 7-day moving count.</li>
 			<li>
-				<strong>Auction House Volume</strong> - Tracked by polling the Ended Auctions endpoint every 60 seconds.
+				<strong>Auction House Volume</strong> - Tracked by polling the Ended Auctions endpoint every 45 seconds.
 				Sales are matched to items using an internal UUID map built during regular price fetches. Only auctions
 				with a buyer (BIN) are counted.
 			</li>
@@ -63,8 +63,9 @@
 			while higher values indicate bigger price swings.
 		</p>
 		<p>
-			Normalized range is based on all captured sell orders, not only on realized sell orders. For best decisions,
-			evaluate it together with <strong>Volume (7d)</strong>.
+			For the Auction House, normalized range is based on realized sell orders. For the Bazaar, it's based on
+			periodic snapshots of the market. For best decisions, evaluate it together with
+			<strong>Volume (7d)</strong>.
 		</p>
 
 		<h3>Live Updates</h3>

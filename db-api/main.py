@@ -28,7 +28,7 @@ class AHSalesPayload(BaseModel):
 
 
 class BazaarSnapshotsPayload(BaseModel):
-    snapshots: dict[str, dict[str, int | None]]
+    snapshots: dict[str, int]
 
 
 class ErrorResponse(BaseModel):

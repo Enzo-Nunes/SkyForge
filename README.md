@@ -35,21 +35,19 @@ Open your browser at [http://localhost:8145](http://localhost:8145). The UI will
 
 Environment variables control SkyForge's behavior:
 
-| Variable | Default | Description |
-| ----------- | --------- | ------------- |
-| `POSTGRES_PASSWORD` | `skyforge` | Database password. |
-| `REFRESH_TIME` | `120` | Seconds between profit calculation cycles (120-600 recommended) |
-| `LISTING_REFRESH_TIME` | `45` | Seconds between Auction House listing snapshots used to track BIN UUID/price state. |
-| `ENDED_AUCTIONS_REFRESH_TIME` | `60` | Seconds between polling the ended-auctions feed used to record realized AH sales. |
-| `AH_STATE_STALE_SECONDS` | `900` | Maximum age for unseen AH listing state entries before pruning. |
-| `AH_STATE_END_GRACE_SECONDS` | `180` | Extra grace period after auction end time before stale-pruning listing state. |
+| Variable | Default | Restrictions | Description |
+| -------- | ------- | ------------ | ----------- |
+| `POSTGRES_PASSWORD` | `skyforge` | - | Database password. |
+| `REFRESH_TIME` | `120` | - | Seconds between profit calculation cycles |
+| `LISTING_REFRESH_TIME` | `45` | <60s | Seconds between Auction House live state updates. Has to be less than 60s due to how the API deals with ended auctions. |
+| `AH_STATE_STALE_SECONDS` | `900` | - | Maximum age for unseen AH listing state entries before pruning. |
 
 ## Market History and Stats
 
 SkyForge stores recent market history in PostgreSQL and computes 7-day stats used by the tracker UI:
 
 - **Auction House (AH)**: records realized BIN sales from ended auctions.
-- **Bazaar**: records periodic snapshots of forge-item sell price and weekly volume.
+- **Bazaar**: records periodic snapshots of forge-item sell price.
 
 From that history, SkyForge computes low/high/median and sample counts over the latest 7 days.
 
