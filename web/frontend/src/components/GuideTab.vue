@@ -53,6 +53,11 @@
 			together: high volume + low range is usually safer than low volume + high range.
 		</p>
 		<p>
+			Also, there are naturally some items which allow modifications or upgrades, such as armor, weapons, drills,
+			etc. Use your Skyblock knowledge to judge the rankings having that into consideration. The calculator
+			considers any variants as long as they don't change the name of the item.
+		</p>
+		<p>
 			Click any numeric column header to sort by that column. Click it again to reverse the order. Sorting by
 			<strong>#</strong> and sorting by <strong>Profit / hour</strong> produce the same result.
 		</p>
