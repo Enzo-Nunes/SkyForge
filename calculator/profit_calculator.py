@@ -10,9 +10,10 @@ from market_tracker import ForgeItemState, MarketPriceTracker
 from common.types import ForgeItemInfo
 
 SECONDS_PER_WEEK = 604800
-# Coverage always trails the full week by the time since the latest poll, plus polls near the window
-# boundary; treat anything this close to a week as full so it is not flagged or extrapolated.
-FULL_COVERAGE_TOLERANCE_SECONDS = 300
+# Coverage always trails the full week by the time since the latest poll, and routine restarts cost a few
+# minutes each. At 99% (about 1h40m missing) extrapolation would change volumes by under 1%, so treat it as
+# a full week rather than flagging and marking volumes as estimated.
+FULL_COVERAGE_RATIO = 0.99
 
 
 class ProfitCalculator:
@@ -47,7 +48,7 @@ class ProfitCalculator:
             covered_raw = response_json.get("ah_covered_seconds")
             if isinstance(covered_raw, int):
                 ah_coverage_seconds = max(0, min(SECONDS_PER_WEEK, covered_raw))
-                if ah_coverage_seconds >= SECONDS_PER_WEEK - FULL_COVERAGE_TOLERANCE_SECONDS:
+                if ah_coverage_seconds >= SECONDS_PER_WEEK * FULL_COVERAGE_RATIO:
                     ah_coverage_seconds = SECONDS_PER_WEEK
 
             for item_name, market_stats_obj in market_summary.items():
