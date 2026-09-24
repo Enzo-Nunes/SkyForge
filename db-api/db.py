@@ -29,6 +29,11 @@ def connect_db() -> psycopg2.extensions.connection:
     return psycopg2.connect(_get_dsn())
 
 
+def ping(conn: psycopg2.extensions.connection) -> None:
+    with conn.cursor() as cur:
+        cur.execute("SELECT 1")
+
+
 def wait_for_db(retries: int = 20, delay: int = 3) -> psycopg2.extensions.connection:
     for attempt in range(retries):
         try:

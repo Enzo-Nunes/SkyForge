@@ -37,9 +37,14 @@ const coverageSeconds = ref(null);
 const tab = ref("tracker");
 const { theme } = useTheme();
 
+const RECONNECT_MIN_MS = 2000;
+const RECONNECT_MAX_MS = 30000;
+
 let ws = null;
 let reconnectTimer = null;
-let intentionalClose = false;
+let reconnectDelay = RECONNECT_MIN_MS;
+let serverShutDown = false;
+let unmounted = false;
 
 function connect() {
 	const proto = location.protocol === "https:" ? "wss" : "ws";
@@ -48,6 +53,8 @@ function connect() {
 	ws.onopen = () => {
 		status.value = "connected";
 		clearTimeout(reconnectTimer);
+		reconnectDelay = RECONNECT_MIN_MS;
+		serverShutDown = false;
 	};
 
 	ws.onmessage = (e) => {
@@ -60,16 +67,18 @@ function connect() {
 			});
 			coverageSeconds.value = data.coverage_seconds;
 		} else if (data?.type === "shutdown") {
-			intentionalClose = true;
+			serverShutDown = true;
 			status.value = "offline";
 		}
 		// ignore ping objects
 	};
 
 	ws.onclose = () => {
-		if (intentionalClose) return;
-		status.value = "disconnected";
-		reconnectTimer = setTimeout(connect, 5000);
+		if (unmounted) return;
+		// Keep retrying even after a shutdown notice: it is usually a restart or deploy.
+		status.value = serverShutDown ? "offline" : "disconnected";
+		reconnectTimer = setTimeout(connect, reconnectDelay);
+		reconnectDelay = Math.min(reconnectDelay * 2, RECONNECT_MAX_MS);
 	};
 
 	ws.onerror = () => {
@@ -79,6 +88,7 @@ function connect() {
 
 onMounted(connect);
 onUnmounted(() => {
+	unmounted = true;
 	clearTimeout(reconnectTimer);
 	ws?.close();
 });

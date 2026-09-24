@@ -62,8 +62,9 @@ async def handle_db_unavailable(_request: Request, _exc: DBUnavailableError) -> 
     return JSONResponse(status_code=503, content={"error": "Database unavailable"})
 
 
-@app.get("/health")
+@app.get("/health", responses={503: {"model": ErrorResponse}})
 def health() -> HealthResponse:
+    runtime.run(db.ping, retry_on_disconnect=False)
     return HealthResponse(status="ok")
 
 

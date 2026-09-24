@@ -2,6 +2,7 @@ import { ref } from "vue";
 
 const THEME_STORAGE_KEY = "theme";
 const SYSTEM_DARK_QUERY = "(prefers-color-scheme: dark)";
+const SYSTEM_LIGHT_QUERY = "(prefers-color-scheme: light)";
 
 let systemThemeListenerAttached = false;
 
@@ -16,12 +17,12 @@ function getInitialTheme() {
 		return saved;
 	}
 
-	// Check system preference
-	if (window.matchMedia && window.matchMedia(SYSTEM_DARK_QUERY).matches) {
-		return "dark";
+	// Follow a light system preference. Browsers report "light" when the OS has no setting at all,
+	// so only systems that explicitly prefer dark (or unsupported browsers) get the dark default.
+	if (window.matchMedia && window.matchMedia(SYSTEM_LIGHT_QUERY).matches) {
+		return "light";
 	}
 
-	// Default to dark when system preference is not dark.
 	return "dark";
 }
 
