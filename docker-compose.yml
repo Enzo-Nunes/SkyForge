@@ -50,6 +50,10 @@ services:
       - db-api
     environment:
       REFRESH_TIME: ${REFRESH_TIME:-120}
+      LISTING_REFRESH_TIME: ${LISTING_REFRESH_TIME:-45}
+      AH_STATE_STALE_SECONDS: ${AH_STATE_STALE_SECONDS:-900}
+    volumes:
+      - results_token:/run/skyforge:ro
 
   web:
     build:
@@ -59,6 +63,9 @@ services:
     restart: unless-stopped
     ports:
       - "8145:8000"
+    volumes:
+      - results_token:/run/skyforge
 
 volumes:
   postgres_data:
+  results_token:
