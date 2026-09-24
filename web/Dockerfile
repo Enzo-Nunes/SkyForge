@@ -4,7 +4,7 @@ FROM node:25-slim AS frontend-build
 WORKDIR /frontend
 COPY VERSION /tmp/VERSION
 COPY web/frontend/package*.json ./
-RUN npm install
+RUN npm ci
 COPY web/frontend/ ./
 RUN VITE_APP_VERSION=$(cat /tmp/VERSION) npm run build
 
