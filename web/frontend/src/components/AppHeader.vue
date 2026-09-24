@@ -43,7 +43,6 @@ const statusLabel = computed(
 			connecting: "Connecting…",
 			connected: "Live",
 			disconnected: "Disconnected",
-			offline: "Offline",
 		})[props.status],
 );
 
@@ -190,10 +189,5 @@ h1 {
 .status.disconnected {
 	background: var(--status-disconnected-bg);
 	color: var(--status-disconnected-text);
-}
-
-.status.offline {
-	background: var(--status-offline-bg);
-	color: var(--status-offline-text);
 }
 </style>

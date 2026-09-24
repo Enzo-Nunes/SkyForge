@@ -43,7 +43,6 @@ const RECONNECT_MAX_MS = 30000;
 let ws = null;
 let reconnectTimer = null;
 let reconnectDelay = RECONNECT_MIN_MS;
-let serverShutDown = false;
 let unmounted = false;
 
 function connect() {
@@ -54,7 +53,6 @@ function connect() {
 		status.value = "connected";
 		clearTimeout(reconnectTimer);
 		reconnectDelay = RECONNECT_MIN_MS;
-		serverShutDown = false;
 	};
 
 	ws.onmessage = (e) => {
@@ -66,17 +64,13 @@ function connect() {
 				timeZoneName: "short",
 			});
 			coverageSeconds.value = data.coverage_seconds;
-		} else if (data?.type === "shutdown") {
-			serverShutDown = true;
-			status.value = "offline";
 		}
 		// ignore ping objects
 	};
 
 	ws.onclose = () => {
 		if (unmounted) return;
-		// Keep retrying even after a shutdown notice: it is usually a restart or deploy.
-		status.value = serverShutDown ? "offline" : "disconnected";
+		status.value = "disconnected";
 		reconnectTimer = setTimeout(connect, reconnectDelay);
 		reconnectDelay = Math.min(reconnectDelay * 2, RECONNECT_MAX_MS);
 	};

@@ -1,5 +1,4 @@
 import asyncio
-import contextlib
 import json
 import logging
 import os
@@ -27,27 +26,13 @@ RESULTS_TOKEN_FILE.parent.mkdir(parents=True, exist_ok=True)
 RESULTS_TOKEN_FILE.write_text(_results_token, encoding="utf-8")
 
 
-@contextlib.asynccontextmanager
-async def lifespan(app: FastAPI):
-    yield
-    logger.info(f"Shutting down: notifying {len(_clients)} client(s)...")
-    shutdown_payload = json.dumps({"type": "shutdown"})
-    for ws in list(_clients):
-        try:
-            await ws.send_text(shutdown_payload)
-            await ws.close()
-        except Exception:
-            pass
-    _clients.clear()
-
-
 class ResultsPayload(BaseModel):
     profits: list[dict[str, typing.Any]]
     calculated_at: str
     coverage_seconds: int | None = None
 
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI()
 
 # Active browser connections
 _clients: set[WebSocket] = set()
