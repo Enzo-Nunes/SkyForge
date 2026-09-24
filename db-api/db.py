@@ -200,9 +200,15 @@ def insert_bazaar_snapshots(conn: psycopg2.extensions.connection, snapshots: dic
 
 def read_market_summary_7d(
     conn: psycopg2.extensions.connection,
-) -> dict[str, dict[str, dict[str, int | str | None]]]:
-    """Read per-item 7-day market summaries for AH + Bazaar."""
+) -> tuple[dict[str, dict[str, dict[str, int | str | None]]], str | None]:
+    """Read per-item 7-day market summaries for AH + Bazaar, plus when AH sale tracking began."""
     with conn.cursor() as cur:
+        # Oldest retained sale across all items approximates when AH tracking started. History is pruned
+        # after 8 days, so anything older than 7 days means a full observation window is available.
+        cur.execute("SELECT MIN(recorded_at)::TEXT FROM ah_sales")
+        tracking_row = typing.cast(tuple[str | None] | None, cur.fetchone())
+        ah_tracking_since = tracking_row[0] if tracking_row else None
+
         cur.execute("""
             SELECT
                 item_name,
@@ -259,4 +265,4 @@ def read_market_summary_7d(
                 "oldest_recorded_at": oldest_recorded_at,
             }
 
-        return result
+        return result, ah_tracking_since

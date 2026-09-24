@@ -65,6 +65,7 @@ class MarketPriceTracker:
         self._logger = logger
         self._auction_id_map: dict[str, tuple[str, int, float]] = {}
         self._auction_id_map_lock = threading.Lock()
+        self._latest_scan_epoch: float | None = None
         self._snapshot_ready = threading.Event()
 
     def refresh_auction_house_state(self, tracked_items: set[str]) -> None:
@@ -98,14 +99,18 @@ class MarketPriceTracker:
                 starting_bid = int(auction["starting_bid"])
                 new_entries[auction_id] = (item_name, starting_bid, now_epoch)
 
-        self._update_auction_state(new_entries)
+        self._update_auction_state(new_entries, now_epoch)
 
         self._logger.info("Auction House processing complete.")
 
     def get_auction_house_prices_snapshot(self) -> dict[str, int]:
         prices: dict[str, int] = {}
         with self._auction_id_map_lock:
-            for item_name, price, _ in self._auction_id_map.values():
+            for item_name, price, last_seen in self._auction_id_map.values():
+                # Only price from listings seen in the latest scan; older entries are kept solely so their
+                # sales can still be matched until they are pruned as stale.
+                if last_seen != self._latest_scan_epoch:
+                    continue
                 current = prices.get(item_name)
                 if current is None or price < current:
                     prices[item_name] = price
@@ -114,9 +119,12 @@ class MarketPriceTracker:
     def wait_for_snapshot(self, timeout: float | None = None) -> bool:
         return self._snapshot_ready.wait(timeout=timeout)
 
-    def _update_auction_state(self, new_entries: dict[str, tuple[str, int, float]]) -> None:
+    def _update_auction_state(self, new_entries: dict[str, tuple[str, int, float]], scan_epoch: float) -> None:
+        # Merge rather than replace, so listings on a page that failed to load keep being tracked until
+        # prune_auction_state drops them.
         with self._auction_id_map_lock:
-            self._auction_id_map = new_entries
+            self._auction_id_map.update(new_entries)
+            self._latest_scan_epoch = scan_epoch
             if new_entries:
                 self._snapshot_ready.set()
 
@@ -271,6 +279,12 @@ class MarketListingUpdater:
 
     def run(self) -> None:
         while True:
-            self._market.refresh_auction_house_state(self._item_state.get_tracked_items())
-            self._market.refresh_bazaar_snapshots(self._item_state.get_sellable_items())
+            try:
+                self._market.refresh_auction_house_state(self._item_state.get_tracked_items())
+            except Exception as e:
+                self._logger.warning(f"AH listing refresh failed: {e}")
+            try:
+                self._market.refresh_bazaar_snapshots(self._item_state.get_sellable_items())
+            except Exception as e:
+                self._logger.warning(f"Bazaar snapshot refresh failed: {e}")
             time.sleep(self._poll_interval)

@@ -59,11 +59,16 @@ def main() -> None:
     logger.info("AH sales tracker thread started.")
 
     while True:
-        item_state.update_from_forge_info(runtime.fetch_forge_items())
-        forge_info = item_state.get_forge_info()
+        try:
+            item_state.update_from_forge_info(runtime.fetch_forge_items())
+            forge_info = item_state.get_forge_info()
 
-        logger.info(f"Loaded {len(forge_info)} forge items from DB. Calculating profits...")
-        profits, uptime_seconds = calculator.calculate_profits(forge_info)
+            logger.info(f"Loaded {len(forge_info)} forge items from DB. Calculating profits...")
+            profits, uptime_seconds = calculator.calculate_profits(forge_info)
+        except Exception as e:
+            logger.warning(f"Calculation cycle failed, retrying in {runtime.refresh_time}s: {e}")
+            time.sleep(runtime.refresh_time)
+            continue
 
         try:
             runtime.publish_results(profits, uptime_seconds)

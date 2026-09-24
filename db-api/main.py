@@ -50,6 +50,7 @@ class RecordedResponse(BaseModel):
 
 class MarketSummaryResponse(BaseModel):
     items: dict[str, dict[str, dict[str, int | str | None]]]
+    ah_tracking_since: str | None
 
 
 runtime = DBRuntime(logger, FORGE_DATA_PATH)
@@ -89,5 +90,5 @@ def post_market_snapshots(payload: BazaarSnapshotsPayload) -> RecordedResponse:
 
 @app.get("/market-summary", response_model=MarketSummaryResponse, responses={503: {"model": ErrorResponse}})
 def get_market_summary() -> MarketSummaryResponse:
-    items = runtime.run(db.read_market_summary_7d, retry_on_disconnect=True)
-    return MarketSummaryResponse(items=items)
+    items, ah_tracking_since = runtime.run(db.read_market_summary_7d, retry_on_disconnect=True)
+    return MarketSummaryResponse(items=items, ah_tracking_since=ah_tracking_since)

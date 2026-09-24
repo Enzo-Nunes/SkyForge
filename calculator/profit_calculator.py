@@ -10,6 +10,8 @@ from market_tracker import ForgeItemState, MarketPriceTracker
 
 from common.types import ForgeItemInfo
 
+SECONDS_PER_WEEK = 604800
+
 
 class ProfitCalculator:
     MIN_AH_SALES_FOR_EXTRAPOLATION = 3
@@ -33,10 +35,24 @@ class ProfitCalculator:
 
         try:
             response = request_with_retry(self._logger, "GET", f"{DB_API_URL}/market-summary", timeout=10)
-            market_summary = response.json().get("items", {})
+            response_json = response.json()
+            market_summary = response_json.get("items", {})
             self._logger.info(f"Fetched {len(market_summary)} items from market summary data")
 
             now_dt = datetime.now(timezone.utc)
+
+            # AH volume is extrapolated over how long sales have been tracked, not over each item's oldest
+            # sale: a rarely-sold item's first sale says nothing about how long it could have been observed.
+            ah_tracking_span_seconds: int | None = None
+            ah_tracking_since_raw = response_json.get("ah_tracking_since")
+            if isinstance(ah_tracking_since_raw, str):
+                ah_tracking_since_dt = datetime.fromisoformat(ah_tracking_since_raw)
+                if ah_tracking_since_dt.tzinfo is None:
+                    ah_tracking_since_dt = ah_tracking_since_dt.replace(tzinfo=timezone.utc)
+                ah_tracking_span_seconds = min(
+                    SECONDS_PER_WEEK, max(1, int((now_dt - ah_tracking_since_dt).total_seconds()))
+                )
+
             for item_name, market_stats_obj in market_summary.items():
                 market_stats = typing.cast(dict[str, dict[str, int | str | None]], market_stats_obj)
 
@@ -79,15 +95,11 @@ class ProfitCalculator:
                         1, int((now_dt - bazaar_oldest_dt).total_seconds())
                     )
 
-                oldest_recorded_at_raw = ah_stats.get("oldest_recorded_at")
-                if isinstance(oldest_recorded_at_raw, str):
-                    oldest_dt = datetime.fromisoformat(oldest_recorded_at_raw)
-                    if oldest_dt.tzinfo is None:
-                        oldest_dt = oldest_dt.replace(tzinfo=timezone.utc)
-                    span_seconds = max(1, int((now_dt - oldest_dt).total_seconds()))
+                if ah_stats and ah_tracking_span_seconds is not None:
+                    span_seconds = ah_tracking_span_seconds
                     ah_data_span_seconds_by_item[item_name] = span_seconds
-                    if span_seconds < 604800 and quantity >= self.MIN_AH_SALES_FOR_EXTRAPOLATION:
-                        ah_weekly_sales[item_name] = int(quantity * 604800 / span_seconds)
+                    if span_seconds < SECONDS_PER_WEEK and quantity >= self.MIN_AH_SALES_FOR_EXTRAPOLATION:
+                        ah_weekly_sales[item_name] = int(quantity * SECONDS_PER_WEEK / span_seconds)
                         ah_volume_estimated[item_name] = True
                     else:
                         ah_weekly_sales[item_name] = quantity

@@ -3,6 +3,7 @@ import os
 import time
 import typing
 from datetime import datetime, timezone
+from pathlib import Path
 
 from calc_http import request_with_retry
 from calc_types import DB_API_URL, ForgeProfit
@@ -10,6 +11,9 @@ from calc_types import DB_API_URL, ForgeProfit
 from common.types import ForgeItemInfo
 
 WEB_URL = "http://web:8000"
+RESULTS_TOKEN_FILE = Path(os.getenv("RESULTS_TOKEN_FILE", "/run/skyforge/results_token"))
+# Hypixel's auctions_ended endpoint only covers the last 60 seconds, so slower polling misses sales.
+MAX_LISTING_REFRESH_TIME = 59
 
 
 class CalculatorRuntime:
@@ -17,6 +21,12 @@ class CalculatorRuntime:
         self._logger = logger
         self.refresh_time = int(os.getenv("REFRESH_TIME", "120"))
         self.listing_refresh_time = int(os.getenv("LISTING_REFRESH_TIME", "45"))
+        if not 0 < self.listing_refresh_time <= MAX_LISTING_REFRESH_TIME:
+            self._logger.warning(
+                f"LISTING_REFRESH_TIME={self.listing_refresh_time} is outside 1-{MAX_LISTING_REFRESH_TIME}s; "
+                f"using {MAX_LISTING_REFRESH_TIME}s."
+            )
+            self.listing_refresh_time = MAX_LISTING_REFRESH_TIME
         self.auction_state_stale_seconds = float(os.getenv("AH_STATE_STALE_SECONDS", "900"))
 
     def wait_for_db_api(self, retries: int = 10, delay: int = 5) -> None:
@@ -44,10 +54,13 @@ class CalculatorRuntime:
         return {name: typing.cast(ForgeItemInfo, info) for name, info in response.json()["items"].items()}
 
     def publish_results(self, profits: list[ForgeProfit], uptime_seconds: int | None) -> None:
+        # Read on every publish: the web service writes a fresh token each time it starts.
+        token = RESULTS_TOKEN_FILE.read_text(encoding="utf-8").strip()
         request_with_retry(
             self._logger,
             "POST",
             f"{WEB_URL}/results",
+            headers={"Authorization": f"Bearer {token}"},
             json={
                 "profits": profits,
                 "calculated_at": datetime.now(timezone.utc).isoformat(),
