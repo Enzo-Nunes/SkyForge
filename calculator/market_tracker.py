@@ -1,4 +1,5 @@
 import logging
+import re
 import threading
 import time
 import typing
@@ -60,6 +61,10 @@ class MarketPriceTracker:
         "_GEM": "_GEMSTONE",
         "_ORE": "",
     }
+    # Pets are listed as "[Lvl N] <Name>" rather than "<Name> Pet". The forge produces level 1 Legendary pets,
+    # so only those listings are priced; levelled pets and other rarities would inflate prices and volume.
+    PET_LISTING_PATTERN = re.compile(r"^\[Lvl 1\] (?P<name>.+)$")
+    FORGED_PET_TIER = "LEGENDARY"
 
     def __init__(self, logger: logging.Logger) -> None:
         self._logger = logger
@@ -91,8 +96,8 @@ class MarketPriceTracker:
                 if not auction.get("bin"):
                     continue
 
-                item_name = auction["item_name"]
-                if item_name not in tracked_items:
+                item_name = self._auction_item_name(auction)
+                if item_name is None or item_name not in tracked_items:
                     continue
 
                 auction_id = auction["uuid"]
@@ -207,6 +212,16 @@ class MarketPriceTracker:
                 timeout=10,
             )
             self._logger.info(f"Recorded Bazaar snapshots for {len(snapshots)} forge items.")
+
+    def _auction_item_name(self, auction: dict[str, typing.Any]) -> str | None:
+        """Map an AH listing to its forge item name, or None for pet listings that don't match a forged pet."""
+        item_name: str = auction["item_name"]
+        pet_match = self.PET_LISTING_PATTERN.match(item_name)
+        if pet_match:
+            if auction.get("tier") != self.FORGED_PET_TIER:
+                return None
+            return f"{pet_match['name']} Pet"
+        return item_name
 
     def _convert_name(self, bazaar_name: str) -> str:
         base_name = bazaar_name.split(":")[0]

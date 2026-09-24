@@ -37,6 +37,10 @@
 				Sales are matched to items using an internal UUID map built during regular price fetches. Only auctions
 				with a buyer (BIN) are counted.
 			</li>
+			<li>
+				<strong>Pets</strong> - Only <strong>Level 1 Legendary</strong> listings are used for pet prices and
+				volume, since that is what the Forge produces. Levelled pets and other rarities are ignored.
+			</li>
 		</ul>
 		<p>
 			The database stores up to 8 days of AH sales polls, automatically pruning older entries. When calculating
