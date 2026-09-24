@@ -53,7 +53,7 @@ class CalculatorRuntime:
         response = request_with_retry(self._logger, "GET", f"{DB_API_URL}/forge-items", timeout=30)
         return {name: typing.cast(ForgeItemInfo, info) for name, info in response.json()["items"].items()}
 
-    def publish_results(self, profits: list[ForgeProfit], uptime_seconds: int | None) -> None:
+    def publish_results(self, profits: list[ForgeProfit], coverage_seconds: int | None) -> None:
         # Read on every publish: the web service writes a fresh token each time it starts.
         token = RESULTS_TOKEN_FILE.read_text(encoding="utf-8").strip()
         request_with_retry(
@@ -64,7 +64,7 @@ class CalculatorRuntime:
             json={
                 "profits": profits,
                 "calculated_at": datetime.now(timezone.utc).isoformat(),
-                "uptime_seconds": uptime_seconds,
+                "coverage_seconds": coverage_seconds,
             },
             timeout=10,
         )

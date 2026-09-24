@@ -9,7 +9,10 @@ from common.types import ForgeItemInfo
 ForgeItemRow: typing.TypeAlias = tuple[str, float]
 ForgeRecipeRow: typing.TypeAlias = tuple[str, str, int]
 ForgeRequirementRow: typing.TypeAlias = tuple[str, str, int]
-AHSalesSummaryRow: typing.TypeAlias = tuple[str, int | None, int | None, int | None, int, str | None]
+AHSalesSummaryRow: typing.TypeAlias = tuple[str, int | None, int | None, int | None, int, int, str | None]
+# Hypixel's auctions_ended endpoint returns auctions that ended within roughly the last 60 seconds.
+AH_ENDED_WINDOW_SECONDS = 60
+
 BazaarSummaryRow: typing.TypeAlias = tuple[str, int | None, int | None, int | None, int, str | None]
 
 
@@ -82,6 +85,17 @@ def init_schema(conn: psycopg2.extensions.connection) -> None:
                 ON ah_sales (auction_id)
                 WHERE auction_id IS NOT NULL
         """)
+        # One row per successful auctions_ended poll. Each poll observes the sales of the preceding
+        # AH_ENDED_WINDOW_SECONDS, which is how AH coverage (time actually watched) is measured.
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS ah_polls (
+                polled_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            )
+        """)
+        cur.execute("""
+            CREATE INDEX IF NOT EXISTS idx_ah_polls_polled_at
+                ON ah_polls (polled_at)
+        """)
         cur.execute("""
             CREATE TABLE IF NOT EXISTS bazaar_snapshots (
                 id            SERIAL PRIMARY KEY,
@@ -141,9 +155,11 @@ def read_forge_items(conn: psycopg2.extensions.connection) -> dict[str, ForgeIte
 
 
 def insert_ah_sales_with_price(conn: psycopg2.extensions.connection, sales: list[dict[str, int | str | None]]) -> int:
+    """Record the sales seen by one auctions_ended poll, along with the poll itself (even with no sales)."""
     inserted = 0
 
     with conn.cursor() as cur:
+        cur.execute("INSERT INTO ah_polls DEFAULT VALUES")
         for sale in sales:
             item_name_raw = sale.get("item_name")
             price_raw = sale.get("effective_price")
@@ -169,6 +185,7 @@ def insert_ah_sales_with_price(conn: psycopg2.extensions.connection, sales: list
 
         # Keep eight days of history to support rolling seven-day analytics.
         cur.execute("DELETE FROM ah_sales WHERE recorded_at < NOW() - INTERVAL '8 days'")
+        cur.execute("DELETE FROM ah_polls WHERE polled_at < NOW() - INTERVAL '8 days'")
 
     conn.commit()
     return inserted
@@ -200,36 +217,62 @@ def insert_bazaar_snapshots(conn: psycopg2.extensions.connection, snapshots: dic
 
 def read_market_summary_7d(
     conn: psycopg2.extensions.connection,
-) -> tuple[dict[str, dict[str, dict[str, int | str | None]]], str | None]:
-    """Read per-item 7-day market summaries for AH + Bazaar, plus when AH sale tracking began."""
+) -> tuple[dict[str, dict[str, dict[str, int | str | None]]], int]:
+    """Read per-item 7-day market summaries for AH + Bazaar, plus seconds of the window AH polling covered."""
     with conn.cursor() as cur:
-        # Oldest retained sale across all items approximates when AH tracking started. History is pruned
-        # after 8 days, so anything older than 7 days means a full observation window is available.
-        cur.execute("SELECT MIN(recorded_at)::TEXT FROM ah_sales")
-        tracking_row = typing.cast(tuple[str | None] | None, cur.fetchone())
-        ah_tracking_since = tracking_row[0] if tracking_row else None
+        # Each poll covers [polled_at - window, polled_at]. What it adds to the union of those intervals is the
+        # time since the previous poll, capped at the window and clipped to the 7-day window start, so
+        # downtime anywhere in the window is excluded. Polls from just before the window supply LAG values.
+        cur.execute(
+            """
+            WITH polls AS (
+                SELECT polled_at, LAG(polled_at) OVER (ORDER BY polled_at) AS prev_polled_at
+                FROM ah_polls
+                WHERE polled_at > NOW() - INTERVAL '7 days' - make_interval(secs => %(window)s)
+            )
+            SELECT COALESCE(SUM(EXTRACT(EPOCH FROM polled_at - GREATEST(
+                prev_polled_at,
+                polled_at - make_interval(secs => %(window)s),
+                NOW() - INTERVAL '7 days'
+            ))), 0)::INT
+            FROM polls
+            WHERE polled_at > NOW() - INTERVAL '7 days'
+            """,
+            {"window": AH_ENDED_WINDOW_SECONDS},
+        )
+        coverage_row = typing.cast(tuple[int], cur.fetchone())
+        ah_covered_seconds = coverage_row[0]
 
-        cur.execute("""
+        # Sales recorded before the first logged poll (history from before coverage tracking existed) still
+        # inform prices, but are left out of the volume count so they are not extrapolated over no coverage.
+        cur.execute(
+            """
             SELECT
                 item_name,
                 MIN(effective_price) AS low,
                 MAX(effective_price) AS high,
                 CAST(PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY effective_price) AS BIGINT) AS median,
                 COUNT(*)::INT AS quantity,
+                COUNT(*) FILTER (
+                    WHERE recorded_at >= (SELECT MIN(polled_at) FROM ah_polls) - make_interval(secs => %(window)s)
+                )::INT AS volume_quantity,
                 MIN(recorded_at)::TEXT AS oldest_recorded_at
             FROM ah_sales
             WHERE recorded_at > NOW() - INTERVAL '7 days'
             GROUP BY item_name
-        """)
+            """,
+            {"window": AH_ENDED_WINDOW_SECONDS},
+        )
         rows = typing.cast(list[AHSalesSummaryRow], cur.fetchall())
         result: dict[str, dict[str, dict[str, int | str | None]]] = {}
-        for item_name, low, high, median, quantity, oldest_recorded_at in rows:
+        for item_name, low, high, median, quantity, volume_quantity, oldest_recorded_at in rows:
             item_bucket = result.setdefault(item_name, {})
             item_bucket["AH"] = {
                 "low": low,
                 "high": high,
                 "median": median,
                 "quantity": quantity,
+                "volume_quantity": volume_quantity,
                 "oldest_recorded_at": oldest_recorded_at,
             }
 
@@ -265,4 +308,4 @@ def read_market_summary_7d(
                 "oldest_recorded_at": oldest_recorded_at,
             }
 
-        return result, ah_tracking_since
+        return result, ah_covered_seconds

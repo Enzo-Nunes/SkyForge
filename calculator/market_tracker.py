@@ -116,6 +116,10 @@ class MarketPriceTracker:
                     prices[item_name] = price
         return prices
 
+    def has_fresh_listing_state(self, max_age_seconds: float) -> bool:
+        with self._auction_id_map_lock:
+            return self._latest_scan_epoch is not None and time.time() - self._latest_scan_epoch < max_age_seconds
+
     def wait_for_snapshot(self, timeout: float | None = None) -> bool:
         return self._snapshot_ready.wait(timeout=timeout)
 
@@ -239,6 +243,11 @@ class AHSalesTracker:
         self._state_stale_seconds = state_stale_seconds
 
     def _poll_once(self, sellable_items: set[str]) -> None:
+        # Sales can only be matched against listings a recent scan has seen. Without that, a poll would be
+        # counted as AH coverage while being unable to record any sale, so skip it entirely.
+        if not self._market.has_fresh_listing_state(self._state_stale_seconds):
+            self._logger.warning("AH listing state is stale; skipping sales poll until a scan succeeds.")
+            return
         try:
             response = request_with_retry(self._logger, "GET", self.ENDED_URL, timeout=10)
             auctions = response.json().get("auctions", [])
@@ -250,14 +259,15 @@ class AHSalesTracker:
             if pruned:
                 self._logger.info(f"Pruned {pruned} stale entries from auction ID map.")
 
+            # Posted even when empty: db-api logs every successful poll to measure AH coverage.
+            request_with_retry(
+                self._logger,
+                "POST",
+                f"{DB_API_URL}/ah-sales",
+                json={"sales": sales_events},
+                timeout=10,
+            )
             if sales_events:
-                request_with_retry(
-                    self._logger,
-                    "POST",
-                    f"{DB_API_URL}/ah-sales",
-                    json={"sales": sales_events},
-                    timeout=10,
-                )
                 self._logger.info(f"Recorded {len(sales_events)} AH sales.")
         except Exception as e:
             self._logger.warning(f"AH sales poll failed: {e}")

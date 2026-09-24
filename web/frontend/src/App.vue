@@ -1,6 +1,6 @@
 <template>
 	<div class="app" :data-theme="theme">
-		<AppHeader :lastUpdated="lastUpdated" :status="status" :uptimeSeconds="uptimeSeconds" />
+		<AppHeader :lastUpdated="lastUpdated" :status="status" :coverageSeconds="coverageSeconds" />
 
 		<nav class="tabs">
 			<button :class="{ active: tab === 'tracker' }" @click="tab = 'tracker'">Tracker</button>
@@ -11,7 +11,7 @@
 		<TrackerTab
 			v-if="tab === 'tracker'"
 			:profits="profits"
-			:uptimeSeconds="uptimeSeconds"
+			:coverageSeconds="coverageSeconds"
 			@go-to-guide="tab = 'guide'"
 		/>
 		<GuideTab v-else-if="tab === 'guide'" />
@@ -33,7 +33,7 @@ import { useTheme } from "./composables/useTheme.js";
 const profits = ref([]);
 const status = ref("connecting");
 const lastUpdated = ref(null);
-const uptimeSeconds = ref(null);
+const coverageSeconds = ref(null);
 const tab = ref("tracker");
 const { theme } = useTheme();
 
@@ -58,7 +58,7 @@ function connect() {
 				hour12: false,
 				timeZoneName: "short",
 			});
-			uptimeSeconds.value = data.uptime_seconds;
+			coverageSeconds.value = data.coverage_seconds;
 		} else if (data?.type === "shutdown") {
 			intentionalClose = true;
 			status.value = "offline";

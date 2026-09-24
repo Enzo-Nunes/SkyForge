@@ -9,7 +9,9 @@
 		<div class="header-right">
 			<div class="meta-info">
 				<span v-if="lastUpdated">Updated {{ lastUpdated }}</span>
-				<span v-if="uptimeLabel">Uptime {{ uptimeLabel }}</span>
+				<span v-if="coverageLabel" title="How much of the last 7 days SkyForge has observed Auction House sales"
+					>AH coverage {{ coverageLabel }} / 7 days</span
+				>
 			</div>
 			<div class="theme-switch-container">
 				<label class="theme-switch" :title="theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'">
@@ -29,7 +31,7 @@ import { useTheme } from "../composables/useTheme.js";
 const props = defineProps({
 	lastUpdated: String,
 	status: String,
-	uptimeSeconds: Number,
+	coverageSeconds: Number,
 });
 
 const version = import.meta.env.VITE_APP_VERSION || "dev";
@@ -45,11 +47,11 @@ const statusLabel = computed(
 		})[props.status],
 );
 
-const uptimeLabel = computed(() => {
-	if (!props.uptimeSeconds) return null;
-	const days = Math.floor(props.uptimeSeconds / 86400);
-	const hours = Math.floor((props.uptimeSeconds % 86400) / 3600);
-	const mins = Math.floor((props.uptimeSeconds % 3600) / 60);
+const coverageLabel = computed(() => {
+	if (!props.coverageSeconds) return null;
+	const days = Math.floor(props.coverageSeconds / 86400);
+	const hours = Math.floor((props.coverageSeconds % 86400) / 3600);
+	const mins = Math.floor((props.coverageSeconds % 3600) / 60);
 	if (days > 0) return `${days} day${days > 1 ? "s" : ""}`;
 	if (hours > 0) return `${hours} hour${hours > 1 ? "s" : ""}`;
 	return `${mins} minute${mins > 1 ? "s" : ""}`;

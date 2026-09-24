@@ -34,9 +34,9 @@
 				<strong>Volume (7d)</strong> - units sold in the past 7 days. Some Auction House values are prefixed
 				with <strong>~</strong>, which indicates they are extrapolated estimates based on less than 7 days of
 				data. Extrapolation is only applied when at least <strong>3 observed AH sales</strong> exist for that
-				item in the captured window. After 7 days of tool uptime, AH values naturally become observed 7-day
-				totals. Values from the Bazaar are always official data. Hover the value to see whether it is observed
-				or estimated, and for estimated AH values, the extrapolation details.
+				item in the captured window. Once SkyForge has observed a full 7 days, AH values naturally become
+				observed 7-day totals. Values from the Bazaar are always official data. Hover the value to see whether
+				it is observed or estimated, and for estimated AH values, the extrapolation details.
 			</li>
 			<li>
 				<strong>Normalized Range (7d)</strong> - measure of how much the sell price has fluctuated over the last
@@ -62,13 +62,14 @@
 			<strong>#</strong> and sorting by <strong>Profit / hour</strong> produce the same result.
 		</p>
 		<div class="warning-box">
-			<strong class="warning-title">⚠️ Early Uptime Warning</strong>
+			<strong class="warning-title">⚠️ Incomplete Data Warning</strong>
 			<p>
-				During the first 7 days after starting SkyForge, Auction House volume data is incomplete and partially
-				extrapolated, and price-range history for both markets is still building up. This means both volume and
-				normalized range can fluctuate as more data arrives.
-				<strong>Treat rankings with caution during this period.</strong> You can check how long SkyForge has
-				been running by looking at the <strong>Uptime</strong> indicator in the upper right corner.
+				Until SkyForge has observed a full 7 days (for example after first starting it, or after downtime),
+				Auction House volume data is incomplete and partially extrapolated, and price-range history for both
+				markets is still building up. This means both volume and normalized range can fluctuate as more data
+				arrives.
+				<strong>Treat rankings with caution during this period.</strong> You can check how much of the last 7
+				days SkyForge has observed with the <strong>AH coverage</strong> indicator in the upper right corner.
 			</p>
 		</div>
 

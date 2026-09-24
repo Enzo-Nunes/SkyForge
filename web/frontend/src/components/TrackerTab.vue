@@ -19,8 +19,8 @@
 			</div>
 
 			<template v-else>
-				<div class="early-warning" v-if="uptimeSeconds !== null && uptimeSeconds < 604800">
-					⚠ Volume and range data is incomplete because SkyForge has been running for less than 7 days.
+				<div class="early-warning" v-if="coverageSeconds !== null && coverageSeconds < 604800">
+					⚠ Volume and range data is incomplete because SkyForge has observed less than 7 of the last 7 days.
 					<button class="guide-link" @click="$emit('go-to-guide')">Learn more in the Guide</button>
 				</div>
 
@@ -143,7 +143,7 @@ import FilterPanel from "./FilterPanel.vue";
 
 const props = defineProps({
 	profits: Array,
-	uptimeSeconds: { type: Number, default: null },
+	coverageSeconds: { type: Number, default: null },
 });
 
 const emit = defineEmits(["go-to-guide"]);
@@ -318,7 +318,7 @@ const volumeTitle = (item) => {
 			return [
 				"Market: AH",
 				`Observed sales: ${fmt(observedSales)} units`,
-				"Extrapolation: not applied (requires at least 3 observed sales during partial uptime)",
+				"Extrapolation: not applied (requires at least 3 observed sales during partial coverage)",
 				`Volume shown: ${fmt(weekly)} units`,
 			].join("\n");
 		}
@@ -328,7 +328,7 @@ const volumeTitle = (item) => {
 
 	const spanSeconds = item["Data Span Seconds"];
 	if (!hasRawObservation || !spanSeconds || spanSeconds <= 0) {
-		return `Market: AH\nVolume (7d): ~${fmt(weekly)}\nEstimated from partial AH uptime`;
+		return `Market: AH\nVolume (7d): ~${fmt(weekly)}\nEstimated from partial AH coverage`;
 	}
 
 	const spanDays = (spanSeconds / 86400).toFixed(2);
@@ -336,7 +336,7 @@ const volumeTitle = (item) => {
 	return [
 		"Market: AH",
 		`Observed sales: ${fmt(raw)} units`,
-		`Observed span: ${spanDays} days`,
+		`Observed: ${spanDays} of the last 7 days`,
 		`Extrapolation: observed x ${factor}`,
 		`Estimated 7d volume: ~${fmt(weekly)} units`,
 	].join("\n");
@@ -409,7 +409,7 @@ const volumeTitle = (item) => {
 	}
 }
 
-/* Early uptime warning */
+/* Early coverage warning */
 .early-warning {
 	display: flex;
 	align-items: center;

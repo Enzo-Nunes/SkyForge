@@ -1,6 +1,5 @@
 import logging
 import math
-import time
 import typing
 from datetime import datetime, timezone
 
@@ -11,6 +10,9 @@ from market_tracker import ForgeItemState, MarketPriceTracker
 from common.types import ForgeItemInfo
 
 SECONDS_PER_WEEK = 604800
+# Coverage always trails the full week by the time since the latest poll, plus polls near the window
+# boundary; treat anything this close to a week as full so it is not flagged or extrapolated.
+FULL_COVERAGE_TOLERANCE_SECONDS = 300
 
 
 class ProfitCalculator:
@@ -20,13 +22,12 @@ class ProfitCalculator:
         self._logger = logger
         self._market = market
         self._item_state = item_state
-        self._start_time = time.time()
 
     def calculate_profits(self, forge_info: dict[str, ForgeItemInfo]) -> tuple[list[ForgeProfit], int | None]:
         auction_house_prices = self._market.get_auction_house_prices_snapshot()
         bazaar_prices = self._market.fetch_bazaar_prices(self._item_state.get_tracked_items())
         price_stats_7d: PriceStats = {}
-        uptime_seconds = int(time.time() - self._start_time)
+        ah_coverage_seconds: int | None = None
         ah_weekly_sales: dict[str, int] = {}
         ah_raw_sales_window: dict[str, int] = {}
         ah_volume_estimated: dict[str, bool] = {}
@@ -41,17 +42,13 @@ class ProfitCalculator:
 
             now_dt = datetime.now(timezone.utc)
 
-            # AH volume is extrapolated over how long sales have been tracked, not over each item's oldest
-            # sale: a rarely-sold item's first sale says nothing about how long it could have been observed.
-            ah_tracking_span_seconds: int | None = None
-            ah_tracking_since_raw = response_json.get("ah_tracking_since")
-            if isinstance(ah_tracking_since_raw, str):
-                ah_tracking_since_dt = datetime.fromisoformat(ah_tracking_since_raw)
-                if ah_tracking_since_dt.tzinfo is None:
-                    ah_tracking_since_dt = ah_tracking_since_dt.replace(tzinfo=timezone.utc)
-                ah_tracking_span_seconds = min(
-                    SECONDS_PER_WEEK, max(1, int((now_dt - ah_tracking_since_dt).total_seconds()))
-                )
+            # AH volume is extrapolated over the time AH sales were actually watched during the last 7 days,
+            # so downtime anywhere in the window (not just at the start) is accounted for.
+            covered_raw = response_json.get("ah_covered_seconds")
+            if isinstance(covered_raw, int):
+                ah_coverage_seconds = max(0, min(SECONDS_PER_WEEK, covered_raw))
+                if ah_coverage_seconds >= SECONDS_PER_WEEK - FULL_COVERAGE_TOLERANCE_SECONDS:
+                    ah_coverage_seconds = SECONDS_PER_WEEK
 
             for item_name, market_stats_obj in market_summary.items():
                 market_stats = typing.cast(dict[str, dict[str, int | str | None]], market_stats_obj)
@@ -59,7 +56,9 @@ class ProfitCalculator:
                 ah_stats = market_stats.get("AH", {})
                 quantity_raw = ah_stats.get("quantity")
                 quantity = int(quantity_raw) if isinstance(quantity_raw, int) else 0
-                ah_raw_sales_window[item_name] = quantity
+                volume_quantity_raw = ah_stats.get("volume_quantity")
+                volume_quantity = int(volume_quantity_raw) if isinstance(volume_quantity_raw, int) else 0
+                ah_raw_sales_window[item_name] = volume_quantity
 
                 low = ah_stats.get("low")
                 high = ah_stats.get("high")
@@ -95,17 +94,19 @@ class ProfitCalculator:
                         1, int((now_dt - bazaar_oldest_dt).total_seconds())
                     )
 
-                if ah_stats and ah_tracking_span_seconds is not None:
-                    span_seconds = ah_tracking_span_seconds
-                    ah_data_span_seconds_by_item[item_name] = span_seconds
-                    if span_seconds < SECONDS_PER_WEEK and quantity >= self.MIN_AH_SALES_FOR_EXTRAPOLATION:
-                        ah_weekly_sales[item_name] = int(quantity * SECONDS_PER_WEEK / span_seconds)
+                if ah_stats and ah_coverage_seconds:
+                    ah_data_span_seconds_by_item[item_name] = ah_coverage_seconds
+                    if (
+                        ah_coverage_seconds < SECONDS_PER_WEEK
+                        and volume_quantity >= self.MIN_AH_SALES_FOR_EXTRAPOLATION
+                    ):
+                        ah_weekly_sales[item_name] = int(volume_quantity * SECONDS_PER_WEEK / ah_coverage_seconds)
                         ah_volume_estimated[item_name] = True
                     else:
-                        ah_weekly_sales[item_name] = quantity
+                        ah_weekly_sales[item_name] = volume_quantity
                         ah_volume_estimated[item_name] = False
                 else:
-                    ah_weekly_sales[item_name] = quantity
+                    ah_weekly_sales[item_name] = volume_quantity
                     ah_volume_estimated[item_name] = False
         except Exception as e:
             self._logger.warning(f"Could not fetch AH weekly sales: {e}")
@@ -202,5 +203,5 @@ class ProfitCalculator:
                 typing.cast(ForgeProfit, {**item, "Rank": i + 1})
                 for i, item in enumerate(sorted(items_profit, key=lambda x: x["Profit per Hour"], reverse=True))
             ],
-            uptime_seconds,
+            ah_coverage_seconds,
         )
