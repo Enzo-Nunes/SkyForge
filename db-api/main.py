@@ -1,6 +1,5 @@
 import logging
 import sys
-import typing
 from pathlib import Path
 
 import db
@@ -24,7 +23,7 @@ logger.propagate = False
 
 
 class AHSalesPayload(BaseModel):
-    sales: typing.List[dict[str, int | str | None]]
+    sales: list[dict[str, int | str | None]]
 
 
 class BazaarSnapshotsPayload(BaseModel):
@@ -50,6 +49,7 @@ class RecordedResponse(BaseModel):
 
 class MarketSummaryResponse(BaseModel):
     items: dict[str, dict[str, dict[str, int | str | None]]]
+    ah_covered_seconds: int
 
 
 runtime = DBRuntime(logger, FORGE_DATA_PATH)
@@ -61,8 +61,9 @@ async def handle_db_unavailable(_request: Request, _exc: DBUnavailableError) -> 
     return JSONResponse(status_code=503, content={"error": "Database unavailable"})
 
 
-@app.get("/health")
+@app.get("/health", responses={503: {"model": ErrorResponse}})
 def health() -> HealthResponse:
+    runtime.run(db.ping, retry_on_disconnect=False)
     return HealthResponse(status="ok")
 
 
@@ -89,5 +90,5 @@ def post_market_snapshots(payload: BazaarSnapshotsPayload) -> RecordedResponse:
 
 @app.get("/market-summary", response_model=MarketSummaryResponse, responses={503: {"model": ErrorResponse}})
 def get_market_summary() -> MarketSummaryResponse:
-    items = runtime.run(db.read_market_summary_7d, retry_on_disconnect=True)
-    return MarketSummaryResponse(items=items)
+    items, ah_covered_seconds = runtime.run(db.read_market_summary_7d, retry_on_disconnect=True)
+    return MarketSummaryResponse(items=items, ah_covered_seconds=ah_covered_seconds)

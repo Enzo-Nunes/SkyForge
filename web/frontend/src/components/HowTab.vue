@@ -37,13 +37,18 @@
 				Sales are matched to items using an internal UUID map built during regular price fetches. Only auctions
 				with a buyer (BIN) are counted.
 			</li>
+			<li>
+				<strong>Pets</strong> - Only <strong>Level 1 Legendary</strong> listings are used for pet prices and
+				volume, since that is what the Forge produces. Levelled pets and other rarities are ignored.
+			</li>
 		</ul>
 		<p>
 			The database stores up to 8 days of AH sales polls, automatically pruning older entries. When calculating
-			weekly volume, if less than 7 days of data is available, the volume is extrapolated to an estimated 7-day
-			projection only when there are at least <strong>3 observed AH sales</strong> for that item in the captured
-			window. Otherwise, SkyForge shows the observed count without extrapolation. The <strong>~</strong> prefix
-			indicates an estimated value; after 7 days of tool uptime, values naturally become actual 7-day counts.
+			weekly volume, if SkyForge observed less than 7 of the last 7 days (downtime anywhere in the window counts
+			against this), the volume is extrapolated to an estimated 7-day projection only when there are at least
+			<strong>3 observed AH sales</strong> for that item in the captured window. Otherwise, SkyForge shows the
+			observed count without extrapolation. The <strong>~</strong> prefix indicates an estimated value; once a
+			full 7 days have been observed, values naturally become actual 7-day counts.
 		</p>
 
 		<h3>Normalized Range (7d)</h3>

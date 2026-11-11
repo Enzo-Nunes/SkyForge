@@ -59,17 +59,22 @@ def main() -> None:
     logger.info("AH sales tracker thread started.")
 
     while True:
-        item_state.update_from_forge_info(runtime.fetch_forge_items())
-        forge_info = item_state.get_forge_info()
+        try:
+            item_state.update_from_forge_info(runtime.fetch_forge_items())
+            forge_info = item_state.get_forge_info()
 
-        logger.info(f"Loaded {len(forge_info)} forge items from DB. Calculating profits...")
-        profits, uptime_seconds = calculator.calculate_profits(forge_info)
+            logger.info(f"Loaded {len(forge_info)} forge items from DB. Calculating profits...")
+            profits, coverage_seconds = calculator.calculate_profits(forge_info)
+        except Exception:
+            logger.warning(f"Calculation cycle failed, retrying in {runtime.refresh_time}s", exc_info=True)
+            time.sleep(runtime.refresh_time)
+            continue
 
         try:
-            runtime.publish_results(profits, uptime_seconds)
+            runtime.publish_results(profits, coverage_seconds)
             logger.info("Pushed results to web service.")
-        except Exception as e:
-            logger.warning(f"Could not push results to web service: {e}")
+        except Exception:
+            logger.warning("Could not push results to web service", exc_info=True)
 
         logger.info(f"Done. Sleeping {runtime.refresh_time}s...")
         time.sleep(runtime.refresh_time)

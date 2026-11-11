@@ -1,14 +1,19 @@
 import logging
 import math
-import time
 import typing
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from calc_http import request_with_retry
 from calc_types import DB_API_URL, ForgeProfit, PriceStats
 from market_tracker import ForgeItemState, MarketPriceTracker
 
 from common.types import ForgeItemInfo
+
+SECONDS_PER_WEEK = 604800
+# Coverage always trails the full week by the time since the latest poll, and routine restarts cost a few
+# minutes each. At 99% (about 1h40m missing) extrapolation would change volumes by under 1%, so treat it as
+# a full week rather than flagging and marking volumes as estimated.
+FULL_COVERAGE_RATIO = 0.99
 
 
 class ProfitCalculator:
@@ -18,13 +23,12 @@ class ProfitCalculator:
         self._logger = logger
         self._market = market
         self._item_state = item_state
-        self._start_time = time.time()
 
     def calculate_profits(self, forge_info: dict[str, ForgeItemInfo]) -> tuple[list[ForgeProfit], int | None]:
         auction_house_prices = self._market.get_auction_house_prices_snapshot()
         bazaar_prices = self._market.fetch_bazaar_prices(self._item_state.get_tracked_items())
         price_stats_7d: PriceStats = {}
-        uptime_seconds = int(time.time() - self._start_time)
+        ah_coverage_seconds: int | None = None
         ah_weekly_sales: dict[str, int] = {}
         ah_raw_sales_window: dict[str, int] = {}
         ah_volume_estimated: dict[str, bool] = {}
@@ -33,17 +37,29 @@ class ProfitCalculator:
 
         try:
             response = request_with_retry(self._logger, "GET", f"{DB_API_URL}/market-summary", timeout=10)
-            market_summary = response.json().get("items", {})
+            response_json = response.json()
+            market_summary = response_json.get("items", {})
             self._logger.info(f"Fetched {len(market_summary)} items from market summary data")
 
-            now_dt = datetime.now(timezone.utc)
+            now_dt = datetime.now(UTC)
+
+            # AH volume is extrapolated over the time AH sales were actually watched during the last 7 days,
+            # so downtime anywhere in the window (not just at the start) is accounted for.
+            covered_raw = response_json.get("ah_covered_seconds")
+            if isinstance(covered_raw, int):
+                ah_coverage_seconds = max(0, min(SECONDS_PER_WEEK, covered_raw))
+                if ah_coverage_seconds >= SECONDS_PER_WEEK * FULL_COVERAGE_RATIO:
+                    ah_coverage_seconds = SECONDS_PER_WEEK
+
             for item_name, market_stats_obj in market_summary.items():
                 market_stats = typing.cast(dict[str, dict[str, int | str | None]], market_stats_obj)
 
                 ah_stats = market_stats.get("AH", {})
                 quantity_raw = ah_stats.get("quantity")
                 quantity = int(quantity_raw) if isinstance(quantity_raw, int) else 0
-                ah_raw_sales_window[item_name] = quantity
+                volume_quantity_raw = ah_stats.get("volume_quantity")
+                volume_quantity = int(volume_quantity_raw) if isinstance(volume_quantity_raw, int) else 0
+                ah_raw_sales_window[item_name] = volume_quantity
 
                 low = ah_stats.get("low")
                 high = ah_stats.get("high")
@@ -74,29 +90,27 @@ class ProfitCalculator:
                 if isinstance(bazaar_oldest_recorded_at_raw, str):
                     bazaar_oldest_dt = datetime.fromisoformat(bazaar_oldest_recorded_at_raw)
                     if bazaar_oldest_dt.tzinfo is None:
-                        bazaar_oldest_dt = bazaar_oldest_dt.replace(tzinfo=timezone.utc)
+                        bazaar_oldest_dt = bazaar_oldest_dt.replace(tzinfo=UTC)
                     bazaar_data_span_seconds_by_item[item_name] = max(
                         1, int((now_dt - bazaar_oldest_dt).total_seconds())
                     )
 
-                oldest_recorded_at_raw = ah_stats.get("oldest_recorded_at")
-                if isinstance(oldest_recorded_at_raw, str):
-                    oldest_dt = datetime.fromisoformat(oldest_recorded_at_raw)
-                    if oldest_dt.tzinfo is None:
-                        oldest_dt = oldest_dt.replace(tzinfo=timezone.utc)
-                    span_seconds = max(1, int((now_dt - oldest_dt).total_seconds()))
-                    ah_data_span_seconds_by_item[item_name] = span_seconds
-                    if span_seconds < 604800 and quantity >= self.MIN_AH_SALES_FOR_EXTRAPOLATION:
-                        ah_weekly_sales[item_name] = int(quantity * 604800 / span_seconds)
+                if ah_stats and ah_coverage_seconds:
+                    ah_data_span_seconds_by_item[item_name] = ah_coverage_seconds
+                    if (
+                        ah_coverage_seconds < SECONDS_PER_WEEK
+                        and volume_quantity >= self.MIN_AH_SALES_FOR_EXTRAPOLATION
+                    ):
+                        ah_weekly_sales[item_name] = int(volume_quantity * SECONDS_PER_WEEK / ah_coverage_seconds)
                         ah_volume_estimated[item_name] = True
                     else:
-                        ah_weekly_sales[item_name] = quantity
+                        ah_weekly_sales[item_name] = volume_quantity
                         ah_volume_estimated[item_name] = False
                 else:
-                    ah_weekly_sales[item_name] = quantity
+                    ah_weekly_sales[item_name] = volume_quantity
                     ah_volume_estimated[item_name] = False
-        except Exception as e:
-            self._logger.warning(f"Could not fetch AH weekly sales: {e}")
+        except Exception:
+            self._logger.warning("Could not fetch AH weekly sales", exc_info=True)
             ah_weekly_sales = {}
             ah_raw_sales_window = {}
             ah_volume_estimated = {}
@@ -106,15 +120,14 @@ class ProfitCalculator:
         self._logger.info("Starting final profit calculations...")
         items_profit: list[ForgeProfit] = []
 
-        for item_name in forge_info.keys():
-            item_info = forge_info[item_name]
+        for item_name, item_info in forge_info.items():
             duration = item_info["Duration"]
             item_cost = 0
             is_craftable = True
             is_sellable = True
             recipe_markets: dict[str, str] = {}
 
-            for material in item_info["Recipe"].keys():
+            for material in item_info["Recipe"]:
                 material_bazaar_info = bazaar_prices.get(material)
                 if material_bazaar_info:
                     material_price = material_bazaar_info.get("Buy Price", -1)
@@ -148,7 +161,7 @@ class ProfitCalculator:
 
             range_pct_7d: int | None = None
             if median_7d and median_7d > 0 and low_7d is not None and high_7d is not None:
-                range_pct_7d = int(round(((high_7d - low_7d) / median_7d) * 100))
+                range_pct_7d = round(((high_7d - low_7d) / median_7d) * 100)
 
             if item_sell_price < 0:
                 is_sellable = False
@@ -190,5 +203,5 @@ class ProfitCalculator:
                 typing.cast(ForgeProfit, {**item, "Rank": i + 1})
                 for i, item in enumerate(sorted(items_profit, key=lambda x: x["Profit per Hour"], reverse=True))
             ],
-            uptime_seconds,
+            ah_coverage_seconds,
         )

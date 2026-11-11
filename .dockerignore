@@ -1,0 +1,11 @@
+# Every image builds from the repository root; keep host-specific and bulky files out of the context.
+.git
+.github
+**/node_modules
+**/dist
+**/__pycache__
+**/*.py[cod]
+.venv
+venv
+.ruff_cache
+.env

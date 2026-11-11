@@ -51,7 +51,7 @@ SkyForge stores recent market history in PostgreSQL and computes 7-day stats use
 
 From that history, SkyForge computes low/high/median and sample counts over the latest 7 days.
 
-AH weekly volume is extrapolated only during partial uptime and only when an item has at least 3 observed AH sales;
+AH weekly volume is extrapolated only when less than 7 of the last 7 days were observed (downtime anywhere in the window counts) and only when an item has at least 3 observed AH sales;
 otherwise SkyForge shows observed counts without extrapolation.
 
 Forge item metadata is loaded from `db-api/forge_data.json`, which is created and maintained separately from the SkyForge runtime stack.
@@ -68,6 +68,20 @@ The website has three tabs:
 ## Contributing
 
 Interested in contributing? See [CONTRIBUTING.md](CONTRIBUTING.md) for setup instructions and guidelines.
+
+## AI Disclosure
+
+<!-- markdownlint-disable MD033 -->
+<a href="https://0rwx.com">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://0rwx.com/static/AI-W-dark.svg">
+    <img src="https://0rwx.com/static/AI-W-light.svg" alt="AI:W" width="48" align="left">
+  </picture>
+</a>
+
+**AI:W - AI collaboration.** AI tools have read and write access to this codebase and help write code, but every change is reviewed by a human before it is merged. This disclosure follows the [0rwx](https://0rwx.com) standard.
+<br clear="left">
+<!-- markdownlint-enable MD033 -->
 
 ## Disclaimer
 
