@@ -1,6 +1,6 @@
 <template>
 	<div class="app" :data-theme="theme">
-		<AppHeader :lastUpdated="lastUpdated" :status="status" :uptimeSeconds="uptimeSeconds" />
+		<AppHeader :lastUpdated="lastUpdated" :status="status" :coverageSeconds="coverageSeconds" />
 
 		<nav class="tabs">
 			<button :class="{ active: tab === 'tracker' }" @click="tab = 'tracker'">Tracker</button>
@@ -11,7 +11,7 @@
 		<TrackerTab
 			v-if="tab === 'tracker'"
 			:profits="profits"
-			:uptimeSeconds="uptimeSeconds"
+			:coverageSeconds="coverageSeconds"
 			@go-to-guide="tab = 'guide'"
 		/>
 		<GuideTab v-else-if="tab === 'guide'" />
@@ -33,13 +33,17 @@ import { useTheme } from "./composables/useTheme.js";
 const profits = ref([]);
 const status = ref("connecting");
 const lastUpdated = ref(null);
-const uptimeSeconds = ref(null);
+const coverageSeconds = ref(null);
 const tab = ref("tracker");
 const { theme } = useTheme();
 
+const RECONNECT_MIN_MS = 2000;
+const RECONNECT_MAX_MS = 30000;
+
 let ws = null;
 let reconnectTimer = null;
-let intentionalClose = false;
+let reconnectDelay = RECONNECT_MIN_MS;
+let unmounted = false;
 
 function connect() {
 	const proto = location.protocol === "https:" ? "wss" : "ws";
@@ -48,6 +52,7 @@ function connect() {
 	ws.onopen = () => {
 		status.value = "connected";
 		clearTimeout(reconnectTimer);
+		reconnectDelay = RECONNECT_MIN_MS;
 	};
 
 	ws.onmessage = (e) => {
@@ -58,18 +63,16 @@ function connect() {
 				hour12: false,
 				timeZoneName: "short",
 			});
-			uptimeSeconds.value = data.uptime_seconds;
-		} else if (data?.type === "shutdown") {
-			intentionalClose = true;
-			status.value = "offline";
+			coverageSeconds.value = data.coverage_seconds;
 		}
 		// ignore ping objects
 	};
 
 	ws.onclose = () => {
-		if (intentionalClose) return;
+		if (unmounted) return;
 		status.value = "disconnected";
-		reconnectTimer = setTimeout(connect, 5000);
+		reconnectTimer = setTimeout(connect, reconnectDelay);
+		reconnectDelay = Math.min(reconnectDelay * 2, RECONNECT_MAX_MS);
 	};
 
 	ws.onerror = () => {
@@ -79,6 +82,7 @@ function connect() {
 
 onMounted(connect);
 onUnmounted(() => {
+	unmounted = true;
 	clearTimeout(reconnectTimer);
 	ws?.close();
 });

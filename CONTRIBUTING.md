@@ -126,7 +126,7 @@ When contributing to market tracking or profit logic, keep these behaviors consi
 
 - AH volume history is based on realized BIN sales from ended auctions.
 - Bazaar history is based on periodic sell-price/weekly-volume snapshots.
-- AH 7-day volume extrapolation is only applied during partial uptime and only when an item has at least 3 observed AH sales.
+- AH 7-day volume extrapolation is only applied when less than 7 of the last 7 days were observed and only when an item has at least 3 observed AH sales.
 
 If you intentionally change any of the above behavior, document it clearly in your PR description and update the information presented to the user.
 
