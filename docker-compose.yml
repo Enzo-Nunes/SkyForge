@@ -22,7 +22,8 @@ services:
     init: true
     restart: unless-stopped
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     environment:
       POSTGRES_HOST: db
       POSTGRES_DB: skyforge
@@ -47,7 +48,8 @@ services:
     init: true
     restart: unless-stopped
     depends_on:
-      - db-api
+      db-api:
+        condition: service_healthy
     environment:
       REFRESH_TIME: ${REFRESH_TIME:-120}
       LISTING_REFRESH_TIME: ${LISTING_REFRESH_TIME:-45}

@@ -7,6 +7,10 @@ from pathlib import Path
 from common.types import ForgeItemInfo
 
 
+class ForgeDataError(Exception):
+    """forge_data.json is missing or malformed."""
+
+
 class ForgeSeedItem(typing.TypedDict):
     Duration: int | float | str
     Recipe: dict[str, int | float | str]
@@ -24,17 +28,17 @@ class ForgeSeedPayload(typing.TypedDict):
 
 def _coerce_int(value: object, *, context: str) -> int:
     if not isinstance(value, int | float | str):
-        raise RuntimeError(f"forge_data.json {context} must be numeric")
+        raise ForgeDataError(f"forge_data.json {context} must be numeric")
 
     try:
         return int(value)
     except (TypeError, ValueError) as e:
-        raise RuntimeError(f"forge_data.json {context} must be numeric") from e
+        raise ForgeDataError(f"forge_data.json {context} must be numeric") from e
 
 
 def _coerce_item(raw_item: object, *, name: str) -> ForgeSeedItem:
     if not isinstance(raw_item, dict):
-        raise RuntimeError("forge_data.json contains invalid item entries")
+        raise ForgeDataError("forge_data.json contains invalid item entries")
 
     raw_item_map = typing.cast(dict[object, object], raw_item)
 
@@ -43,11 +47,11 @@ def _coerce_item(raw_item: object, *, name: str) -> ForgeSeedItem:
     requirements_obj = raw_item_map.get("Requirements")
 
     if not isinstance(duration_obj, int | float | str):
-        raise RuntimeError(f"forge_data.json item '{name}' has invalid Duration")
+        raise ForgeDataError(f"forge_data.json item '{name}' has invalid Duration")
     if not isinstance(recipe_obj, dict):
-        raise RuntimeError(f"forge_data.json item '{name}' has invalid Recipe")
+        raise ForgeDataError(f"forge_data.json item '{name}' has invalid Recipe")
     if not isinstance(requirements_obj, dict):
-        raise RuntimeError(f"forge_data.json item '{name}' has invalid Requirements")
+        raise ForgeDataError(f"forge_data.json item '{name}' has invalid Requirements")
 
     recipe_map = typing.cast(dict[object, object], recipe_obj)
     requirements_map = typing.cast(dict[object, object], requirements_obj)
@@ -71,20 +75,20 @@ def _coerce_item(raw_item: object, *, name: str) -> ForgeSeedItem:
 
 def _coerce_seed_payload(raw_obj: object) -> ForgeSeedPayload:
     if not isinstance(raw_obj, dict):
-        raise RuntimeError("forge_data.json root must be an object")
+        raise ForgeDataError("forge_data.json root must be an object")
 
     raw_root = typing.cast(dict[object, object], raw_obj)
 
     raw_items_obj = raw_root.get("items")
     if not isinstance(raw_items_obj, dict) or not raw_items_obj:
-        raise RuntimeError("forge_data.json must contain a non-empty 'items' object")
+        raise ForgeDataError("forge_data.json must contain a non-empty 'items' object")
 
     raw_items_map = typing.cast(dict[object, object], raw_items_obj)
 
     items: dict[str, ForgeSeedItem] = {}
     for name_obj, info_obj in raw_items_map.items():
         if not isinstance(name_obj, str):
-            raise RuntimeError("forge_data.json contains invalid item entries")
+            raise ForgeDataError("forge_data.json contains invalid item entries")
         items[name_obj] = _coerce_item(info_obj, name=name_obj)
 
     meta: ForgeSeedMeta = {}
@@ -100,7 +104,7 @@ def _coerce_seed_payload(raw_obj: object) -> ForgeSeedPayload:
 
 def load_forge_items(path: Path, logger: logging.Logger) -> tuple[dict[str, ForgeItemInfo], datetime | None]:
     if not path.exists():
-        raise RuntimeError(f"Missing forge file at {path}")
+        raise ForgeDataError(f"Missing forge file at {path}")
 
     with path.open("r", encoding="utf-8") as file:
         raw_obj: object = json.load(file)

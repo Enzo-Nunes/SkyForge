@@ -47,6 +47,7 @@ async def _broadcast(payload: ResultsPayload) -> None:
         try:
             await ws.send_text(data)
         except Exception:
+            logger.debug("Dropping websocket client after failed send", exc_info=True)
             dead.add(ws)
     _clients.difference_update(dead)
 
@@ -73,7 +74,7 @@ async def websocket_endpoint(ws: WebSocket) -> None:
         while True:
             try:
                 await asyncio.wait_for(ws.receive_text(), timeout=30)
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 await ws.send_text(json.dumps({"ping": True}))
     except WebSocketDisconnect:
         pass

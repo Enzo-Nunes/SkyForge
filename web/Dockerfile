@@ -1,5 +1,5 @@
 # Stage 1: build Vue frontend
-FROM node:25-slim AS frontend-build
+FROM node:26-slim AS frontend-build
 
 WORKDIR /frontend
 COPY VERSION /tmp/VERSION
@@ -9,7 +9,7 @@ COPY web/frontend/ ./
 RUN VITE_APP_VERSION=$(cat /tmp/VERSION) npm run build
 
 # Stage 2: Python backend
-FROM python:3.14-slim-bookworm
+FROM python:3.15-slim-trixie
 
 WORKDIR /app
 

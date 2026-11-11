@@ -2,9 +2,10 @@ import logging
 import os
 import time
 import typing
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
+import requests
 from calc_http import request_with_retry
 from calc_types import DB_API_URL, ForgeProfit
 
@@ -34,12 +35,12 @@ class CalculatorRuntime:
             try:
                 request_with_retry(self._logger, "GET", f"{DB_API_URL}/health", timeout=10, retries=1)
                 return
-            except Exception:
+            except requests.RequestException as e:
                 if attempt < retries - 1:
                     self._logger.info(f"db-api not ready (attempt {attempt + 1}/{retries}), retrying in {delay}s...")
                     time.sleep(delay)
                 else:
-                    raise RuntimeError(f"Could not connect to db-api after {retries} attempts")
+                    raise RuntimeError(f"Could not connect to db-api after {retries} attempts") from e
 
     def wait_for_forge_data(self) -> None:
         while True:
@@ -63,7 +64,7 @@ class CalculatorRuntime:
             headers={"Authorization": f"Bearer {token}"},
             json={
                 "profits": profits,
-                "calculated_at": datetime.now(timezone.utc).isoformat(),
+                "calculated_at": datetime.now(UTC).isoformat(),
                 "coverage_seconds": coverage_seconds,
             },
             timeout=10,

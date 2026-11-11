@@ -1,3 +1,4 @@
+import contextlib
 import logging
 import typing
 from datetime import datetime
@@ -32,10 +33,8 @@ class DBRuntime:
             self._logger.info(f"Loaded {len(items)} forge items from {self._forge_data_path.name}")
             self._logger.info("Database ready.")
         finally:
-            try:
+            with contextlib.suppress(psycopg2.Error):
                 connection.close()
-            except Exception:
-                pass
 
     def _run_db_op(
         self,
@@ -55,10 +54,8 @@ class DBRuntime:
                 self._logger.warning(f"Database connection lost ({e}). Retrying request...")
             finally:
                 if connection is not None:
-                    try:
+                    with contextlib.suppress(psycopg2.Error):
                         connection.close()
-                    except Exception:
-                        pass
 
         raise RuntimeError("Unreachable")
 

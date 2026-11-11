@@ -2,4 +2,3 @@
 
 line-length = 120
 lint.extend-select = ["I"] # Import sorting
-lint.ignore = ["E722"]     # Ignore bare except

@@ -1,7 +1,7 @@
 import logging
 import math
 import typing
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from calc_http import request_with_retry
 from calc_types import DB_API_URL, ForgeProfit, PriceStats
@@ -41,7 +41,7 @@ class ProfitCalculator:
             market_summary = response_json.get("items", {})
             self._logger.info(f"Fetched {len(market_summary)} items from market summary data")
 
-            now_dt = datetime.now(timezone.utc)
+            now_dt = datetime.now(UTC)
 
             # AH volume is extrapolated over the time AH sales were actually watched during the last 7 days,
             # so downtime anywhere in the window (not just at the start) is accounted for.
@@ -90,7 +90,7 @@ class ProfitCalculator:
                 if isinstance(bazaar_oldest_recorded_at_raw, str):
                     bazaar_oldest_dt = datetime.fromisoformat(bazaar_oldest_recorded_at_raw)
                     if bazaar_oldest_dt.tzinfo is None:
-                        bazaar_oldest_dt = bazaar_oldest_dt.replace(tzinfo=timezone.utc)
+                        bazaar_oldest_dt = bazaar_oldest_dt.replace(tzinfo=UTC)
                     bazaar_data_span_seconds_by_item[item_name] = max(
                         1, int((now_dt - bazaar_oldest_dt).total_seconds())
                     )
@@ -109,8 +109,8 @@ class ProfitCalculator:
                 else:
                     ah_weekly_sales[item_name] = volume_quantity
                     ah_volume_estimated[item_name] = False
-        except Exception as e:
-            self._logger.warning(f"Could not fetch AH weekly sales: {e}")
+        except Exception:
+            self._logger.warning("Could not fetch AH weekly sales", exc_info=True)
             ah_weekly_sales = {}
             ah_raw_sales_window = {}
             ah_volume_estimated = {}
@@ -120,15 +120,14 @@ class ProfitCalculator:
         self._logger.info("Starting final profit calculations...")
         items_profit: list[ForgeProfit] = []
 
-        for item_name in forge_info.keys():
-            item_info = forge_info[item_name]
+        for item_name, item_info in forge_info.items():
             duration = item_info["Duration"]
             item_cost = 0
             is_craftable = True
             is_sellable = True
             recipe_markets: dict[str, str] = {}
 
-            for material in item_info["Recipe"].keys():
+            for material in item_info["Recipe"]:
                 material_bazaar_info = bazaar_prices.get(material)
                 if material_bazaar_info:
                     material_price = material_bazaar_info.get("Buy Price", -1)
@@ -162,7 +161,7 @@ class ProfitCalculator:
 
             range_pct_7d: int | None = None
             if median_7d and median_7d > 0 and low_7d is not None and high_7d is not None:
-                range_pct_7d = int(round(((high_7d - low_7d) / median_7d) * 100))
+                range_pct_7d = round(((high_7d - low_7d) / median_7d) * 100)
 
             if item_sell_price < 0:
                 is_sellable = False

@@ -1,6 +1,5 @@
 import logging
 import sys
-import typing
 from pathlib import Path
 
 import db
@@ -24,7 +23,7 @@ logger.propagate = False
 
 
 class AHSalesPayload(BaseModel):
-    sales: typing.List[dict[str, int | str | None]]
+    sales: list[dict[str, int | str | None]]
 
 
 class BazaarSnapshotsPayload(BaseModel):

@@ -4,6 +4,7 @@ import threading
 import time
 import typing
 
+import requests
 from calc_http import request_with_retry
 from calc_types import DB_API_URL
 
@@ -45,10 +46,10 @@ class ForgeItemState:
 class MarketPriceTracker:
     BAZAAR_URL = "https://api.hypixel.net/v2/skyblock/bazaar"
     AUCTION_HOUSE_URL = "https://api.hypixel.net/v2/skyblock/auctions"
-    HEADERS = {
+    HEADERS: typing.ClassVar[dict[str, str]] = {
         "Content-Type": "application/json",
     }
-    NAME_OVERRIDES = {
+    NAME_OVERRIDES: typing.ClassVar[dict[str, str]] = {
         "DRILL_ENGINE": "Drill Motor",
         "FUEL_TANK": "Fuel Canister",
         "GOBLIN_EGG_BLUE": "Blue Goblin Egg",
@@ -57,7 +58,7 @@ class MarketPriceTracker:
         "GOBLIN_EGG_YELLOW": "Yellow Goblin Egg",
         "MATCH_STICKS": "Match-Sticks",
     }
-    SUFFIX_REPLACEMENTS = {
+    SUFFIX_REPLACEMENTS: typing.ClassVar[dict[str, str]] = {
         "_GEM": "_GEMSTONE",
         "_ORE": "",
     }
@@ -89,7 +90,7 @@ class MarketPriceTracker:
                     self._logger, "GET", self.AUCTION_HOUSE_URL, headers=self.HEADERS, params={"page": i}, retries=2
                 )
                 page = page_response.json()
-            except Exception as e:
+            except requests.RequestException as e:
                 self._logger.warning(f"Skipping AH page {i}: {e}")
                 continue
             for auction in page.get("auctions", []):
@@ -190,9 +191,9 @@ class MarketPriceTracker:
 
             qs = bazaar["products"][product]["quick_status"]
             prices[item_name] = {
-                "Buy Price": int(round(qs["buyPrice"])),
-                "Sell Price": int(round(qs["sellPrice"])),
-                "Weekly Volume": int(round(qs["sellMovingWeek"])),
+                "Buy Price": round(qs["buyPrice"]),
+                "Sell Price": round(qs["sellPrice"]),
+                "Weekly Volume": round(qs["sellMovingWeek"]),
             }
 
         self._logger.info("Bazaar processing complete.")
@@ -284,8 +285,8 @@ class AHSalesTracker:
             )
             if sales_events:
                 self._logger.info(f"Recorded {len(sales_events)} AH sales.")
-        except Exception as e:
-            self._logger.warning(f"AH sales poll failed: {e}")
+        except Exception:
+            self._logger.warning("AH sales poll failed", exc_info=True)
 
     def run(self) -> None:
         while True:
@@ -306,10 +307,10 @@ class MarketListingUpdater:
         while True:
             try:
                 self._market.refresh_auction_house_state(self._item_state.get_tracked_items())
-            except Exception as e:
-                self._logger.warning(f"AH listing refresh failed: {e}")
+            except Exception:
+                self._logger.warning("AH listing refresh failed", exc_info=True)
             try:
                 self._market.refresh_bazaar_snapshots(self._item_state.get_sellable_items())
-            except Exception as e:
-                self._logger.warning(f"Bazaar snapshot refresh failed: {e}")
+            except Exception:
+                self._logger.warning("Bazaar snapshot refresh failed", exc_info=True)
             time.sleep(self._poll_interval)
