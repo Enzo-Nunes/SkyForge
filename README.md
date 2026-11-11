@@ -1,5 +1,10 @@
 # SkyForge
 
+[![AI:W WRITE](https://img.shields.io/badge/AI-WRITE-grey?style=flat&logoSize=auto&labelColor=13171f)](https://0rwx.com)
+
+> [!NOTE]
+> **AI disclosure ([AI:W](https://0rwx.com)):** some changes to SkyForge, mostly bug fixes, are written with Claude Code. I direct that work and read and review every change before it is merged.
+
 `SkyForge` is an open-source project for `Hypixel Skyblock` players interested in making profit through `The Forge` in the `Dwarven Mines`.
 
 It loads item recipes and unlock requirements from a versioned JSON dataset and live market prices from the [Official Hypixel API](https://api.hypixel.net), then ranks every craftable forge item by profit per hour based on current `Bazaar` and `Auction House` prices. Results are displayed in a browser UI that updates live as new data arrives.
