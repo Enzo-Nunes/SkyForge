@@ -69,6 +69,20 @@ The website has three tabs:
 
 Interested in contributing? See [CONTRIBUTING.md](CONTRIBUTING.md) for setup instructions and guidelines.
 
+## AI Disclosure
+
+<!-- markdownlint-disable MD033 -->
+<a href="https://0rwx.com">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://0rwx.com/static/AI-W-dark.svg">
+    <img src="https://0rwx.com/static/AI-W-light.svg" alt="AI:W" width="48" align="left">
+  </picture>
+</a>
+
+**AI:W - AI collaboration.** AI tools have read and write access to this codebase and help write code, but every change is reviewed by a human before it is merged. This disclosure follows the [0rwx](https://0rwx.com) standard.
+<br clear="left">
+<!-- markdownlint-enable MD033 -->
+
 ## Disclaimer
 
 This project is neither endorsed by nor affiliated with Hypixel. Use it at your own discretion.
